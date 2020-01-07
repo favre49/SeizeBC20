@@ -9,8 +9,23 @@ import battlecode.common.*;
  */
 public strictfp class HQBot
 {
-    public static void run(RobotController rc)
+    private static Direction[] directions = Direction.allDirections();
+    private static RobotController rc = null;
+
+    public static void run(RobotController rc) throws GameActionException
     {
-        
+        HQBot.rc = rc;
+
+        for (Direction dir : directions)
+            tryBuild(RobotType.MINER, dir);
+    }
+
+    static boolean tryBuild(RobotType type, Direction dir) throws GameActionException {
+        if (rc.isReady() && rc.canBuildRobot(type, dir)) 
+        {
+            rc.buildRobot(type, dir);
+            return true;
+        } 
+        else return false;
     }
 }
