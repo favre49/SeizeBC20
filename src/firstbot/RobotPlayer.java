@@ -1,10 +1,7 @@
 package firstbot;
 import battlecode.common.*;
 
-public strictfp class RobotPlayer {
-    static RobotController rc;
-
-    static int turnCount;
+public strictfp class RobotPlayer extends Globals{
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -12,18 +9,14 @@ public strictfp class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
-
-        // This is the RobotController object. You use it to perform actions from this robot,
-        // and to get information on its current status.
-        RobotPlayer.rc = rc;
-
-        turnCount = 0;
+        Globals.init(rc);
 
         System.out.println("I'm a " + rc.getType() + " and I just got created!");
         while (true) {
-            turnCount += 1;
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
+                Globals.update();
+                
                 // Here, we've separated the controls into a different method for each RobotType.
                 // You can add the missing ones or rewrite this into your own control structure.
                 System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
@@ -38,6 +31,7 @@ public strictfp class RobotPlayer {
                     case DELIVERY_DRONE:     DroneBot.run(rc);             break;
                     case NET_GUN:            NetGunBot.run(rc);            break;
                 }
+
 
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
                 Clock.yield();
