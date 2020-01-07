@@ -7,15 +7,10 @@ import battlecode.common.*;
  * Produces: Miners
  * Has a built in gun and refinery.
  */
-public strictfp class HQBot
+public strictfp class HQBot extends Globals
 {
-    private static Direction[] directions = Direction.allDirections();
-    private static RobotController rc = null;
-
     public static void run(RobotController rc) throws GameActionException
     {
-        HQBot.rc = rc;
-
         for (Direction dir : directions)
             tryBuild(RobotType.MINER, dir);
     }
@@ -25,7 +20,7 @@ public strictfp class HQBot
         {
             rc.buildRobot(type, dir);
             return true;
-        } 
+        }
         else return false;
     }
 }
