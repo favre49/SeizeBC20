@@ -1,6 +1,16 @@
 package firstbot;
 import battlecode.common.*;
 
+/**
+ * Built by: MIners
+ * Cost: 200
+ * Health: 15
+ * Sensor Radius: 24
+ * Produces: Soup
+ *
+ * Dirty energy. Creates pollution. Also every turn it refines it creates
+ * a pollution effect that lasts a turn.
+ */
 public strictfp class RefineryBot extends AbstractBot
 {
     public static void run(RobotController rc)
