@@ -10,7 +10,7 @@ import battlecode.common.*;
  * Mines 7 soup a turn, can hold a maximum of 10
  */
 
-public strictfp class MinerBot extends AbstractBot
+public strictfp class MinerBot
 {
     public static void run(RobotController rc)
     {

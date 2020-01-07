@@ -9,7 +9,7 @@ import battlecode.common.*;
  * 
  * Can store a maximum of 25 dirt.
  */
-public strictfp class LandscaperBot extends AbstractBot
+public strictfp class LandscaperBot
 {
     public static void run(RobotController rc)
     {

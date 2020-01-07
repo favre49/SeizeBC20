@@ -8,7 +8,7 @@ import battlecode.common.*;
  * Sensor radius: 24
  * Produces: Landscapers
  */
-public strictfp class DesignSchoolBot extends AbstractBot
+public strictfp class DesignSchoolBot
 {
     public static void run(RobotController rc)
     {

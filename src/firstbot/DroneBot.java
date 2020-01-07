@@ -9,7 +9,7 @@ import battlecode.common.*;
  *
  * Can shoot and also pick up units.
  */
-public strictfp class DroneBot extends AbstractBot
+public strictfp class DroneBot
 {
     public static void run(RobotController rc)
     {

@@ -8,7 +8,7 @@ import battlecode.common.*;
  * Sensor radius: 24
  * Produces: Drones
  */
-public strictfp class FulfillmentCenterBot extends AbstractBot
+public strictfp class FulfillmentCenterBot
 {
     public static void run(RobotController rc)
     {

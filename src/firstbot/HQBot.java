@@ -7,7 +7,7 @@ import battlecode.common.*;
  * Produces: Miners
  * Has a built in gun and refinery.
  */
-public strictfp class HQBot extends AbstractBot
+public strictfp class HQBot
 {
     public static void run(RobotController rc)
     {
