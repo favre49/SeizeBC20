@@ -13,6 +13,6 @@ public strictfp class LandscaperBot
 {
     public static void run(RobotController rc)
     {
-        
+    	        
     }
 }
