@@ -11,8 +11,19 @@ import battlecode.common.*;
  */
 public strictfp class LandscaperBot
 {
+
     public static void run(RobotController rc)
     {
-    	        
+    	//read the first message
+    	//find out the location of the hq
+    	//find out if there are four landscapers near the HQ
+    	//assuming there are less than four landscapers.
+    	//move to ring of HQ
+    	fortifyBase();
     }
+
+    static void fortifyBase(){
+    	
+    }
+
 }
