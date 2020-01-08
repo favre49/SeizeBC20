@@ -12,7 +12,7 @@ public strictfp class DesignSchoolBot extends Globals
 {
     public static void run(RobotController rc)
     {
-        
+		        
     }
     
 }
