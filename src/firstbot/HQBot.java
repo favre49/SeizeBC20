@@ -39,10 +39,6 @@ public strictfp class HQBot extends Globals
      			numberOfMinerCreated++;
      		}
      	}
-     	
-
-
-
 
     }
 

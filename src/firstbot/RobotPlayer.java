@@ -11,7 +11,6 @@ public strictfp class RobotPlayer extends Globals{
     public static void run(RobotController rc) throws GameActionException {
         Globals.init(rc);
 
-        System.out.println("I'm a " + rc.getType() + " and I just got created!");
         while (true) {
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
@@ -19,7 +18,7 @@ public strictfp class RobotPlayer extends Globals{
                 
                 // Here, we've separated the controls into a different method for each RobotType.
                 // You can add the missing ones or rewrite this into your own control structure.
-                System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
+                // System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
                 switch (rc.getType()) {
                     case HQ:                 HQBot.run(rc);                break;
                     case MINER:              MinerBot.run(rc);             break;
