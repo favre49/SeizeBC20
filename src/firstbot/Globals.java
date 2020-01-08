@@ -18,16 +18,18 @@ public class Globals
     public static float baseCooldown;
     public static int health;
 
-    public class RobotLocation{
-        public RobotController rc;
+    static class RobotLocation{
+        public RobotType rt;
         public MapLocation loc;
 
-        public RobotLocation(RobotController rc, MapLocation loc){
-            this.rc = rc;
+        public RobotLocation(RobotType rt, MapLocation loc){
+            this.rt = rt;
             this.loc = loc;
         }
-        
+
     }
+
+    // public static RobotLocation aRobotLocation;
 
     public static int baseID;
     public static MapLocation baseLoc;
