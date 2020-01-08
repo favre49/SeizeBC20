@@ -32,8 +32,14 @@ public strictfp class HQBot
      			numberOfMinerCreated++;
      		}
      	}
-     	if 
 
+     	//if not mining any resources , build more miners
+
+     	if(rc.getRoundNum() > 100 && rc.getRoundNum()/70 >= numberOfMinerCreated-3){
+     		if(buildMiner()){
+     			numberOfMinerCreated++;
+     		}
+     	}
 
     }
 

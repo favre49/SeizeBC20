@@ -12,12 +12,18 @@ import battlecode.common.*;
 
 public strictfp class MinerBot extends Globals
 {
+    private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
+
     public static void run(RobotController rc) throws GameActionException
     {
         System.out.println(currentPos);
+        FastMath.initRand(rc);
 
-        navigate(new MapLocation(20,20));
+        explore();
     }
+
+
+    /******* NAVIGATION *************/
 
     // Bug nav related stuff
     private static MapLocation bugDest = new MapLocation(0,0);
@@ -26,7 +32,7 @@ public strictfp class MinerBot extends Globals
 	private static int closestDistWhileBugging = Integer.MAX_VALUE;	
 	private static int bugNumTurnsWithNoWall = 0;
 	private static boolean bugWallOnLeft = true; // whether the wall is on our left or our right
-    private static boolean[][] bugVisitedLocations = new boolean[64][64];
+    private static boolean[][] bugVisitedLocations;
 
     // Use Bug Navigation to navigate.
     public static void navigate(MapLocation dest) throws GameActionException
@@ -41,7 +47,7 @@ public strictfp class MinerBot extends Globals
 
         Direction nextDir = currentPos.directionTo(dest);
         // If we can move in the best direction, let's not bother bugging.
-        if (!bugTracing && rc.canMove(nextDir))
+        if (!bugTracing && rc.canMove(nextDir) && !rc.senseFlooding(currentPos.add(nextDir)))
         {
             rc.move(nextDir);
             return;
@@ -49,13 +55,14 @@ public strictfp class MinerBot extends Globals
         else if(!bugTracing)
         {
             bugTracing = true;
+            bugVisitedLocations = new boolean[mapWidth][mapHeight];
             closestDistWhileBugging = currentPos.distanceSquaredTo(dest);
             Direction dirToDest = currentPos.directionTo(bugDest);
 		    Direction leftDir = dirToDest;
             int leftDistSq = Integer.MAX_VALUE;
             for (int i = 0; i < 8; ++i) {
                 leftDir = leftDir.rotateLeft();
-                if (rc.canMove(leftDir)) {
+                if (rc.canMove(leftDir) && !rc.senseFlooding(currentPos.add(leftDir))) {
                     leftDistSq = currentPos.add(leftDir).distanceSquaredTo(bugDest);
                     break;
                 }
@@ -64,7 +71,7 @@ public strictfp class MinerBot extends Globals
             int rightDistSq = Integer.MAX_VALUE;
             for (int i = 0; i < 8; ++i) {
                 rightDir = rightDir.rotateRight();
-                if (rc.canMove(rightDir)) {
+                if (rc.canMove(rightDir) && !rc.senseFlooding(currentPos.add(rightDir))) {
                     rightDistSq = currentPos.add(rightDir).distanceSquaredTo(bugDest);
                     break;
                 }
@@ -103,8 +110,8 @@ public strictfp class MinerBot extends Globals
     static void bugTraceMove(boolean recursed) throws GameActionException
     {
 		Direction tryDir = currentPos.directionTo(bugLastWall);
-		bugVisitedLocations[currentPos.x % 64][currentPos.y % 64] = true;
-		if (rc.canMove(tryDir))
+		bugVisitedLocations[currentPos.x % mapWidth][currentPos.y % mapHeight] = true;
+		if (rc.canMove(tryDir) && !rc.senseFlooding(currentPos.add(tryDir)))
         {
 			bugNumTurnsWithNoWall += 1;
 		}
@@ -130,11 +137,11 @@ public strictfp class MinerBot extends Globals
 				bugTraceMove(true);
 				return;
 			}
-			if (rc.canMove(tryDir))
+			if (rc.canMove(tryDir) && !rc.senseFlooding(currentPos.add(tryDir)))
             {
 				rc.move(tryDir);
 				currentPos = rc.getLocation(); // we just moved
-				if (bugVisitedLocations[currentPos.x % 64][currentPos.y % 64]) {
+				if (bugVisitedLocations[currentPos.x % mapWidth][currentPos.y % mapHeight]) {
 					bugTracing = false;
 				}
 				return;
@@ -145,4 +152,91 @@ public strictfp class MinerBot extends Globals
 			}
 		}
 	}
+
+    /******* END NAVIGATION *******/
+
+    private static boolean isExploring = true;
+    private static MapLocation exploreDest;
+    private static int stepSize = 8; // Picking a hardcodes step size for now.
+
+    private static void explore() throws GameActionException
+    {
+        if (!isExploring) return;
+
+        if (exploreDest == null)
+        {
+            exploreDest = currentPos;
+            pickNewExploreDest();
+        }
+        System.out.println(exploreDest);
+        
+        if (rc.canSenseLocation(exploreDest) && rc.senseFlooding(exploreDest))
+        {
+            exploredGrid[exploreDest.x][exploreDest.y] = true;
+            exploreDest = currentPos;
+        }
+        
+        if (currentPos.equals(exploreDest))
+        {
+            exploredGrid[exploreDest.x][exploreDest.y] = true;
+            int r = FastMath.floorSqrt(sensorRadiusSquared);
+
+            if (rc.senseSoup(currentPos)>0)
+                System.out.println("I found soup at" + currentPos);
+            
+            for (int x = 1; x <= r; x++)
+            {
+                int ySquare = r*r - x*x;
+                int y = FastMath.floorSqrt(ySquare);
+                if (y*y == ySquare)
+                {
+                    MapLocation checkingPos = currentPos.translate(x,y);
+                    if (rc.onTheMap(checkingPos))
+                    {
+                        exploredGrid[checkingPos.x][checkingPos.y] = true;
+                        if (rc.senseSoup(checkingPos)>0)
+                            System.out.println("I found soup at" + checkingPos);
+                    }
+                    
+                    checkingPos = currentPos.translate(x,-y);
+                    if (rc.onTheMap(checkingPos))
+                    {
+                        exploredGrid[checkingPos.x][checkingPos.y] = true;
+                        if (rc.senseSoup(checkingPos)>0)
+                            System.out.println("I found soup at" + checkingPos);
+                    }
+                    
+                    checkingPos = currentPos.translate(-x,y);
+                    if (rc.onTheMap(checkingPos))
+                    {
+                        exploredGrid[checkingPos.x][checkingPos.y] = true;
+                        if (rc.senseSoup(checkingPos)>0)
+                            System.out.println("I found soup at" + checkingPos);
+                    }
+                    
+                    checkingPos = currentPos.translate(-x,-y);
+                    if (rc.onTheMap(checkingPos))
+                    {
+                        exploredGrid[checkingPos.x][checkingPos.y] = true;
+                        if (rc.senseSoup(checkingPos)>0)
+                            System.out.println("I found soup at" + checkingPos);
+                    }            
+                }
+            }
+            pickNewExploreDest();
+        }
+        else
+            navigate(exploreDest);
+    }
+
+    private static void pickNewExploreDest() throws GameActionException 
+    {
+        // Check if do whhile is a bad way to do this.
+        do
+        {
+            Direction dir = directions[FastMath.rand256()%8];
+            exploreDest = exploreDest.translate(dir.dx*stepSize, dir.dy*stepSize);
+        }
+        while(!inBounds(exploreDest) ||exploredGrid[exploreDest.x][exploreDest.y]);
+    }
 }
