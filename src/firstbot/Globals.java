@@ -18,6 +18,17 @@ public class Globals
     public static float baseCooldown;
     public static int health;
 
+    public class RobotLocation{
+        public RobotController rc;
+        public MapLocation loc;
+
+        public RobotLocation(RobotController rc, MapLocation loc){
+            this.rc = rc;
+            this.loc = loc;
+        }
+        
+    }
+
     public static int baseID;
     public static MapLocation baseLoc;
     //TODO add base location and base id
