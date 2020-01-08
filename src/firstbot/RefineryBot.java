@@ -11,7 +11,7 @@ import battlecode.common.*;
  * Dirty energy. Creates pollution. Also every turn it refines it creates
  * a pollution effect that lasts a turn.
  */
-public strictfp class RefineryBot
+public strictfp class RefineryBot extends Globals
 {
     public static void run(RobotController rc)
     {

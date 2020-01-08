@@ -10,19 +10,11 @@ import battlecode.common.*;
  * Mines 7 soup a turn, can hold a maximum of 10
  */
 
-public strictfp class MinerBot
+public strictfp class MinerBot extends Globals
 {
-    private static Direction[] directions = Direction.allDirections();
-    private static RobotController rc = null;
-    private static MapLocation source;
-
     public static void run(RobotController rc) throws GameActionException
     {
-        MinerBot.rc = rc;
-
-        source = rc.getLocation();
-
-        System.out.println(source);
+        System.out.println(currentPos);
 
         navigate(new MapLocation(20,20));
     }
@@ -44,10 +36,10 @@ public strictfp class MinerBot
 			bugTracing = false;
 		}
 
-        if (dest.equals(source))
+        if (dest.equals(currentPos))
             return;
 
-        Direction nextDir = source.directionTo(dest);
+        Direction nextDir = currentPos.directionTo(dest);
         // If we can move in the best direction, let's not bother bugging.
         if (!bugTracing && rc.canMove(nextDir))
         {
@@ -57,14 +49,14 @@ public strictfp class MinerBot
         else if(!bugTracing)
         {
             bugTracing = true;
-            closestDistWhileBugging = source.distanceSquaredTo(dest);
-            Direction dirToDest = source.directionTo(bugDest);
+            closestDistWhileBugging = currentPos.distanceSquaredTo(dest);
+            Direction dirToDest = currentPos.directionTo(bugDest);
 		    Direction leftDir = dirToDest;
             int leftDistSq = Integer.MAX_VALUE;
             for (int i = 0; i < 8; ++i) {
                 leftDir = leftDir.rotateLeft();
                 if (rc.canMove(leftDir)) {
-                    leftDistSq = source.add(leftDir).distanceSquaredTo(bugDest);
+                    leftDistSq = currentPos.add(leftDir).distanceSquaredTo(bugDest);
                     break;
                 }
             }
@@ -73,26 +65,26 @@ public strictfp class MinerBot
             for (int i = 0; i < 8; ++i) {
                 rightDir = rightDir.rotateRight();
                 if (rc.canMove(rightDir)) {
-                    rightDistSq = source.add(rightDir).distanceSquaredTo(bugDest);
+                    rightDistSq = currentPos.add(rightDir).distanceSquaredTo(bugDest);
                     break;
                 }
             }
             if (rightDistSq < leftDistSq)
             {
                 bugWallOnLeft = true;
-                bugLastWall = source.add(rightDir.rotateLeft());
+                bugLastWall = currentPos.add(rightDir.rotateLeft());
             }
             else
             {
                 bugWallOnLeft = false;
-                bugLastWall = source.add(leftDir.rotateRight());
+                bugLastWall = currentPos.add(leftDir.rotateRight());
             }
         }
         else
         {
-			if (source.distanceSquaredTo(bugDest) < closestDistWhileBugging)
+			if (currentPos.distanceSquaredTo(bugDest) < closestDistWhileBugging)
             {
-				if (rc.canMove(source.directionTo(bugDest)))
+				if (rc.canMove(currentPos.directionTo(bugDest)))
                 {
 					bugTracing = false;
 					return;
@@ -110,8 +102,8 @@ public strictfp class MinerBot
 
     static void bugTraceMove(boolean recursed) throws GameActionException
     {
-		Direction tryDir = source.directionTo(bugLastWall);
-		bugVisitedLocations[source.x % 64][source.y % 64] = true;
+		Direction tryDir = currentPos.directionTo(bugLastWall);
+		bugVisitedLocations[currentPos.x % 64][currentPos.y % 64] = true;
 		if (rc.canMove(tryDir))
         {
 			bugNumTurnsWithNoWall += 1;
@@ -130,7 +122,7 @@ public strictfp class MinerBot
             {
 				tryDir = tryDir.rotateLeft();
 			}
-			MapLocation dirLoc = source.add(tryDir);
+			MapLocation dirLoc = currentPos.add(tryDir);
 			if (!rc.onTheMap(dirLoc) && !recursed)
             {
 				// If we hit the edge of the map, reverse direction and recurse
@@ -141,15 +133,15 @@ public strictfp class MinerBot
 			if (rc.canMove(tryDir))
             {
 				rc.move(tryDir);
-				source = rc.getLocation(); // we just moved
-				if (bugVisitedLocations[source.x % 64][source.y % 64]) {
+				currentPos = rc.getLocation(); // we just moved
+				if (bugVisitedLocations[currentPos.x % 64][currentPos.y % 64]) {
 					bugTracing = false;
 				}
 				return;
 			}
             else
             {
-				bugLastWall = source.add(tryDir);
+				bugLastWall = currentPos.add(tryDir);
 			}
 		}
 	}

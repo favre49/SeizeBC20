@@ -10,7 +10,7 @@ import battlecode.common.*;
  *
  * Clean energy, actually removes pollution.
  */
-public strictfp class VaporatorBot
+public strictfp class VaporatorBot extends Globals
 {
     public static void run(RobotController rc)
     {

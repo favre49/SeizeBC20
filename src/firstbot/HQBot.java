@@ -26,23 +26,15 @@ public strictfp class HQBot
      	//3. wall ourselves in.
 		HQBot.rc = rc;     	
      	//get messages
-
-     	//if round count is zero broadcast the location of the HQ
-
-     	
      	transaction = rc.getBlock(rc.getRoundNum());
      	if(numberOfMinerCreated < 3){
-     		if(buildMiner()){
+     		if(buildUnit()){
      			numberOfMinerCreated++;
      		}
      	}
-     	//if not mining any resources , build more miners jfb miners
+     	if 
 
-     	if(rc.getRoundNum() > 100 && rc.getRoundNum()/70 >= numberOfMinerCreated-3){
-     		if(buildMiner()){
-     			numberOfMinerCreated++;
-     		}
-     	}
+
     }
 
     static Boolean buildMiner() throws GameActionException

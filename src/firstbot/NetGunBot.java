@@ -9,7 +9,7 @@ import battlecode.common.*;
  *
  * Destroys drones in a 15 attack radius!
  */
-public strictfp class NetGunBot
+public strictfp class NetGunBot extends Globals
 {
     public static void run(RobotController rc)
     {
