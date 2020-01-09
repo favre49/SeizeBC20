@@ -18,90 +18,43 @@ public strictfp class MinerBot extends Globals
 
     private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
     private static MapLocation refineryLocation;
+    private static MapLocation HQLocation = new MapLocation(10,10);
     private static int numRefineries = 0;
-    private static boolean setRefineryLoc = false;
 
     public static void run(RobotController rc) throws GameActionException
     {
         // Seed random number generator.
         FastMath.initRand(rc);
 
-        // MAKE BETTER, IT'S REALLY BAD
-        if (!isExploring && rc.getTeamSoup() >= 200)
-        {
-            if (!setRefineryLoc)
-            {
-                Direction dir = Direction.NORTH;
-                switch(dir)
-                {
-                    case NORTH:
-                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
-                    if (inBounds(refineryLocation)) break;
-                    dir = Direction.NORTHWEST;
-
-                    case NORTHWEST:
-                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
-                    if (inBounds(refineryLocation)) break;
-                    dir = Direction.WEST;
-
-                    case WEST:
-                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
-                    if (inBounds(refineryLocation)) break;
-                    dir = Direction.SOUTHWEST;
-
-                    case SOUTHWEST:
-                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
-                    if (inBounds(refineryLocation)) break;
-                    dir = Direction.SOUTH;
-
-                    case SOUTH:
-                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
-                    if (inBounds(refineryLocation)) break;
-                    dir = Direction.SOUTHEAST;
-
-                    case SOUTHEAST:
-                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
-                    if (inBounds(refineryLocation)) break;
-                    dir = Direction.EAST;
-
-                    case EAST:
-                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
-                    if (inBounds(refineryLocation)) break;
-                    dir = Direction.NORTHEAST;
-                }
-                setRefineryLoc = true;
-            }
-
-            if (currentPos.distanceSquaredTo(refineryLocation) < sensorRadiusSquared)
-            {
-                if (rc.senseFlooding(refineryLocation) || rc.isLocationOccupied(refineryLocation))
-                {
-                    do
-                    {
-                        refineryLocation = refineryLocation.add(directions[FastMath.rand256()%8]);
-                    }
-                    while (rc.senseFlooding(refineryLocation) || rc.isLocationOccupied(refineryLocation));
-                }
-            }
-
-            if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
-                buildRefinery();
-            else
-                navigate(refineryLocation);
-        }
-
-        if (!isExploring && rc.getSoupCarrying() == 100)
-        {
-            if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
-                rc.depositSoup(currentPos.directionTo(refineryLocation), rc.getSoupCarrying());
-            else
-                navigate(refineryLocation);
-        }
-
         if (isExploring)
             explore();
+        else if(rc.getTeamSoup() >= 200 && numRefineries == 0) // Build a refinery if we have enough.
+        {
+            if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
+                refineryLocation = buildRefinery();
+            else
+                navigate(refineryLocation);
+        }
+        else if (rc.getSoupCarrying() == 100) // Refine if we have enough.
+        {
+            if (numRefineries == 0)
+            {
+                if (currentPos.distanceSquaredTo(HQLocation) <= 2)
+                    rc.depositSoup(currentPos.directionTo(HQLocation), rc.getSoupCarrying());
+                else
+                    navigate(HQLocation);
+            }
+            else
+            {
+                if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
+                    rc.depositSoup(currentPos.directionTo(refineryLocation), rc.getSoupCarrying());
+                else
+                    navigate(refineryLocation);
+            }    
+        }
         else  // Now we found the soup location. Let's go there and mine!
         {
+            System.out.println(soupLocation);
             // If we are nearby, we should start looking for soup.
             if (currentPos.distanceSquaredTo(soupLocation) < NEAR_SOUP)
             {
@@ -113,7 +66,7 @@ public strictfp class MinerBot extends Globals
                 }
                 else if(currentPos.distanceSquaredTo(loc) <= 2)
                 {
-                    loc = soupLocation;
+                    soupLocation = loc;
                     rc.mineSoup(currentPos.directionTo(loc));
                 }
                 else
@@ -281,7 +234,7 @@ public strictfp class MinerBot extends Globals
         if (currentPos.equals(exploreDest))
         {
             exploredGrid[exploreDest.x][exploreDest.y] = true;
-            int r = FastMath.floorSqrt(sensorRadiusSquared);
+            int r = (int)Math.sqrt(sensorRadiusSquared);
 
             if (rc.senseSoup(currentPos) > 0)
             {
@@ -290,16 +243,15 @@ public strictfp class MinerBot extends Globals
                 return;
             }
 
-            // FIX SOUP FINDING.
+            // Uses tons of bytecodes i think.
             System.out.println(r);
-            for (int x = 0; x <= r; x++)
+            outerloop:
+            for (int x = -r; x <= r; x++)
             {
-                int ySquare = r*r - x*x;
-                int yLim = FastMath.floorSqrt(ySquare);
-                for (int y = 0; y <= yLim; y++)
+                int maxY = (int)Math.sqrt(r*r-x*x);
+                for (int y = -maxY; y <= maxY; y++)
                 {
                     MapLocation checkingPos = currentPos.translate(x,y);
-                    System.out.println("Checking " + checkingPos);
                     if (inBounds(checkingPos))
                     {
                         exploredGrid[checkingPos.x][checkingPos.y] = true;
@@ -307,53 +259,15 @@ public strictfp class MinerBot extends Globals
                         {
                             soupLocation = checkingPos;
                             isExploring = false;
-                            break;
+                            refineryLocation = currentPos;
+                            
+                            break outerloop;
                         }
                     }
-                    
-                    checkingPos = currentPos.translate(x,-y);
-                    System.out.println("Checking " + checkingPos);
-                    
-                    if (inBounds(checkingPos))
-                    {
-                        exploredGrid[checkingPos.x][checkingPos.y] = true;
-                        if (rc.senseSoup(checkingPos) > 0)
-                        {
-                            soupLocation = checkingPos;
-                            isExploring = false;
-                            break;
-                        }
-                    }
-                    
-                    checkingPos = currentPos.translate(-x,y);
-                    System.out.println("Checking " + checkingPos);
-                    
-                    if (inBounds(checkingPos))
-                    {
-                        exploredGrid[checkingPos.x][checkingPos.y] = true;
-                        if (rc.senseSoup(checkingPos) > 0)
-                        {
-                            soupLocation = checkingPos;
-                            isExploring = false;
-                            break;
-                        }
-                    }
-                    
-                    checkingPos = currentPos.translate(-x,-y);
-                    System.out.println("Checking " + checkingPos);
-                    if (inBounds(checkingPos))
-                    {
-                        exploredGrid[checkingPos.x][checkingPos.y] = true;
-                        if (rc.senseSoup(checkingPos) > 0)
-                        {
-                            soupLocation = checkingPos;
-                            isExploring = false;
-                            break;
-                        }
-                    }            
                 }
             }
             pickNewExploreDest();
+            navigate(exploreDest);
         }
         else
             navigate(exploreDest);
@@ -377,42 +291,19 @@ public strictfp class MinerBot extends Globals
         if (rc.senseSoup(currentPos)>0)
             return currentPos;
 
-        int r = FastMath.floorSqrt(sensorRadiusSquared);
-        for (int x = 1; x <= r; x++)
+        int r = (int)Math.sqrt(sensorRadiusSquared);
+        for (int x = -r; x <= r; x++)
         {
-            int ySquare = r*r - x*x;
-            int y = FastMath.floorSqrt(ySquare);
-            if (y*y == ySquare)
+            int maxY = (int)Math.sqrt(r*r-x*x);
+            for (int y = -maxY; y <= maxY; y++)
             {
                 MapLocation checkingPos = currentPos.translate(x,y);
                 if (inBounds(checkingPos))
                 {
-                    if (rc.senseSoup(checkingPos)>0 && !rc.isLocationOccupied(checkingPos))
+                    if (rc.senseSoup(checkingPos) > 0)
                         return checkingPos;
                 }
-
-                checkingPos = currentPos.translate(x,-y);
-                if (inBounds(checkingPos))
-                {
-                    if (rc.senseSoup(checkingPos)>0 && !rc.isLocationOccupied(checkingPos))
-                        return checkingPos;
-                }
-
-                checkingPos = currentPos.translate(-x,y);
-                if (inBounds(checkingPos))
-                {
-                    if (rc.senseSoup(checkingPos)>0 && !rc.isLocationOccupied(checkingPos))
-                        return checkingPos;
-                }
-
-                checkingPos = currentPos.translate(-x,-y);
-                if (inBounds(checkingPos))
-                {
-                    if (rc.senseSoup(checkingPos)>0 && !rc.isLocationOccupied(checkingPos))
-                        return checkingPos;
-                }            
             }
-
         }
         return null;
     }
@@ -428,6 +319,8 @@ public strictfp class MinerBot extends Globals
     			break;
     		}
     	}
+        if (i!=8)
+            numRefineries++;
         return currentPos.add(directions[i]);
     }
 

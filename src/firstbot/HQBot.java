@@ -7,36 +7,29 @@ import battlecode.common.*;
  * Produces: Miners
  * Has a built in gun and refinery.
  */
-public strictfp class HQBot
+public strictfp class HQBot extends Globals
 {	
-
-    static Direction[] directions = {Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST, Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST};
-    
-    static int numberOfMinerCreated = 0;
 
     public static void run(RobotController rc) throws GameActionException
     {
-     	//strategy 
-     	//1. build miners .. 
-     	//2. miners build refineries and communicate for more miners
-     	//3. wall ourselves in.
-		Globals.rc = rc;     	
-     	//get messages
-     	transaction = rc.getBlock(rc.getRoundNum());
-     	if(numberOfMinerCreated < 3){
-     		if(buildUnit()){
-     			numberOfMinerCreated++;
-     		}
-     	}
+		/*The following code makes the HQ broadcast it's own location*/
+		if(Globals.roundNum==1){
+			int initialArr[] = new int[12];
+			initialArr[0] = getCommsNum(Globals.myType,Globals.currentPos);
+			sendComs(arr,0);
 
-     	//if not mining any resources , build more miners
+			/*To read this, the code is as follows:
+				int newarr[][]=getComms(2);
+				for(int i=0;i<newarr.length;i++){
+					//this loop iterates over all messages of round 2 (since we don't know which one is ours)
+					//if it's an enemy message, the output will be COW at (0,0)
+					getLocationFromInt(newarr[i][0]).rt //RobotType HQ
+					getLocationFromInt(newarr[i][0]).loc.x //integer HQ x position
+					getLocationFromInt(newarr[i][0]).loc.y //integer HQ y position
+				}
+			*/
 
-     	if(rc.getRoundNum() > 100 && rc.getRoundNum()/70 >= numberOfMinerCreated-3){
-     		if(buildMiner()){
-     			numberOfMinerCreated++;
-     		}
-     	}
-
+   		}
     }
 
     static Boolean buildMiner() throws GameActionException
