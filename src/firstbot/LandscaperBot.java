@@ -11,7 +11,6 @@ import battlecode.common.*;
  */
 public strictfp class LandscaperBot extends Globals
 {
-
     public static Direction dumpingTo = Direction.NORTH;
     public static boolean dumping = false;
 
@@ -28,7 +27,6 @@ public strictfp class LandscaperBot extends Globals
     {
 		short x[] = {-1, 0, 1, 1, 1, 0, -1, -1};
 	    short y[] = {-1, -1, -1, 0, 1, 1, 1, 0};
-	    Direction directions[] = {Direction.SOUTHWEST, Direction.SOUTH, Direction.SOUTHEAST, Direction.EAST, Direction.NORTHEAST, Direction.NORTH, Direction.NORTHWEST, Direction.WEST};
     	if(dumping){
     		if(rc.getDirtCarrying() > 0){
     			Globals.rc.depositDirt(dumpingTo);
