@@ -38,7 +38,7 @@ public strictfp class HQBot extends Globals
 				for(int j=0;j<commsArr[i].length;j++){
 	                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
 
-	                if(currLocation.rt == ObjectType.REFINERY || currLocation.rt == ObjectType.SOUP){
+	                if(currLocation.rt == ObjectType.TO_BE_REFINERY || currLocation.rt == ObjectType.REFINERY || currLocation.rt == ObjectType.SOUP){
 	                	boolean alreadyIn = false;
 	                	for(int k=0;k<objectArraySize;k++){
 	                		if(currLocation.equals(objectArray[k])){
