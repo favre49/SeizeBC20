@@ -13,18 +13,53 @@ public class Globals
     public static Team opponent;
     public static int myID;
     public static RobotType myType;
+
     public static int cost;
     public static int sensorRadiusSquared;
     public static float baseCooldown;
     public static int health;
 
-    static class RobotLocation{
-        public RobotType rt;
-        public MapLocation loc;
+    enum ObjectType{
+        COW,DELIVERY_DRONE,DESIGN_SCHOOL,FULFILLMENT_CENTER,HQ,LANDSCAPER,MINER,NET_GUN,REFINERY,VAPORATOR,SOUP,WATER;
+    }
 
-        public RobotLocation(RobotType rt, MapLocation loc){
-            this.rt = rt;
-            this.loc = loc;
+    public static ObjectType myObjectType;
+
+    public static void updateObjectType(){
+        switch(myType){
+            case COW:
+                myObjectType=ObjectType.COW;
+                break;
+            case DELIVERY_DRONE:
+                myObjectType=ObjectType.DELIVERY_DRONE;
+                break;
+            case DESIGN_SCHOOL:
+                myObjectType=ObjectType.DESIGN_SCHOOL;
+                break;
+            case FULFILLMENT_CENTER:
+                myObjectType=ObjectType.FULFILLMENT_CENTER;
+                break;
+            case HQ:
+                myObjectType=ObjectType.HQ;
+                break;
+            case LANDSCAPER:
+                myObjectType=ObjectType.LANDSCAPER;
+                break;
+            case MINER:
+                myObjectType=ObjectType.MINER;
+                break;
+            case NET_GUN:
+                myObjectType=ObjectType.NET_GUN;
+                break;
+            case REFINERY:
+                myObjectType=ObjectType.REFINERY;
+                break;
+            case VAPORATOR:
+                myObjectType=ObjectType.VAPORATOR;
+                break;
+            default:
+                myObjectType=ObjectType.COW;
+                break;
         }
 
     }
