@@ -64,7 +64,6 @@ public strictfp class HQBot extends Globals
 			}
 
 			if(minerCount<5){
-				minerCount++;
 				buildMiner();
 			}
 
@@ -76,6 +75,7 @@ public strictfp class HQBot extends Globals
     	for(int i = 0; i < 8; i++){
     		if(rc.canBuildRobot(RobotType.MINER, directions[i])){
     			rc.buildRobot(RobotType.MINER, directions[i]);
+    			minerCount++;
     			return true;
     		}
     	}
