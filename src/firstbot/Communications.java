@@ -92,6 +92,17 @@ public strictfp class Communications extends Globals{
 			decoded[whichdata]|=sourcebit<<(17-whichbit);
 		}
 
+
+
+		message[0]^=-903849746;
+		message[1]^=-172817894;
+		message[2]^=293009196;
+		message[3]^=25721274;
+		message[4]^=205865773;
+		message[5]^=-1561017189;
+		message[6]^=2092647876;
+
+
 		return decoded;
 	}
 
