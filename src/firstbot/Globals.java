@@ -19,6 +19,9 @@ public class Globals
     public static float baseCooldown;
     public static int health;
 
+    public static ObjectLocation[] objectArray = new ObjectLocation[12];
+    public static int objectArraySize = 0;
+
     public static final int broadCastFrequency;
 
     enum ObjectType{

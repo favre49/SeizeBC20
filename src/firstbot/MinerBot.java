@@ -18,7 +18,8 @@ public strictfp class MinerBot extends Globals
 
     private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
     private static MapLocation refineryLocation;
-    private static MapLocation HQLocation = new MapLocation(10,10);
+    private static MapLocation HQLocation;
+    private static MapLocation soupLocation;
     private static int numRefineries = 0;
 
     public static void run(RobotController rc) throws GameActionException
@@ -26,10 +27,37 @@ public strictfp class MinerBot extends Globals
         // Seed random number generator.
         FastMath.initRand(rc);
 
-        // TODO: GET HQLOCATION ROUND 2.
+        // GET HQLOCATION ROUND 1.
+        if(HQLocation==null){
+            int commsarr[][]=Communications.getComms(1);
+            for(int i=0;i<commsarr.length;i++){
+                //this loop iterates over all messages of round 2 (since we don't know which one is ours)
+                //listening on first packet
+                ObjectLocation objectHQLocation = Communications.getLocationFromInt(commsarr[i][0]); 
+                if(objectHQLocation.rt==ObjectType.HQ){
+                    HQLocation = new MapLocation(objectHQLocation.loc.x,objectHQLocation.loc.y);
+                    break;
+                }
+            }
+        }
 
-        // TODO: LISTEN FOR SOUPLOCATION AND REFINERY LOCATIONS. IF WE FIND THEM OUT UPDATE STATES AND ACT ACCORDINGLY
-        // ALSO CONSIDER RACE CONDITION WHERE TWO BOTS COMMUNICATE INFO ON THE SAME TURN. GO TO NEAREST ONE.
+        // LISTEN FOR SOUPLOCATION AND REFINERY LOCATIONS. IF WE FIND THEM OUT UPDATE STATES AND ACT ACCORDINGLY
+        if(roundNum%broadCastFrequency==1){
+            commsarr=getLastIntervalComms();
+            for(int i=0;i<commsarr.length;i++){
+                for(int j=0;j<commsarr[i].size();j++){
+                    ObjectLocation currObjectLocation = Communications.getLocationFromInt(commsarr[i][0]);
+                    if(currObjectLocation.rt==ObjectType.TO_BE_REFINERY){
+                        refineryLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
+                    }
+                    else if(currObjectLocation.rt==ObjectType.SOUP){
+                        soupLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
+                    }
+                }
+            }
+        }
+
+        // TODO: ALSO CONSIDER RACE CONDITION WHERE TWO BOTS COMMUNICATE INFO ON THE SAME TURN. GO TO NEAREST ONE.
 
         if (isExploring)
             explore();
@@ -217,8 +245,7 @@ public strictfp class MinerBot extends Globals
 
     private static boolean isExploring = true;
     private static MapLocation exploreDest;
-    private static int stepSize = 5; // Picking a hardcodes step size for now.
-    private static MapLocation soupLocation;
+    private static int stepSize = 5; // Picking a hardcoded step size for now.
 
     private static void explore() throws GameActionException
     {
@@ -265,7 +292,11 @@ public strictfp class MinerBot extends Globals
                             soupLocation = checkingPos;
                             isExploring = false;
                             refineryLocation = currentPos;
-                            // TODO: SEND REFINERY AND SOUP LOCATION
+                            // SEND REFINERY AND SOUP LOCATION
+
+                            getCommsNum(ObjectType.SOUP,soupLocation);
+                            getCommsNum()
+
 
                             break outerloop;
                         }
@@ -299,12 +330,17 @@ public strictfp class MinerBot extends Globals
         for(i = 0; i < 8; i++){
     		if(rc.canBuildRobot(RobotType.REFINERY, directions[i])){
     			rc.buildRobot(RobotType.REFINERY, directions[i]);
+
     			break;
     		}
     	}
-        // TODO: IF WE DO BUILD REFINERIES, SEND LOCATION.
-        if (i!=8)
+        //IF WE DO BUILD REFINERIES, SEND LOCATION.
+        if (i!=8){
             numRefineries++;
+            int sendArr[] = new arr[12];
+            sendArr[0] = getCommsNum(ObjectType.REFINERY,currentPos.add(directions[i]));
+            Communications.sendComs(sendArr,0);
+        }
         return currentPos.add(directions[i]);
     }
 
