@@ -40,7 +40,7 @@ public strictfp class LandscaperBot extends Globals
 	    	if(rc.getDirtCarrying() < 3){
 	    		for(int t = 0; t < 8; t++){
 	    			RobotInfo baseInfo = rc.senseRobotAtLocation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]));
-	    			if(baseID == baseInfo.ID){
+	    			if(baseInfo.Team == rc.getTeam() && baseInfo.RobotType == RobotType.HQ){
 	    				t += 3;
 	    				t %= 8;
 	    				for(int i = 0; i < 3; i++){
