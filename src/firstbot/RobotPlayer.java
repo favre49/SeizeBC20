@@ -9,6 +9,7 @@ public strictfp class RobotPlayer extends Globals{
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
+
         Globals.init(rc);
 
         while (true) {

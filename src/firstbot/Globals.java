@@ -6,9 +6,7 @@ public class Globals
     public static Direction[] directions = {Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST, Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST};
     public static int mapWidth;
     public static int mapHeight;
-
     public static int roundNum;
-
     public static RobotController rc;
     public static MapLocation currentPos;
     public static Team team;
@@ -19,6 +17,23 @@ public class Globals
     public static int sensorRadiusSquared;
     public static float baseCooldown;
     public static int health;
+
+    static class RobotLocation{
+        public RobotType rt;
+        public MapLocation loc;
+
+        public RobotLocation(RobotType rt, MapLocation loc){
+            this.rt = rt;
+            this.loc = loc;
+        }
+
+    }
+
+    // public static RobotLocation aRobotLocation;
+
+    public static int baseID;
+    public static MapLocation baseLoc;
+    //TODO add base location and base id
 
     public static void init(RobotController givenrc)
     {
