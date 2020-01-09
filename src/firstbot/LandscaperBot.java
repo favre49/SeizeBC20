@@ -15,7 +15,7 @@ public strictfp class LandscaperBot extends Globals
     public static Direction dumpingTo = Direction.NORTH;
     public static boolean dumping = false;
 
-    public static void run(RobotController rc)
+    public static void run(RobotController rc)  throws GameActionException
     {
     	//move to base
     	navigate(new MapLocation(Globals.baseLoc.x+1, Globals.baseLoc.y+1));
@@ -24,7 +24,8 @@ public strictfp class LandscaperBot extends Globals
  		}
     }
 
-    static void fortifyBase(){
+    static void fortifyBase() throws GameActionException
+    {
 		short x[] = {-1, 0, 1, 1, 1, 0, -1, -1};
 	    short y[] = {-1, -1, -1, 0, 1, 1, 1, 0};
 	    Direction directions[] = {Direction.SOUTHWEST, Direction.SOUTH, Direction.SOUTHEAST, Direction.EAST, Direction.NORTHEAST, Direction.NORTH, Direction.NORTHWEST, Direction.WEST};
@@ -40,7 +41,7 @@ public strictfp class LandscaperBot extends Globals
 	    	if(rc.getDirtCarrying() < 3){
 	    		for(int t = 0; t < 8; t++){
 	    			RobotInfo baseInfo = rc.senseRobotAtLocation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]));
-	    			if(baseInfo.Team == rc.getTeam() && baseInfo.RobotType == RobotType.HQ){
+	    			if(baseInfo.getTeam() == rc.getTeam() && baseInfo.getType() == RobotType.HQ){
 	    				t += 3;
 	    				t %= 8;
 	    				for(int i = 0; i < 3; i++){
