@@ -127,7 +127,7 @@ public strictfp class Communications extends Globals{
 	//soup
 	//refinery
 
-	public static int getCommsNum(RobotType theType, MapLocation theloc){
+	public static int getCommsNum(ObjectType theType, MapLocation theloc){
 		int theint = 0;
 		int theinttype;
 		switch(theType){
@@ -161,12 +161,18 @@ public strictfp class Communications extends Globals{
 			case VAPORATOR:
 				theinttype=10;
 				break;
+			case SOUP:
+				theinttype=11;
+				break;
+			case WATER:
+				theinttype=12;
+				break;
 			default:
 				theinttype=0;
 				break;
 		}
 
-		theint|=theinttype<<12;
+ 		theint|=theinttype<<12;
 		theint|=theloc.x<<6;
 		theint|=theloc.y;
 
@@ -182,8 +188,8 @@ public strictfp class Communications extends Globals{
 	}
 
 
-	public static RobotLocation getLocationFromInt(int x){
-		RobotType theRobot = RobotType.COW;
+	public static ObjectLocation getLocationFromInt(int x){
+		ObjectType theRobot = ObjectType.COW;
 
 		int a,b;
 		a=x&63;
@@ -194,41 +200,47 @@ public strictfp class Communications extends Globals{
 		MapLocation theLocation = new MapLocation(a,b);
 		switch(x){
 			case 1:
-				theRobot=RobotType.COW;
+				theRobot=ObjectType.COW;
 				break;
 			case 2:
-				theRobot=RobotType.DELIVERY_DRONE;
+				theRobot=ObjectType.DELIVERY_DRONE;
 				break;
 			case 3://DESIGN_SCHOOL:
-				theRobot=RobotType.DESIGN_SCHOOL;
+				theRobot=ObjectType.DESIGN_SCHOOL;
 				break;
 			case 4://FULFILMENT_CENTER:
-				theRobot=RobotType.FULFILLMENT_CENTER;
+				theRobot=ObjectType.FULFILLMENT_CENTER;
 				break;
 			case 5://HQ:
-				theRobot=RobotType.HQ;
+				theRobot=ObjectType.HQ;
 				break;
 			case 6://LANDSCAPER:
-				theRobot=RobotType.LANDSCAPER;
+				theRobot=ObjectType.LANDSCAPER;
 				break;
 			case 7://MINER:
-				theRobot=RobotType.MINER;
+				theRobot=ObjectType.MINER;
 				break;
 			case 8://NET_GUN:
-				theRobot=RobotType.NET_GUN;
+				theRobot=ObjectType.NET_GUN;
 				break;
 			case 9://REFINERY:
-				theRobot=RobotType.REFINERY;
+				theRobot=ObjectType.REFINERY;
 				break;
 			case 10://VAPORATOR:
-				theRobot=RobotType.VAPORATOR;
+				theRobot=ObjectType.VAPORATOR;
+				break;
+			case 11:
+				theRobot=ObjectType.SOUP;
+				break;
+			case 12:
+				theRobot=ObjectType.WATER;
 				break;
 			default:
 				// theRobot=0;
 				break;
 		}
 
-		return new RobotLocation(theRobot,theLocation);
+		return new ObjectLocation(theRobot,theLocation);
 
 		// /*RobotLocation theRobotLoc =*/return new RobotLocation(theRobot,theLocation);
 		// theRobotLoc.rt = theRobot;
