@@ -23,6 +23,7 @@ public strictfp class MinerBot extends Globals
 
     public static void run(RobotController rc) throws GameActionException
     {
+        // System.out.println("HELLO");
         // Seed random number generator.
         FastMath.initRand(rc);
 
@@ -51,8 +52,10 @@ public strictfp class MinerBot extends Globals
 
         // TODO: ALSO CONSIDER RACE CONDITION WHERE TWO BOTS COMMUNICATE INFO ON THE SAME TURN. GO TO NEAREST ONE.
 
-        if (isExploring)
+        if (isExploring){
+            // System.out.println("HELLO");
             explore();
+        }
         else if(rc.getTeamSoup() >= 200 && numRefineries == 0) // Build a refinery if we have enough.
         {
             if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
@@ -100,6 +103,7 @@ public strictfp class MinerBot extends Globals
             else
                 navigate(soupLocation);
         }
+        // System.out.println("HELLO");
     }
 
 
@@ -242,12 +246,15 @@ public strictfp class MinerBot extends Globals
     private static void explore() throws GameActionException
     {
         if (!isExploring) return;
+        // System.out.println("HELLO2");
 
         if (exploreDest == null)
         {
             exploreDest = currentPos;
             pickNewExploreDest();
         }
+
+
         
         if (rc.canSenseLocation(exploreDest) && rc.senseFlooding(exploreDest))
         {
@@ -309,10 +316,17 @@ public strictfp class MinerBot extends Globals
     private static void pickNewExploreDest() throws GameActionException 
     {
         // Check if do while is a bad way to do this.
+        boolean firsttime = true;
         do
         {
             Direction dir = directions[FastMath.rand256()%8];
+            // System.out.println("HELLO3");
             exploreDest = exploreDest.translate(dir.dx*stepSize, dir.dy*stepSize);
+            if(!firsttime && !inBounds(exploreDest)){
+                //this is the quick fix.
+                exploreDest = exploreDest.translate(-1*dir.dx*stepSize, -1*dir.dy*stepSize);                
+            }
+            firsttime=false;
         }
         while(!inBounds(exploreDest) ||exploredGrid[exploreDest.x][exploreDest.y]);
     }
