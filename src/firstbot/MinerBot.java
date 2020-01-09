@@ -7,19 +7,121 @@ import battlecode.common.*;
  * Sensor Radius: 35
  * Base Cooldown: 1
  *
- * Mines 7 soup a turn, can hold a maximum of 10
+ * Mines 7 soup a turn, can hold a maximum of 100.
  */
 
 public strictfp class MinerBot extends Globals
 {
+    // Hardcoded constants I use.
+    private static int NEAR_SOUP = 5;
+    private static int REFINERY_DISTANCE = 6;
+
     private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
+    private static MapLocation refineryLocation;
+    private static int numRefineries = 0;
+    private static boolean setRefineryLoc = false;
 
     public static void run(RobotController rc) throws GameActionException
     {
-        System.out.println(currentPos);
+        // Seed random number generator.
         FastMath.initRand(rc);
 
-        explore();
+        // MAKE BETTER, IT'S REALLY BAD
+        if (!isExploring && rc.getTeamSoup() >= 200)
+        {
+            if (!setRefineryLoc)
+            {
+                Direction dir = Direction.NORTH;
+                switch(dir)
+                {
+                    case NORTH:
+                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
+                    if (inBounds(refineryLocation)) break;
+                    dir = Direction.NORTHWEST;
+
+                    case NORTHWEST:
+                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
+                    if (inBounds(refineryLocation)) break;
+                    dir = Direction.WEST;
+
+                    case WEST:
+                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
+                    if (inBounds(refineryLocation)) break;
+                    dir = Direction.SOUTHWEST;
+
+                    case SOUTHWEST:
+                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
+                    if (inBounds(refineryLocation)) break;
+                    dir = Direction.SOUTH;
+
+                    case SOUTH:
+                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
+                    if (inBounds(refineryLocation)) break;
+                    dir = Direction.SOUTHEAST;
+
+                    case SOUTHEAST:
+                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
+                    if (inBounds(refineryLocation)) break;
+                    dir = Direction.EAST;
+
+                    case EAST:
+                    refineryLocation = soupLocation.translate(dir.dx*REFINERY_DISTANCE,dir.dy*REFINERY_DISTANCE);
+                    if (inBounds(refineryLocation)) break;
+                    dir = Direction.NORTHEAST;
+                }
+                setRefineryLoc = true;
+            }
+
+            if (currentPos.distanceSquaredTo(refineryLocation) < sensorRadiusSquared)
+            {
+                if (rc.senseFlooding(refineryLocation) || rc.isLocationOccupied(refineryLocation))
+                {
+                    do
+                    {
+                        refineryLocation = refineryLocation.add(directions[FastMath.rand256()%8]);
+                    }
+                    while (rc.senseFlooding(refineryLocation) || rc.isLocationOccupied(refineryLocation));
+                }
+            }
+
+            if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
+                buildRefinery();
+            else
+                navigate(refineryLocation);
+        }
+
+        if (!isExploring && rc.getSoupCarrying() == 100)
+        {
+            if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
+                rc.depositSoup(currentPos.directionTo(refineryLocation), rc.getSoupCarrying());
+            else
+                navigate(refineryLocation);
+        }
+
+        if (isExploring)
+            explore();
+        else  // Now we found the soup location. Let's go there and mine!
+        {
+            // If we are nearby, we should start looking for soup.
+            if (currentPos.distanceSquaredTo(soupLocation) < NEAR_SOUP)
+            {
+                MapLocation loc = senseNearbySoup();
+                if (loc == null)
+                {
+                    isExploring = true;
+                    explore();
+                }
+                else if(currentPos.distanceSquaredTo(loc) <= 2)
+                {
+                    loc = soupLocation;
+                    rc.mineSoup(currentPos.directionTo(loc));
+                }
+                else
+                    navigate(soupLocation);
+            }
+            else
+                navigate(soupLocation);
+        }
     }
 
 
@@ -157,7 +259,8 @@ public strictfp class MinerBot extends Globals
 
     private static boolean isExploring = true;
     private static MapLocation exploreDest;
-    private static int stepSize = 8; // Picking a hardcodes step size for now.
+    private static int stepSize = 5; // Picking a hardcodes step size for now.
+    private static MapLocation soupLocation;
 
     private static void explore() throws GameActionException
     {
@@ -168,7 +271,6 @@ public strictfp class MinerBot extends Globals
             exploreDest = currentPos;
             pickNewExploreDest();
         }
-        System.out.println(exploreDest);
         
         if (rc.canSenseLocation(exploreDest) && rc.senseFlooding(exploreDest))
         {
@@ -181,45 +283,73 @@ public strictfp class MinerBot extends Globals
             exploredGrid[exploreDest.x][exploreDest.y] = true;
             int r = FastMath.floorSqrt(sensorRadiusSquared);
 
-            if (rc.senseSoup(currentPos)>0)
-                System.out.println("I found soup at" + currentPos);
-            
-            for (int x = 1; x <= r; x++)
+            if (rc.senseSoup(currentPos) > 0)
+            {
+                soupLocation = currentPos;
+                isExploring = false;
+                return;
+            }
+
+            // FIX SOUP FINDING.
+            System.out.println(r);
+            for (int x = 0; x <= r; x++)
             {
                 int ySquare = r*r - x*x;
-                int y = FastMath.floorSqrt(ySquare);
-                if (y*y == ySquare)
+                int yLim = FastMath.floorSqrt(ySquare);
+                for (int y = 0; y <= yLim; y++)
                 {
                     MapLocation checkingPos = currentPos.translate(x,y);
-                    if (rc.onTheMap(checkingPos))
+                    System.out.println("Checking " + checkingPos);
+                    if (inBounds(checkingPos))
                     {
                         exploredGrid[checkingPos.x][checkingPos.y] = true;
-                        if (rc.senseSoup(checkingPos)>0)
-                            System.out.println("I found soup at" + checkingPos);
+                        if (rc.senseSoup(checkingPos) > 0)
+                        {
+                            soupLocation = checkingPos;
+                            isExploring = false;
+                            break;
+                        }
                     }
                     
                     checkingPos = currentPos.translate(x,-y);
-                    if (rc.onTheMap(checkingPos))
+                    System.out.println("Checking " + checkingPos);
+                    
+                    if (inBounds(checkingPos))
                     {
                         exploredGrid[checkingPos.x][checkingPos.y] = true;
-                        if (rc.senseSoup(checkingPos)>0)
-                            System.out.println("I found soup at" + checkingPos);
+                        if (rc.senseSoup(checkingPos) > 0)
+                        {
+                            soupLocation = checkingPos;
+                            isExploring = false;
+                            break;
+                        }
                     }
                     
                     checkingPos = currentPos.translate(-x,y);
-                    if (rc.onTheMap(checkingPos))
+                    System.out.println("Checking " + checkingPos);
+                    
+                    if (inBounds(checkingPos))
                     {
                         exploredGrid[checkingPos.x][checkingPos.y] = true;
-                        if (rc.senseSoup(checkingPos)>0)
-                            System.out.println("I found soup at" + checkingPos);
+                        if (rc.senseSoup(checkingPos) > 0)
+                        {
+                            soupLocation = checkingPos;
+                            isExploring = false;
+                            break;
+                        }
                     }
                     
                     checkingPos = currentPos.translate(-x,-y);
-                    if (rc.onTheMap(checkingPos))
+                    System.out.println("Checking " + checkingPos);
+                    if (inBounds(checkingPos))
                     {
                         exploredGrid[checkingPos.x][checkingPos.y] = true;
-                        if (rc.senseSoup(checkingPos)>0)
-                            System.out.println("I found soup at" + checkingPos);
+                        if (rc.senseSoup(checkingPos) > 0)
+                        {
+                            soupLocation = checkingPos;
+                            isExploring = false;
+                            break;
+                        }
                     }            
                 }
             }
@@ -229,14 +359,127 @@ public strictfp class MinerBot extends Globals
             navigate(exploreDest);
     }
 
+    // Picks a new destination for exploration.
     private static void pickNewExploreDest() throws GameActionException 
     {
-        // Check if do whhile is a bad way to do this.
+        // Check if do while is a bad way to do this.
         do
         {
             Direction dir = directions[FastMath.rand256()%8];
             exploreDest = exploreDest.translate(dir.dx*stepSize, dir.dy*stepSize);
         }
         while(!inBounds(exploreDest) ||exploredGrid[exploreDest.x][exploreDest.y]);
+    }
+
+    // Sees in sensor location for nearby soup. Takes up like 200 bytecodes.
+    private static MapLocation senseNearbySoup() throws GameActionException
+    {
+        if (rc.senseSoup(currentPos)>0)
+            return currentPos;
+
+        int r = FastMath.floorSqrt(sensorRadiusSquared);
+        for (int x = 1; x <= r; x++)
+        {
+            int ySquare = r*r - x*x;
+            int y = FastMath.floorSqrt(ySquare);
+            if (y*y == ySquare)
+            {
+                MapLocation checkingPos = currentPos.translate(x,y);
+                if (inBounds(checkingPos))
+                {
+                    if (rc.senseSoup(checkingPos)>0 && !rc.isLocationOccupied(checkingPos))
+                        return checkingPos;
+                }
+
+                checkingPos = currentPos.translate(x,-y);
+                if (inBounds(checkingPos))
+                {
+                    if (rc.senseSoup(checkingPos)>0 && !rc.isLocationOccupied(checkingPos))
+                        return checkingPos;
+                }
+
+                checkingPos = currentPos.translate(-x,y);
+                if (inBounds(checkingPos))
+                {
+                    if (rc.senseSoup(checkingPos)>0 && !rc.isLocationOccupied(checkingPos))
+                        return checkingPos;
+                }
+
+                checkingPos = currentPos.translate(-x,-y);
+                if (inBounds(checkingPos))
+                {
+                    if (rc.senseSoup(checkingPos)>0 && !rc.isLocationOccupied(checkingPos))
+                        return checkingPos;
+                }            
+            }
+
+        }
+        return null;
+    }
+
+    /** Functions for building buildings. Separated in case we need different behavior for some reason. **/
+
+    private static MapLocation buildRefinery() throws GameActionException
+    {
+        int i;
+        for(i = 0; i < 8; i++){
+    		if(rc.canBuildRobot(RobotType.REFINERY, directions[i])){
+    			rc.buildRobot(RobotType.REFINERY, directions[i]);
+    			break;
+    		}
+    	}
+        return currentPos.add(directions[i]);
+    }
+
+    private static MapLocation buildVaporator() throws GameActionException
+    {
+        int i;
+        for(i = 0; i < 8; i++){
+    		if(rc.canBuildRobot(RobotType.VAPORATOR, directions[i])){
+    			rc.buildRobot(RobotType.VAPORATOR, directions[i]);
+    			break;
+    		}
+    	}
+        return currentPos.add(directions[i]);
+
+    }
+
+    private static MapLocation buildFulfillmentCenter() throws GameActionException
+    {
+        int i;
+        for(i = 0; i < 8; i++){
+    		if(rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i])){
+    			rc.buildRobot(RobotType.FULFILLMENT_CENTER, directions[i]);
+    			break;
+    		}
+    	}
+        return currentPos.add(directions[i]);
+
+    }
+
+    private static MapLocation buildDesignSchool() throws GameActionException
+    {
+        int i;
+        for(i = 0; i < 8; i++){
+    		if(rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i])){
+    			rc.buildRobot(RobotType.MINER, directions[i]);
+    			break;
+    		}
+    	}
+        return currentPos.add(directions[i]);
+
+    }
+
+    private static MapLocation buildNetGun() throws GameActionException
+    {
+        int i;
+        for(i = 0; i < 8; i++){
+    		if(rc.canBuildRobot(RobotType.NET_GUN, directions[i])){
+    			rc.buildRobot(RobotType.NET_GUN, directions[i]);
+    			break;
+    		}
+    	}
+        return currentPos.add(directions[i]);
+
     }
 }

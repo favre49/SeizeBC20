@@ -1,7 +1,7 @@
 package firstbot;
 import battlecode.common.*;
 
-public strictfp class Communication extends Globals{
+public strictfp class Communications extends Globals{
 
 	public static boolean sendComs(int[] data, int bidamount/*message, bid amount*/) throws GameActionException {
 		int[] message = new int[7];

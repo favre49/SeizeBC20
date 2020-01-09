@@ -2,7 +2,7 @@ package firstbot;
 import battlecode.common.*;
 
 /**
- * Built by: MIners
+ * Built by: Miners
  * Cost: 200
  * Health: 15
  * Sensor Radius: 24
