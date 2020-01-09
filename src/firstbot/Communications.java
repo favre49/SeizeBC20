@@ -199,7 +199,7 @@ public strictfp class Communications extends Globals{
 		b=x&63;
 		x=x>>6;
 		x&=63;
-		MapLocation theLocation = new MapLocation(a,b);
+		MapLocation theLocation = new MapLocation(b,a);
 		switch(x){
 			case 1:
 				theRobot=ObjectType.COW;
