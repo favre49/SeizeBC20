@@ -31,5 +31,4 @@ public strictfp class DesignSchoolBot extends Globals
     	//communicate that HQ is boxed in; 
     	return false;
     }
-    
 }
