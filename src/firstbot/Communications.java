@@ -106,12 +106,11 @@ public strictfp class Communications extends Globals{
 		return decoded;
 	}
 
+
+
 	public static int[][] getComms(int roundno) throws GameActionException{
 
 		Transaction[] theBlock = rc.getBlock(roundno);
-		// System.out.println(rc.getRoundNum());
-		// System.out.println(theBlock[0].getMessage()[0]);
-
 		int[][] interpreted = new int[theBlock.length][12];
 
 		for(int i=0;i<theBlock.length;i++){
@@ -119,13 +118,23 @@ public strictfp class Communications extends Globals{
 		}
 
 		return interpreted;
-
 	}
 
-	//our HQ
-	//opponent HQ
-	//soup
-	//refinery
+	public static int[][] getLastIntervalComms() throws GameActionException{
+		int[][] interpreted = new int[theBlock.length][12];
+
+		int roundToQuery = roundNum-roundNum%broadCastFrequency;
+		if(roundToQuery==0)roundToQuery=1;
+
+		Transaction[] theBlock = rc.getBlock(roundToQuery);
+
+		for(int i=0;i<theBlock.length;i++){
+			interpreted[i]=decode(theBlock[i]);
+		}
+
+		return interpreted;
+	}
+
 
 	public static int getCommsNum(ObjectType theType, MapLocation theloc){
 		int theint = 0;

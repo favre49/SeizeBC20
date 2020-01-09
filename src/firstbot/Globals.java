@@ -19,8 +19,10 @@ public class Globals
     public static float baseCooldown;
     public static int health;
 
+    public static final int broadCastFrequency;
+
     enum ObjectType{
-        COW,DELIVERY_DRONE,DESIGN_SCHOOL,FULFILLMENT_CENTER,HQ,LANDSCAPER,MINER,NET_GUN,REFINERY,VAPORATOR,SOUP,WATER;
+        COW,DELIVERY_DRONE,DESIGN_SCHOOL,FULFILLMENT_CENTER,HQ,LANDSCAPER,MINER,NET_GUN,REFINERY,VAPORATOR,SOUP,WATER,TO_BE_REFINERY;
     }
 
     public static ObjectType myObjectType;
