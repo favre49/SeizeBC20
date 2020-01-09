@@ -26,6 +26,11 @@ public strictfp class MinerBot extends Globals
         // Seed random number generator.
         FastMath.initRand(rc);
 
+        // TODO: GET HQLOCATION ROUND 2.
+
+        // TODO: LISTEN FOR SOUPLOCATION AND REFINERY LOCATIONS. IF WE FIND THEM OUT UPDATE STATES AND ACT ACCORDINGLY
+        // ALSO CONSIDER RACE CONDITION WHERE TWO BOTS COMMUNICATE INFO ON THE SAME TURN. GO TO NEAREST ONE.
+
         if (isExploring)
             explore();
         else if(rc.getTeamSoup() >= 200 && numRefineries == 0) // Build a refinery if we have enough.
@@ -260,7 +265,8 @@ public strictfp class MinerBot extends Globals
                             soupLocation = checkingPos;
                             isExploring = false;
                             refineryLocation = currentPos;
-                            
+                            // TODO: SEND REFINERY AND SOUP LOCATION
+
                             break outerloop;
                         }
                     }
@@ -296,6 +302,7 @@ public strictfp class MinerBot extends Globals
     			break;
     		}
     	}
+        // TODO: IF WE DO BUILD REFINERIES, SEND LOCATION.
         if (i!=8)
             numRefineries++;
         return currentPos.add(directions[i]);
