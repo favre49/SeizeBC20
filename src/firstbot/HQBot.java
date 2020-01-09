@@ -15,6 +15,17 @@ public strictfp class HQBot extends Globals
     public static void run(RobotController rc) throws GameActionException
     {
 		/*The following code makes the HQ broadcast it's own location*/
+		System.out.println("HQ:");
+		System.out.println(roundNum);
+		System.out.println(objectArraySize);
+		for(int i=0;i<objectArraySize;i++){
+			System.out.println("i:");
+			System.out.println(i);
+			System.out.println(objectArray[i].rt);
+			System.out.println(objectArray[i].loc.x);
+			System.out.println(objectArray[i].loc.y);
+		}
+
 		if(roundNum==1){
 			int initialArr[] = new int[12];
 			initialArr[0] = Communications.getCommsNum(Globals.myObjectType,Globals.currentPos);
@@ -26,6 +37,7 @@ public strictfp class HQBot extends Globals
 			for(int i=0;i<commsArr.length;i++){
 				for(int j=0;j<commsArr[i].length;j++){
 	                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+
 	                if(currLocation.rt == ObjectType.REFINERY || currLocation.rt == ObjectType.SOUP){
 	                	boolean alreadyIn = false;
 	                	for(int k=0;k<objectArraySize;k++){
@@ -38,7 +50,6 @@ public strictfp class HQBot extends Globals
 	                	if(!alreadyIn){
 	                		objectArray[(objectArraySize++)%12]=currLocation;
 	                	}
-
 	                } 
 				}
 			}
@@ -53,8 +64,8 @@ public strictfp class HQBot extends Globals
 			}
 
 			if(minerCount<5){
-				buildMiner();
 				minerCount++;
+				buildMiner();
 			}
 
 		}

@@ -11,4 +11,7 @@ public class ObjectLocation extends Globals{
         this.loc = loc;
     }
 
+    public boolean equals(ObjectLocation other){
+    	return (rt.equals(other.rt) && loc.equals(other.loc));
+    }
 }
