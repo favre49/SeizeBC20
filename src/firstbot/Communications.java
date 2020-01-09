@@ -108,9 +108,9 @@ public strictfp class Communications extends Globals{
 
 	public static int[][] getComms(int roundno) throws GameActionException{
 
-		Transaction[] theBlock = rc.getBlock(5/*roundno*/);
-		System.out.println(rc.getRoundNum());
-		System.out.println(theBlock[0].getMessage()[0]);
+		Transaction[] theBlock = rc.getBlock(roundno);
+		// System.out.println(rc.getRoundNum());
+		// System.out.println(theBlock[0].getMessage()[0]);
 
 		int[][] interpreted = new int[theBlock.length][12];
 
