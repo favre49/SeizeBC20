@@ -12,8 +12,8 @@ import battlecode.common.*;
 public strictfp class LandscaperBot extends Globals
 {
 
-    Direction dumpingTo = Direction.NORTH;
-    boolean dumping = false;
+    public static Direction dumpingTo = Direction.NORTH;
+    public static boolean dumping = false;
 
     public static void run(RobotController rc)
     {
@@ -29,8 +29,8 @@ public strictfp class LandscaperBot extends Globals
 	    short y[] = {-1, -1, -1, 0, 1, 1, 1, 0};
 	    Direction directions[] = {Direction.SOUTHWEST, Direction.SOUTH, Direction.SOUTHEAST, Direction.EAST, Direction.NORTHEAST, Direction.NORTH, Direction.NORTHWEST, Direction.WEST};
     	if(dumping){
-    		if(rc.getDirtCarrying()){
-    			rc.depositDirection(dumpingTo);
+    		if(rc.getDirtCarrying() > 0){
+    			Globals.rc.depositDirt(dumpingTo);
     		}
     		else{
     			dumping = false;
@@ -39,7 +39,7 @@ public strictfp class LandscaperBot extends Globals
     	else{
 	    	if(rc.getDirtCarrying() < 3){
 	    		for(int t = 0; t < 8; t++){
-	    			RobotInfo baseInfo = rc.senseRobot(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]));
+	    			RobotInfo baseInfo = rc.senseRobotAtLocation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]));
 	    			if(baseID == baseInfo.ID){
 	    				t += 3;
 	    				t %= 8;
@@ -56,18 +56,18 @@ public strictfp class LandscaperBot extends Globals
 	    	}
 	    	else{
 	    		for(int t = 0; t < 8; t++){
-	    			RobotInfo baseInfo = rc.senseRobot(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]));
+	    			RobotInfo baseInfo = rc.senseRobotAtLocation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]));
 	    			if(baseID == baseInfo.ID){
 	    				t++;
 	    				t %= 8; 
-	    				if(rc.senseElevation(new MapLocation(currentPos.x, currentPos.y) >= rc.senseElevation(currentPos.x + x[t], currentPos.y + y[t]))){
+	    				if(rc.senseElevation(new MapLocation(currentPos.x, currentPos.y)) >= rc.senseElevation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]))){
 	    					dumping = true;
 	    					dumpingTo = directions[t];
-	    					rc.depositDirection(dumpingTo);
+	    					rc.depositDirt(dumpingTo);
 	    				}
 	    				else{
-	    					if(canMove(directions[t])){
-	    						move(direcitons[t]);
+	    					if(rc.canMove(directions[t])){
+	    						rc.move(directions[t]);
 	    					}
 	    				}
 	    				break;
@@ -77,6 +77,17 @@ public strictfp class LandscaperBot extends Globals
     	}
     	return;
     }
+
+    /******* NAVIGATION *************/
+
+    // Bug nav related stuff
+    private static MapLocation bugDest = new MapLocation(0,0);
+    private static boolean bugTracing = false;
+    private static MapLocation bugLastWall = null;
+	private static int closestDistWhileBugging = Integer.MAX_VALUE;	
+	private static int bugNumTurnsWithNoWall = 0;
+	private static boolean bugWallOnLeft = true; // whether the wall is on our left or our right
+    private static boolean[][] bugVisitedLocations;
 
     // Use Bug Navigation to navigate.
     public static void navigate(MapLocation dest) throws GameActionException
