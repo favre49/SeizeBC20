@@ -22,7 +22,7 @@ public class Globals
     public static ObjectLocation[] objectArray = new ObjectLocation[12];
     public static int objectArraySize = 0;
 
-    public static final int broadCastFrequency;
+    public static final int broadCastFrequency = 5;
 
     enum ObjectType{
         COW,DELIVERY_DRONE,DESIGN_SCHOOL,FULFILLMENT_CENTER,HQ,LANDSCAPER,MINER,NET_GUN,REFINERY,VAPORATOR,SOUP,WATER,TO_BE_REFINERY;
@@ -78,7 +78,7 @@ public class Globals
     public static MapLocation opponentHQLoc;
     //TODO add base location and base id
 
-    public static void init(RobotController givenrc)
+    public static void init(RobotController givenrc) throws GameActionException
     {
         rc = givenrc;
         roundNum = rc.getRoundNum();
@@ -90,6 +90,20 @@ public class Globals
         cost = myType.cost;
         sensorRadiusSquared = myType.sensorRadiusSquared;
         baseCooldown = myType.actionCooldown;
+
+        //add HQ pos update
+        if(myType!=RobotType.HQ){
+            int[][] commsarr=Communications.getComms(1);
+            for(int i=0;i<commsarr.length;i++){
+                //this loop iterates over all messages of round 2 (since we don't know which one is ours)
+                //listening on first packet
+                ObjectLocation objectHQLocation = Communications.getLocationFromInt(commsarr[i][0]); 
+                if(objectHQLocation.rt==ObjectType.HQ){
+                    baseLoc = new MapLocation(objectHQLocation.loc.x,objectHQLocation.loc.y);
+                    break;
+                }
+            }
+        }
 
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();

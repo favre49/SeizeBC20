@@ -93,16 +93,6 @@ public strictfp class Communications extends Globals{
 		}
 
 
-
-		message[0]^=-903849746;
-		message[1]^=-172817894;
-		message[2]^=293009196;
-		message[3]^=25721274;
-		message[4]^=205865773;
-		message[5]^=-1561017189;
-		message[6]^=2092647876;
-
-
 		return decoded;
 	}
 
@@ -121,12 +111,12 @@ public strictfp class Communications extends Globals{
 	}
 
 	public static int[][] getLastIntervalComms() throws GameActionException{
-		int[][] interpreted = new int[theBlock.length][12];
 
 		int roundToQuery = roundNum-roundNum%broadCastFrequency;
 		if(roundToQuery==0)roundToQuery=1;
 
 		Transaction[] theBlock = rc.getBlock(roundToQuery);
+		int[][] interpreted = new int[theBlock.length][12];
 
 		for(int i=0;i<theBlock.length;i++){
 			interpreted[i]=decode(theBlock[i]);

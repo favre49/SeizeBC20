@@ -10,6 +10,8 @@ import battlecode.common.*;
 public strictfp class HQBot extends Globals
 {	
 
+	public static int minerCount = 0;
+
     public static void run(RobotController rc) throws GameActionException
     {
 		/*The following code makes the HQ broadcast it's own location*/
@@ -19,18 +21,43 @@ public strictfp class HQBot extends Globals
 			System.out.print(Communications.sendComs(initialArr,0));
    		}
    		else if (roundNum>1){
-   // 			/*To read this, the code is as follows:*/
-			// 	int newarr[][]=Communications.getComms(1);
-			// 	for(int i=0;i<newarr.length;i++){
-			// 		//this loop iterates over all messages of round 2 (since we don't know which one is ours)
-			// 		//if it's an enemy message, the output will be COW at (0,0)
-			// 		System.out.println(Communications.getLocationFromInt(newarr[i][0]).rt); //RobotType HQ
-			// 		System.out.println(Communications.getLocationFromInt(newarr[i][0]).loc.x); //integer HQ x position
-			// 		System.out.println(Communications.getLocationFromInt(newarr[i][0]).loc.y); //integer HQ y position
-			// 	}
-			// /**/
-			
-   		}
+   			//first, read last message pool and update the ObjectArray
+			int commsArr[][]=Communications.getComms(roundNum-1);
+			for(int i=0;i<commsArr.length;i++){
+				for(int j=0;j<commsArr[i].length;j++){
+	                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+	                if(currLocation.rt == ObjectType.REFINERY || currLocation.rt == ObjectType.SOUP){
+	                	boolean alreadyIn = false;
+	                	for(int k=0;k<objectArraySize;k++){
+	                		if(currLocation.equals(objectArray[k])){
+	                			alreadyIn=true;
+	                			break;
+	                		}
+	                	}
+
+	                	if(!alreadyIn){
+	                		objectArray[(objectArraySize++)%12]=currLocation;
+	                	}
+
+	                } 
+				}
+			}
+
+			//Now, if we're on our turn, broadcast our entire array
+			if(roundNum%broadCastFrequency==0){
+				int broadCastArr[] = new int[12];
+				for(int i=0;i<Math.min(objectArraySize,12);i++){
+					broadCastArr[i] = Communications.getCommsNum(objectArray[i].rt,objectArray[i].loc);
+				}
+				System.out.print(Communications.sendComs(broadCastArr,0));
+			}
+
+			if(minerCount<5){
+				buildMiner();
+				minerCount++;
+			}
+
+		}
     }
 
     static Boolean buildMiner() throws GameActionException
@@ -44,6 +71,4 @@ public strictfp class HQBot extends Globals
     	//communicate that HQ is boxed in; 
     	return false;
     }
-
-
 }
