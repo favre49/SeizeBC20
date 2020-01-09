@@ -68,6 +68,9 @@ public class Globals
 
     public static int baseID;
     public static MapLocation baseLoc;
+
+    public static int opponentHQID;
+    public static MapLocation opponentHQLoc;
     //TODO add base location and base id
 
     public static void init(RobotController givenrc)
