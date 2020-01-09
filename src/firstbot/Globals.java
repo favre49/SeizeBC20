@@ -100,4 +100,28 @@ public class Globals
     {
         return loc.x >= 0 && loc.y >= 0 && loc.x < mapWidth && loc.y < mapHeight; 
     }
+
+    // Sees in sensor location for nearby soup. Takes up like 200 bytecodes.
+    public static MapLocation senseNearbySoup() throws GameActionException
+    {
+        if (rc.senseSoup(currentPos)>0)
+            return currentPos;
+
+        int r = (int)Math.sqrt(sensorRadiusSquared);
+        for (int x = -r; x <= r; x++)
+        {
+            int maxY = (int)Math.sqrt(r*r-x*x);
+            for (int y = -maxY; y <= maxY; y++)
+            {
+                MapLocation checkingPos = currentPos.translate(x,y);
+                if (inBounds(checkingPos))
+                {
+                    if (rc.senseSoup(checkingPos) > 0)
+                        return checkingPos;
+                }
+            }
+        }
+        return null;
+    }
+
 }

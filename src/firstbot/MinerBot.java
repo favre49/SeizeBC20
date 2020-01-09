@@ -285,29 +285,6 @@ public strictfp class MinerBot extends Globals
         while(!inBounds(exploreDest) ||exploredGrid[exploreDest.x][exploreDest.y]);
     }
 
-    // Sees in sensor location for nearby soup. Takes up like 200 bytecodes.
-    private static MapLocation senseNearbySoup() throws GameActionException
-    {
-        if (rc.senseSoup(currentPos)>0)
-            return currentPos;
-
-        int r = (int)Math.sqrt(sensorRadiusSquared);
-        for (int x = -r; x <= r; x++)
-        {
-            int maxY = (int)Math.sqrt(r*r-x*x);
-            for (int y = -maxY; y <= maxY; y++)
-            {
-                MapLocation checkingPos = currentPos.translate(x,y);
-                if (inBounds(checkingPos))
-                {
-                    if (rc.senseSoup(checkingPos) > 0)
-                        return checkingPos;
-                }
-            }
-        }
-        return null;
-    }
-
     /** Functions for building buildings. Separated in case we need different behavior for some reason. **/
 
     private static MapLocation buildRefinery() throws GameActionException
