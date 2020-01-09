@@ -85,6 +85,7 @@ public class Globals
 
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
+        updateObjectType();
     }
 
     public static void update()
@@ -92,6 +93,7 @@ public class Globals
         currentPos = rc.getLocation();
         roundNum = rc.getRoundNum();
         sensorRadiusSquared = rc.getCurrentSensorRadiusSquared();
+        updateObjectType();
     }
 
     public static boolean inBounds(MapLocation loc)
