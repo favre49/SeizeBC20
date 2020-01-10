@@ -17,33 +17,44 @@ public strictfp class LandscaperBot extends Globals
 
     public static void run(RobotController rc)  throws GameActionException
     {
-		if(rc.getLocation().distanceSquaredTo(baseLoc) <= 8){
+		if(rc.getLocation().distanceSquaredTo(baseLoc) <= 8)
+		{
 			fortifyBase2();
 		}    	
     }
 
     static void fortifyBase2() throws GameActionException
     {
-		if(rc.getLocation().distanceSquaredTo(baseLoc) <= 2){
+		if(rc.getLocation().distanceSquaredTo(baseLoc) <= 2)
+		{
  			//get into position
  			RobotInfo nearBase[] = rc.senseNearbyRobots(baseLoc, 2, rc.getTeam());
- 			if(nearBase.length < 9){
-				for(int i = 0; i < 8; i++){
-	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + x[i], baseLoc.y + y[i]))){
+ 			if(nearBase.length < 9)
+ 			{
+				for(int i = 0; i < 8; i++)
+				{
+	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + x[i], baseLoc.y + y[i])))
+	 				{
 	 					navigate(new MapLocation(baseLoc.x + x[i], baseLoc.y + y[i]));
 	 				}
 	 			}
 	 		}
-			if(rc.getDirtCarrying() == 0){
+			
+			if(rc.getDirtCarrying() == 0)
+			{
     			rc.digDirt(Direction.CENTER);
     		}
-    		else{
+    		else
+    		{
     			Direction lowestSquareDirectionInOuterLayer = Direction.CENTER;
     			int lowestElevation = 1000;
     			//lay dirt down in the lowest location of the outer layer
     			for(int i = 0; i < 8; i++)
     			{	
-    				if(rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) < lowestElevation && rc.canDepositDirt(directions[i]) && baseLoc.distanceSquaredTo(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) > 2){
+    				if(rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) < lowestElevation 
+    					&& rc.canDepositDirt(directions[i]) 
+    					&& baseLoc.distanceSquaredTo(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) > 2)
+    				{
     					lowestElevation = rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i]));
     					lowestSquareDirectionInOuterLayer = directions[i];
     				}
@@ -56,25 +67,26 @@ public strictfp class LandscaperBot extends Globals
 			int xx[] = {-2, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2};
 			int yy[] = {-2, -2, -2, -2, -2, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1};
 			RobotInfo nearBase[] = rc.senseNearbyRobots(baseLoc, 8, rc.getTeam());
- 			if(nearBase.length < 25){
-				for(int i = 0; i < x.length; i++){
-	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + xx[i], baseLoc.y + yy[i]))){
+ 			if(nearBase.length < 25)
+ 			{
+				for(int i = 0; i < x.length; i++)
+				{
+	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + xx[i], baseLoc.y + yy[i])))
 	 					navigate(new MapLocation(baseLoc.x + xx[i], baseLoc.y + yy[i]));
-	 				}
 	 			}
 	 		}
 			Direction digsFrom1 = currentPos.directionTo(baseLoc);
 			Direction digsFrom2 = baseLoc.directionTo(currentPos);
-			if(rc.getDirtCarrying() == 0){
+			if(rc.getDirtCarrying() == 0)
+			{
 				//should I check if availble from other sources, this should cover it
-				if(rc.canDigDirt(digsFrom1)){
+				if(rc.canDigDirt(digsFrom1))
 					rc.digDirt(digsFrom1);
-				}
-				else{
+				else
 					rc.digDirt(digsFrom2);
-				}
 			}
-			else{
+			else
+			{
 				rc.depositDirt(Direction.CENTER);
 			}
 		}
@@ -82,23 +94,33 @@ public strictfp class LandscaperBot extends Globals
 
     static void fortifyBase1() throws GameActionException //not using this anymore
     {
-    	if(dumping){
-    		if(rc.getDirtCarrying() > 0){
+    	if(dumping)
+    	{
+    		if(rc.getDirtCarrying() > 0)
+    		{
     			Globals.rc.depositDirt(dumpingTo);
     		}
-    		else{
+    		else
+    		{
     			dumping = false;
     		}
     	}
-    	else{
-	    	if(rc.getDirtCarrying() < 3){
-	    		for(int t = 0; t < 8; t++){
+    	else
+    	{
+	    	if(rc.getDirtCarrying() < 3)
+	    	{
+	    		for(int t = 0; t < 8; t++)
+	    		{
 	    			RobotInfo baseInfo = rc.senseRobotAtLocation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]));
-	    			if(baseInfo.getTeam() == rc.getTeam() && baseInfo.getType() == RobotType.HQ){
+	    			if(baseInfo.getTeam() == rc.getTeam() 
+	    				&& baseInfo.getType() == RobotType.HQ)
+	    			{
 	    				t += 3;
 	    				t %= 8;
-	    				for(int i = 0; i < 3; i++){
-	    					if(rc.canDigDirt(directions[t])){
+	    				for(int i = 0; i < 3; i++)
+	    				{
+	    					if(rc.canDigDirt(directions[t]))
+	    					{
 	    						rc.digDirt(directions[t]);
 	    						break;
 	    					}
@@ -109,20 +131,23 @@ public strictfp class LandscaperBot extends Globals
 	    		}
 	    	}
 	    	else{
-	    		for(int t = 0; t < 8; t++){
+	    		for(int t = 0; t < 8; t++)
+	    		{
 	    			RobotInfo baseInfo = rc.senseRobotAtLocation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]));
-	    			if(baseID == baseInfo.ID){
+	    			if(baseID == baseInfo.ID)
+	    			{
 	    				t++;
 	    				t %= 8; 
-	    				if(rc.senseElevation(new MapLocation(currentPos.x, currentPos.y)) >= rc.senseElevation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t]))){
+	    				if(rc.senseElevation(new MapLocation(currentPos.x, currentPos.y)) >= rc.senseElevation(new MapLocation(currentPos.x + x[t], currentPos.y + y[t])))
+	    				{
 	    					dumping = true;
 	    					dumpingTo = directions[t];
 	    					rc.depositDirt(dumpingTo);
 	    				}
-	    				else{
-	    					if(rc.canMove(directions[t])){
+	    				else
+	    				{
+	    					if(rc.canMove(directions[t]))
 	    						rc.move(directions[t]);
-	    					}
 	    				}
 	    				break;
 	    			}
@@ -146,17 +171,19 @@ public strictfp class LandscaperBot extends Globals
     // Use Bug Navigation to navigate.
     public static void navigate(MapLocation dest) throws GameActionException
     {
-        if (!dest.equals(bugDest)) {
+        if(!dest.equals(bugDest))
+        {
 			bugDest = dest;
 			bugTracing = false;
 		}
 
-        if (dest.equals(currentPos))
+        if(dest.equals(currentPos))
             return;
 
         Direction nextDir = currentPos.directionTo(dest);
         // If we can move in the best direction, let's not bother bugging.
-        if (!bugTracing && rc.canMove(nextDir) && !rc.senseFlooding(currentPos.add(nextDir)))
+        if(!bugTracing && rc.canMove(nextDir) 
+        	&& !rc.senseFlooding(currentPos.add(nextDir)))
         {
             rc.move(nextDir);
             return;
@@ -166,26 +193,35 @@ public strictfp class LandscaperBot extends Globals
             bugTracing = true;
             bugVisitedLocations = new boolean[mapWidth][mapHeight];
             closestDistWhileBugging = currentPos.distanceSquaredTo(dest);
+            
             Direction dirToDest = currentPos.directionTo(bugDest);
 		    Direction leftDir = dirToDest;
             int leftDistSq = Integer.MAX_VALUE;
-            for (int i = 0; i < 8; ++i) {
+            for (int i = 0; i < 8; ++i)
+            {
                 leftDir = leftDir.rotateLeft();
-                if (rc.canMove(leftDir) && !rc.senseFlooding(currentPos.add(leftDir))) {
+                if (rc.canMove(leftDir) 
+                	&& !rc.senseFlooding(currentPos.add(leftDir)))
+                {
                     leftDistSq = currentPos.add(leftDir).distanceSquaredTo(bugDest);
                     break;
                 }
             }
+
             Direction rightDir = dirToDest;
             int rightDistSq = Integer.MAX_VALUE;
-            for (int i = 0; i < 8; ++i) {
+            for (int i = 0; i < 8; ++i)
+            {
                 rightDir = rightDir.rotateRight();
-                if (rc.canMove(rightDir) && !rc.senseFlooding(currentPos.add(rightDir))) {
+                if (rc.canMove(rightDir) 
+                	&& !rc.senseFlooding(currentPos.add(rightDir)))
+                {
                     rightDistSq = currentPos.add(rightDir).distanceSquaredTo(bugDest);
                     break;
                 }
             }
-            if (rightDistSq < leftDistSq)
+
+            if(rightDistSq < leftDistSq)
             {
                 bugWallOnLeft = true;
                 bugLastWall = currentPos.add(rightDir.rotateLeft());
@@ -198,9 +234,9 @@ public strictfp class LandscaperBot extends Globals
         }
         else
         {
-			if (currentPos.distanceSquaredTo(bugDest) < closestDistWhileBugging)
+			if(currentPos.distanceSquaredTo(bugDest) < closestDistWhileBugging)
             {
-				if (rc.canMove(currentPos.directionTo(bugDest)))
+				if(rc.canMove(currentPos.directionTo(bugDest)))
                 {
 					bugTracing = false;
 					return;
@@ -210,7 +246,8 @@ public strictfp class LandscaperBot extends Globals
         
         bugTraceMove(false);
 
-        if (bugNumTurnsWithNoWall >= 2) {
+        if (bugNumTurnsWithNoWall >= 2)
+        {
 	    	bugTracing = false;
 	    }
 
@@ -221,36 +258,33 @@ public strictfp class LandscaperBot extends Globals
 		Direction tryDir = currentPos.directionTo(bugLastWall);
 		bugVisitedLocations[currentPos.x % mapWidth][currentPos.y % mapHeight] = true;
 		if (rc.canMove(tryDir) && !rc.senseFlooding(currentPos.add(tryDir)))
-        {
 			bugNumTurnsWithNoWall += 1;
-		}
-        else 
-        {
+        else
 			bugNumTurnsWithNoWall = 0;
-		}
+
 		for (int i = 0; i < 8; ++i)
         {
 			if (bugWallOnLeft)
-            {
 				tryDir = tryDir.rotateRight();
-			}
             else
-            {
 				tryDir = tryDir.rotateLeft();
-			}
+
 			MapLocation dirLoc = currentPos.add(tryDir);
-			if (!rc.onTheMap(dirLoc) && !recursed)
+			if(!rc.onTheMap(dirLoc) 
+				&& !recursed)
             {
 				// If we hit the edge of the map, reverse direction and recurse
 				bugWallOnLeft = !bugWallOnLeft;
 				bugTraceMove(true);
 				return;
 			}
-			if (rc.canMove(tryDir) && !rc.senseFlooding(currentPos.add(tryDir)))
+			if (rc.canMove(tryDir) 
+				&& !rc.senseFlooding(currentPos.add(tryDir)))
             {
 				rc.move(tryDir);
 				currentPos = rc.getLocation(); // we just moved
-				if (bugVisitedLocations[currentPos.x % mapWidth][currentPos.y % mapHeight]) {
+				if(bugVisitedLocations[currentPos.x % mapWidth][currentPos.y % mapHeight])
+				{
 					bugTracing = false;
 				}
 				return;
@@ -263,6 +297,4 @@ public strictfp class LandscaperBot extends Globals
 	}
 
     /******* END NAVIGATION *******/
-
-
 }
