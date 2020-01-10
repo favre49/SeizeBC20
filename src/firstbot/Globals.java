@@ -139,7 +139,7 @@ public class Globals
             for (int y = -maxY; y <= maxY; y++)
             {
                 MapLocation checkingPos = currentPos.translate(x,y);
-                if (inBounds(checkingPos))
+                if (inBounds(checkingPos) && !rc.senseFlooding(checkingPos))
                 {
                     if (rc.senseSoup(checkingPos) > 0)
                         return checkingPos;
