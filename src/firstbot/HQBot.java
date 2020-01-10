@@ -17,6 +17,7 @@ public strictfp class HQBot extends Globals
 	public static MapLocation soupLocation;
 	public static MapLocation toBeRefineryLocation;
 	public static MapLocation refineryLocation;
+	public static boolean builtFulfilmentCenter = false; 
 
     public static void run(RobotController rc) throws GameActionException
     {
@@ -42,7 +43,7 @@ public strictfp class HQBot extends Globals
 			initialArr[0] = Communications.getCommsNum(Globals.myObjectType,Globals.currentPos);
 			System.out.print(Communications.sendComs(initialArr,0));
    		}
-   		else if (roundNum>1){
+   		else if (roundNum>2){
    			//first, read last message pool and update the ObjectArray
 			int commsArr[][]=Communications.getComms(roundNum-1);
 
@@ -54,7 +55,6 @@ public strictfp class HQBot extends Globals
 				{
 	                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
 					System.out.println(currLocation.rt + " " + currLocation.loc);
-					boolean exists = false;
 
 					switch(currLocation.rt)
 					{
@@ -85,9 +85,18 @@ public strictfp class HQBot extends Globals
 							soupLocation = currLocation.loc;
 						break;
 
+						case HQ:
+						opponentHQLoc = currLocation.loc;
+						break;
+
+						case FULFILLMENT_CENTER:
+						builtFulfilmentCenter = true;
+						break;
+
 						case NO_SOUP:
 						soupLocation = null;
 						refineryLocation = null;
+						break;
 
 					}
 				}
@@ -98,17 +107,22 @@ public strictfp class HQBot extends Globals
 			//Now, if we're on our turn, broadcast our entire array
 			if(roundNum%broadCastFrequency==0){
 				int broadCastArr[] = new int[12];
+				int numBroadCasts = 0;
 				// for(int i=0;i<Math.min(objectArraySize,12);i++){
 				// 	broadCastArr[i] = Communications.getCommsNum(objectArray[i].rt,objectArray[i].loc);
 				// }
 				if (soupLocation != null)
-					broadCastArr[0] = Communications.getCommsNum(ObjectType.SOUP,soupLocation);
+					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.SOUP,soupLocation);
 				else
-					broadCastArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP,new MapLocation(0,0));
+					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.NO_SOUP,new MapLocation(0,0));
 				if (refineryLocation != null)
-					broadCastArr[1] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
+					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
 				if (toBeRefineryLocation != null)
-					broadCastArr[2] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
+					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
+				if (opponentHQLoc != null)
+					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
+				if (builtFulfilmentCenter)
+					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.FULFILLMENT_CENTER, new MapLocation(0,0));
 				System.out.print(Communications.sendComs(broadCastArr,0));
 			}
 
@@ -121,7 +135,19 @@ public strictfp class HQBot extends Globals
 			}
 
 			if(roundNum >= 150 && minerCount !=4)
-				buildMiner();			
+			{
+				if (refineryLocation == null && soupLocation != null)
+				{
+					Direction dirToCenter = currentPos.directionTo(new MapLocation(mapWidth/2,mapHeight/2));
+					toBeRefineryLocation = currentPos.translate(dirToCenter.dx*4, dirToCenter.dy*4);
+					while (!inBounds(toBeRefineryLocation) && rc.senseFlooding(toBeRefineryLocation))
+					{
+						dirToCenter = dirToCenter.rotateLeft();
+						toBeRefineryLocation = currentPos.translate(dirToCenter.dx*4, dirToCenter.dy*4);
+					}
+				}
+				buildMiner();
+			}
 
 		}
     }

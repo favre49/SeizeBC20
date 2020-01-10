@@ -15,16 +15,56 @@ public strictfp class DroneBot extends Globals
     public static boolean carryingOpponent = false;
     public static boolean foundCow = false;
     public static boolean foundLandscaper = false;
-    public static boolean foundMiner = false;
     public static boolean foundWater = false;
     public static boolean foundHQ = false;
     public static boolean isExploring = true;
     public static MapLocation exploreDest;
     public static int stepSize = 5;
 
+    public static int offset = 0;
+
     public static void run(RobotController rc) throws GameActionException
     {
         FastMath.initRand(rc);
+
+        if(opponentHQLoc == null)
+        {
+            int[][] commsarr=Communications.getLastIntervalComms();
+            for(int i=0;i<commsarr.length;i++)
+            {
+                innerloop:
+                for(int j=0;j<commsarr[i].length;j++)
+                {
+                    ObjectLocation currObjectLocation = Communications.getLocationFromInt(commsarr[i][j]);
+                    switch(currObjectLocation.rt)
+                    {
+                        case HQ:
+                        opponentHQLoc = currObjectLocation.loc;
+                        break;
+
+                        case COW:
+                        break innerloop;
+                    }
+                }
+            }
+        }
+
+        if (opponentHQLoc == null)
+        {
+            switch((myID+offset)%3)
+            {
+                case 0:
+                exploreDest = new MapLocation(mapWidth-baseLoc.x, mapHeight-baseLoc.y);
+                break;
+                case 1:
+                exploreDest = new MapLocation(baseLoc.x, mapHeight-baseLoc.y);
+                break;
+                case 2:
+                exploreDest = new MapLocation(mapWidth-baseLoc.x, baseLoc.y);
+                break;
+            }
+            findHQ();
+        }
 
         if (carryingCow)
             dropCow();
@@ -38,12 +78,6 @@ public strictfp class DroneBot extends Globals
             getLandscaper();
         else if (foundCow)
             getCow();
-        else if (foundMiner)
-            getMiner();
-
-        // If you are carrying an opponent, try and find water
-
-        // If you are carrying a cow, drop it in their
     }
 
 
@@ -154,7 +188,7 @@ public strictfp class DroneBot extends Globals
 				tryDir = tryDir.rotateLeft();
 			}
 			MapLocation dirLoc = currentPos.add(tryDir);
-			if (!rc.onTheMap(dirLoc) && !recursed)
+			if (!inBounds(dirLoc) && !recursed)
             {
 				// If we hit the edge of the map, reverse direction and recurse
 				bugWallOnLeft = !bugWallOnLeft;
@@ -179,6 +213,39 @@ public strictfp class DroneBot extends Globals
 
     /******* END NAVIGATION *******/
 
+
+    public static void findHQ() throws GameActionException
+    {
+        if (currentPos.distanceSquaredTo(exploreDest) <= sensorRadiusSquared)
+        {
+            RobotInfo[] nearbyBots = rc.senseNearbyRobots();
+            for (int i = 0; i < nearbyBots.length; i++)
+            {
+                if (nearbyBots[i].team == team)
+                    continue;
+
+                if (nearbyBots[i].type == RobotType.HQ)
+                {
+                    opponentHQLoc = nearbyBots[i].location;
+                    exploreDest = null;
+
+                    // Broadcast it.
+                    int[] toSendArr = new int[12];
+
+                    toSendArr[0] = Communications.getCommsNum(ObjectType.HQ,opponentHQLoc);
+                    Communications.sendComs(toSendArr,0);
+                    break;
+                }
+            }
+            if (opponentHQLoc == null)
+                offset++;
+        }
+        else
+        {
+            navigate(exploreDest);
+        }
+    }
+
     public static void explore() throws GameActionException
     {
         if (exploreDest == null)
@@ -201,20 +268,12 @@ public strictfp class DroneBot extends Globals
                     exploreDest = nearbyBots[i].location;
                     foundLandscaper = true;
                     foundCow = false;
-                    foundMiner = false;
                     isExploring = false;
                     break;
 
                     case COW:
                     exploreDest = nearbyBots[i].location;
                     foundCow = true;
-                    foundMiner = false;
-                    isExploring = false;
-                    break;
-
-                    case MINER:
-                    exploreDest = nearbyBots[i].location;
-                    foundMiner = true;
                     isExploring = false;
                     break;
 
@@ -225,8 +284,9 @@ public strictfp class DroneBot extends Globals
                 }
 
                 foundCow = !foundLandscaper && foundCow;
-                foundMiner = !foundLandscaper && !foundCow && foundMiner;
             }
+            if (!foundCow && !foundLandscaper)
+                pickNewExploreDest();
             navigate(exploreDest);
         }
         else
@@ -240,10 +300,16 @@ public strictfp class DroneBot extends Globals
     private static void pickNewExploreDest() throws GameActionException 
     {
         // Check if do while is a bad way to do this.
+        boolean firsttime = true;
         do
         {
             Direction dir = directions[FastMath.rand256()%8];
             exploreDest = exploreDest.translate(dir.dx*stepSize, dir.dy*stepSize);
+            if(!firsttime && !inBounds(exploreDest)){
+                //this is the quick fix.
+                exploreDest = exploreDest.translate(-1*dir.dx*stepSize, -1*dir.dy*stepSize);                
+            }
+            firsttime=false;
         }
         while(!inBounds(exploreDest));
     }
@@ -262,31 +328,6 @@ public strictfp class DroneBot extends Globals
                     rc.pickUpUnit(nearbyBots[i].ID);
                     carryingCow = true;
                     foundCow = false;
-                }
-                else
-                    exploreDest = nearbyBots[i].location;
-                found = true;
-            }
-        }
-        if (!found) // We lost it.
-            isExploring = true;
-        navigate(exploreDest);
-    }
-
-    // Find and pick up Miner
-    private static void getMiner() throws GameActionException
-    {
-        RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-        boolean found = false;
-        for (int i = 0; i < nearbyBots.length; i++)
-        {
-            if (nearbyBots[i].type == RobotType.MINER)
-            {
-                if (nearbyBots[i].location.distanceSquaredTo(currentPos) <= 2)
-                {
-                    rc.pickUpUnit(nearbyBots[i].ID);
-                    carryingOpponent = true;
-                    foundMiner = false;
                 }
                 else
                     exploreDest = nearbyBots[i].location;
@@ -327,6 +368,7 @@ public strictfp class DroneBot extends Globals
     // TODO: Make it easier to look for water?
     private static void dropOpponent() throws GameActionException
     {
+        System.out.println("Looking to drop my opponent");
         int r = (int)Math.sqrt(sensorRadiusSquared);
         if (!foundWater)
         {
@@ -340,10 +382,14 @@ public strictfp class DroneBot extends Globals
                     if (rc.senseFlooding(checkingPos))
                     {
                         exploreDest = checkingPos;
+                        foundWater = true;
                         break outerloop;
                     }
                 }
             }
+            if (!foundWater)
+                pickNewExploreDest();
+            navigate(exploreDest);
         }
         else
         {
@@ -363,7 +409,14 @@ public strictfp class DroneBot extends Globals
     // TODO: Make it easier to look for water?
     private static void dropCow() throws GameActionException
     {
-        // A bit complicated.
+        if (currentPos.distanceSquaredTo(opponentHQLoc) <= 8)
+        {
+            rc.dropUnit(currentPos.directionTo(opponentHQLoc));
+            carryingCow = false;
+            isExploring = true;
+        }
+        else
+            navigate(opponentHQLoc);
     }
 
 
