@@ -14,6 +14,10 @@ public strictfp class HQBot extends Globals
 	public static ObjectLocation[] objectArray = new ObjectLocation[12];
     public static int objectArraySize = 0;
 
+	public static MapLocation soupLocation;
+	public static MapLocation toBeRefineryLocation;
+	public static MapLocation refineryLocation;
+
     public static void run(RobotController rc) throws GameActionException
     {
 		/*The following code makes the HQ broadcast it's own location*/
@@ -23,9 +27,13 @@ public strictfp class HQBot extends Globals
 		for(int i=0;i<objectArraySize;i++){
 			System.out.println("i:");
 			System.out.println(i);
-			System.out.println(objectArray[i].rt);
-			System.out.println(objectArray[i].loc.x);
-			System.out.println(objectArray[i].loc.y);
+			// System.out.println(objectArray[i].rt);
+			// System.out.println(objectArray[i].loc.x);
+			// System.out.println(objectArray[i].loc.y);
+
+			System.out.println("Soup location is:" + soupLocation);
+			System.out.println("Refinery location is:" + refineryLocation);
+			System.out.println("To be refinery location is:" + toBeRefineryLocation);
 		}
 
 		if(roundNum==1){
@@ -52,45 +60,32 @@ public strictfp class HQBot extends Globals
 						break innerloop;
 
 						case REFINERY:
-						for(int k=0;k<objectArraySize;k++)
+						if (refineryLocation != null && currLocation.loc.distanceSquaredTo(toBeRefineryLocation) <= 5)
 						{
-							if (objectArray[k].rt == ObjectType.TO_BE_REFINERY && currLocation.loc.distanceSquaredTo(objectArray[k].loc) <= 5)
-							{
-								exists = true;
-								objectArray[k] = currLocation;
-							}
-							else if (objectArray[k].equals(currLocation))
-								exists = true;
-
-							if (!exists)
-								objectArray[objectArraySize++%12] = currLocation;
-	                	}
+							refineryLocation = currLocation.loc;
+							toBeRefineryLocation = null;
+						}
+						else if (refineryLocation == null)
+						{
+							refineryLocation = currLocation.loc;
+							toBeRefineryLocation = null;
+						}
 						break;
 
 						case TO_BE_REFINERY:
-						for(int k=0;k<objectArraySize;k++)
+						if (refineryLocation != null && currLocation.loc.distanceSquaredTo(refineryLocation) <= 5)
 						{
-							if (objectArray[k].rt == ObjectType.REFINERY && currLocation.loc.distanceSquaredTo(objectArray[k].loc) <= 5)
-								exists = true;
-							else if (objectArray[k].equals(currLocation))
-								exists = true;
-
-							if (!exists)
-								objectArray[objectArraySize++%12] = currLocation;
-	                	}
+							toBeRefineryLocation = null;
+						}
+						else if (refineryLocation == null)
+						{
+							toBeRefineryLocation = currLocation.loc;
+						}
 						break;
 
 						case SOUP:
-	                	for(int k=0;k<objectArraySize;k++)
-						{
-							if (objectArray[k].equals(currLocation))
-							{
-								exists = true;
-								break;
-							}
-	                	}
-						if (!exists)
-							objectArray[(objectArraySize++)%12]=currLocation;
+	                	if (soupLocation == null)
+							soupLocation = currLocation.loc;
 						break;
 
 					}
@@ -102,9 +97,15 @@ public strictfp class HQBot extends Globals
 			//Now, if we're on our turn, broadcast our entire array
 			if(roundNum%broadCastFrequency==0){
 				int broadCastArr[] = new int[12];
-				for(int i=0;i<Math.min(objectArraySize,12);i++){
-					broadCastArr[i] = Communications.getCommsNum(objectArray[i].rt,objectArray[i].loc);
-				}
+				// for(int i=0;i<Math.min(objectArraySize,12);i++){
+				// 	broadCastArr[i] = Communications.getCommsNum(objectArray[i].rt,objectArray[i].loc);
+				// }
+				if (soupLocation != null)
+					broadCastArr[0] = Communications.getCommsNum(ObjectType.SOUP,soupLocation);
+				if (refineryLocation != null)
+					broadCastArr[1] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
+				if (toBeRefineryLocation != null)
+					broadCastArr[2] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
 				System.out.print(Communications.sendComs(broadCastArr,0));
 			}
 

@@ -64,18 +64,16 @@ public strictfp class MinerBot extends Globals
             System.out.println("Soup is at" + soupLocation);
         }
 
-        // TODO: ALSO CONSIDER RACE CONDITION WHERE TWO BOTS COMMUNICATE INFO ON THE SAME TURN. GO TO NEAREST ONE.
-
         if (isExploring)
         {
             explore();
         }
         else if(rc.getTeamSoup() >= 200 && toBeRefineryLocation != null) // Build a refinery if we have enough.
         {
-            if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
+            if (currentPos.distanceSquaredTo(toBeRefineryLocation) <= 2)
                 refineryLocation = buildRefinery();
             else
-                navigate(refineryLocation);
+                navigate(toBeRefineryLocation);
         }
         else if (rc.getSoupCarrying() == 100) // Refine if we have enough.
         {
