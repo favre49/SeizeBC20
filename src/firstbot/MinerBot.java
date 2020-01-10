@@ -18,6 +18,7 @@ public strictfp class MinerBot extends Globals
 
     private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
     private static MapLocation refineryLocation;
+    private static MapLocation toBeRefineryLocation;
     private static MapLocation soupLocation;
     private static int numRefineries = 0;
 
@@ -27,36 +28,49 @@ public strictfp class MinerBot extends Globals
         // Seed random number generator.
         FastMath.initRand(rc);
 
-        // LISTEN FOR SOUPLOCATION AND REFINERY LOCATIONS. IF WE FIND THEM OUT UPDATE STATES AND ACT ACCORDINGLY
-        if(roundNum%broadCastFrequency==1){
-            System.out.println(Clock.getBytecodeNum());
+        // Listen for soup locations every 5 turns.
+        if(roundNum%broadCastFrequency==1)
+        {
             int[][] commsarr=Communications.getLastIntervalComms();
-            for(int i=0;i<commsarr.length;i++){
-                for(int j=0;j<commsarr[i].length;j++){
-                    ObjectLocation currObjectLocation = Communications.getLocationFromInt(commsarr[i][0]);
-                    if(currObjectLocation.rt==ObjectType.REFINERY){
+            for(int i=0;i<commsarr.length;i++)
+            {
+                innerloop:
+                for(int j=0;j<commsarr[i].length;j++)
+                {
+                    ObjectLocation currObjectLocation = Communications.getLocationFromInt(commsarr[i][j]);
+                    switch(currObjectLocation.rt)
+                    {
+                        case REFINERY:
                         refineryLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
-                    }
-                    else if(currObjectLocation.rt==ObjectType.SOUP){
-                        soupLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
-                    }
-                    else if(currObjectLocation.rt==ObjectType.COW){
+                        toBeRefineryLocation = null;
                         break;
+
+                        case TO_BE_REFINERY:
+                        toBeRefineryLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
+                        break;
+
+                        case SOUP:
+                        isExploring = false;
+                        soupLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
+                        break;
+
+                        case COW:
+                        break innerloop;
                     }
                 }
             }
-            System.out.println(Clock.getBytecodeNum());
-            // System.out.println("I AM THE MINER");
-            // System.out.println(Clock.getBytecodeNum());
+            System.out.println("Refinery is at: " + refineryLocation);
+            System.out.println("We will build refinery at" + toBeRefineryLocation);
+            System.out.println("Soup is at" + soupLocation);
         }
 
         // TODO: ALSO CONSIDER RACE CONDITION WHERE TWO BOTS COMMUNICATE INFO ON THE SAME TURN. GO TO NEAREST ONE.
 
-        if (isExploring){
-            // System.out.println("HELLO");
+        if (isExploring)
+        {
             explore();
         }
-        else if(rc.getTeamSoup() >= 200 && numRefineries == 0) // Build a refinery if we have enough.
+        else if(rc.getTeamSoup() >= 200 && toBeRefineryLocation != null) // Build a refinery if we have enough.
         {
             if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
                 refineryLocation = buildRefinery();
@@ -87,7 +101,7 @@ public strictfp class MinerBot extends Globals
             if (currentPos.distanceSquaredTo(soupLocation) < NEAR_SOUP)
             {
                 MapLocation loc = senseNearbySoup();
-                if (loc == null)
+                if (loc == null)  // No soup nearby? Must be no soup left!!
                 {
                     isExploring = true;
                     explore();
@@ -103,7 +117,6 @@ public strictfp class MinerBot extends Globals
             else
                 navigate(soupLocation);
         }
-        // System.out.println("HELLO");
     }
 
 
@@ -214,7 +227,7 @@ public strictfp class MinerBot extends Globals
 				tryDir = tryDir.rotateLeft();
 			}
 			MapLocation dirLoc = currentPos.add(tryDir);
-			if (!rc.onTheMap(dirLoc) && !recursed)
+			if (!inBounds(dirLoc) && !recursed)
             {
 				// If we hit the edge of the map, reverse direction and recurse
 				bugWallOnLeft = !bugWallOnLeft;
@@ -253,8 +266,6 @@ public strictfp class MinerBot extends Globals
             exploreDest = currentPos;
             pickNewExploreDest();
         }
-
-
         
         if (rc.canSenseLocation(exploreDest) && rc.senseFlooding(exploreDest))
         {
@@ -290,13 +301,12 @@ public strictfp class MinerBot extends Globals
                         {
                             soupLocation = checkingPos;
                             isExploring = false;
-                            refineryLocation = currentPos;
-                            // SEND REFINERY AND SOUP LOCATION
+                            toBeRefineryLocation = currentPos;
 
                             int[] toSendArr = new int[12];
 
                             toSendArr[0] = Communications.getCommsNum(ObjectType.SOUP,soupLocation);
-                            toSendArr[1] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,refineryLocation);
+                            toSendArr[1] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
                             Communications.sendComs(toSendArr,0);
 
                             break outerloop;
@@ -320,7 +330,6 @@ public strictfp class MinerBot extends Globals
         do
         {
             Direction dir = directions[FastMath.rand256()%8];
-            // System.out.println("HELLO3");
             exploreDest = exploreDest.translate(dir.dx*stepSize, dir.dy*stepSize);
             if(!firsttime && !inBounds(exploreDest)){
                 //this is the quick fix.
@@ -332,7 +341,6 @@ public strictfp class MinerBot extends Globals
     }
 
     /** Functions for building buildings. Separated in case we need different behavior for some reason. **/
-
     private static MapLocation buildRefinery() throws GameActionException
     {
         int i;
@@ -345,7 +353,8 @@ public strictfp class MinerBot extends Globals
     	}
         //IF WE DO BUILD REFINERIES, SEND LOCATION.
         if (i!=8){
-            numRefineries++;
+            refineryLocation = currentPos.add(directions[i]);
+            toBeRefineryLocation = null;
             int[] sendArr = new int[12];
             sendArr[0] = Communications.getCommsNum(ObjectType.REFINERY,currentPos.add(directions[i]));
             Communications.sendComs(sendArr,0);

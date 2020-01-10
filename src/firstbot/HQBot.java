@@ -8,9 +8,11 @@ import battlecode.common.*;
  * Has a built in gun and refinery.
  */
 public strictfp class HQBot extends Globals
-{	
-
+{
 	public static int minerCount = 0;
+
+	public static ObjectLocation[] objectArray = new ObjectLocation[12];
+    public static int objectArraySize = 0;
 
     public static void run(RobotController rc) throws GameActionException
     {
@@ -34,25 +36,68 @@ public strictfp class HQBot extends Globals
    		else if (roundNum>1){
    			//first, read last message pool and update the ObjectArray
 			int commsArr[][]=Communications.getComms(roundNum-1);
-			for(int i=0;i<commsArr.length;i++){
-				for(int j=0;j<commsArr[i].length;j++){
+
+			// Set this up to be a switch case?
+			for(int i=0;i<commsArr.length;i++)
+			{
+				innerloop:
+				for(int j=0;j<commsArr[i].length;j++)
+				{
 	                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+					boolean exists = false;
 
-	                if(currLocation.rt == ObjectType.TO_BE_REFINERY || currLocation.rt == ObjectType.REFINERY || currLocation.rt == ObjectType.SOUP){
-	                	boolean alreadyIn = false;
-	                	for(int k=0;k<objectArraySize;k++){
-	                		if(currLocation.equals(objectArray[k])){
-	                			alreadyIn=true;
-	                			break;
-	                		}
-	                	}
+					switch(currLocation.rt)
+					{
+						case COW:
+						break innerloop;
 
-	                	if(!alreadyIn){
-	                		objectArray[(objectArraySize++)%12]=currLocation;
+						case REFINERY:
+						for(int k=0;k<objectArraySize;k++)
+						{
+							if (objectArray[k].rt == ObjectType.TO_BE_REFINERY && currLocation.loc.distanceSquaredTo(objectArray[k].loc) <= 5)
+							{
+								exists = true;
+								objectArray[k] = currLocation;
+							}
+							else if (objectArray[k].equals(currLocation))
+								exists = true;
+
+							if (!exists)
+								objectArray[objectArraySize++%12] = currLocation;
 	                	}
-	                } 
+						break;
+
+						case TO_BE_REFINERY:
+						for(int k=0;k<objectArraySize;k++)
+						{
+							if (objectArray[k].rt == ObjectType.REFINERY && currLocation.loc.distanceSquaredTo(objectArray[k].loc) <= 5)
+								exists = true;
+							else if (objectArray[k].equals(currLocation))
+								exists = true;
+
+							if (!exists)
+								objectArray[objectArraySize++%12] = currLocation;
+	                	}
+						break;
+
+						case SOUP:
+	                	for(int k=0;k<objectArraySize;k++)
+						{
+							if (objectArray[k].equals(currLocation))
+							{
+								exists = true;
+								break;
+							}
+	                	}
+						if (!exists)
+							objectArray[(objectArraySize++)%12]=currLocation;
+						break;
+
+					}
 				}
 			}
+
+			
 
 			//Now, if we're on our turn, broadcast our entire array
 			if(roundNum%broadCastFrequency==0){
