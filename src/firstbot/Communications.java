@@ -36,14 +36,15 @@ public strictfp class Communications extends Globals{
 		int r4 = ((newData>>8)&1)^((newData>>9)&1)^((newData>>10)&1)^((newData>>11)&1)^((newData>>12)&1)^((newData>>13)&1)^((newData>>14)&1);
 		int r5 = ((newData>>16)&1)^((newData>>17)&1)^((newData>>18)&1)^((newData>>19)&1)^((newData>>20)&1)^((newData>>21)&1)^((newData>>22)&1);
 
-		int finalparity = ((newData>>0)&1)^((newData>>1)&1)^((newData>>2)&1)^((newData>>3)&1)^((newData>>4)&1)^((newData>>5)&1)^((newData>>6)&1)^((newData>>7)&1)^((newData>>8)&1)^((newData>>9)&1)^((newData>>10)&1)^((newData>>11)&1)^((newData>>12)&1)^((newData>>13)&1)^((newData>>14)&1)^((newData>>15)&1)^((newData>>16)&1)^((newData>>17)&1)^((newData>>18)&1)^((newData>>19)&1)^((newData>>20)&1)^((newData>>21)&1)^((newData>>22)&1);
-
-		//adding parity bits to newData
 		newData|=r1;
 		newData|=r2<<1;
 		newData|=r3<<3;
 		newData|=r4<<7;
 		newData|=r5<<15;
+
+		int finalparity = ((newData>>0)&1)^((newData>>1)&1)^((newData>>2)&1)^((newData>>3)&1)^((newData>>4)&1)^((newData>>5)&1)^((newData>>6)&1)^((newData>>7)&1)^((newData>>8)&1)^((newData>>9)&1)^((newData>>10)&1)^((newData>>11)&1)^((newData>>12)&1)^((newData>>13)&1)^((newData>>14)&1)^((newData>>15)&1)^((newData>>16)&1)^((newData>>17)&1)^((newData>>18)&1)^((newData>>19)&1)^((newData>>20)&1)^((newData>>21)&1)^((newData>>22)&1);
+
+		//adding parity bits to newData
 
 		newData|=finalparity<<23;
 		return newData;
@@ -56,8 +57,24 @@ public strictfp class Communications extends Globals{
 		int r4 = ((data>>8)&1)^((data>>9)&1)^((data>>10)&1)^((data>>11)&1)^((data>>12)&1)^((data>>13)&1)^((data>>14)&1);
 		int r5 = ((data>>16)&1)^((data>>17)&1)^((data>>18)&1)^((data>>19)&1)^((data>>20)&1)^((data>>21)&1)^((data>>22)&1);
 
-		int syndrome=r1^r2^r3^r4^r5^(data&1)^((data>>1)&1)^((data>>3)&1)^((data>>7)&1)^((data>>15)&1);
-		if(syndrome==0 && (data>>23)==0){
+		int gp = ((data>>0)&1)^((data>>1)&1)^((data>>2)&1)^((data>>3)&1)^((data>>4)&1)^((data>>5)&1)^((data>>6)&1)^((data>>7)&1)^((data>>8)&1)^((data>>9)&1)^((data>>10)&1)^((data>>11)&1)^((data>>12)&1)^((data>>13)&1)^((data>>14)&1)^((data>>15)&1)^((data>>16)&1)^((data>>17)&1)^((data>>18)&1)^((data>>19)&1)^((data>>20)&1)^((data>>21)&1)^((data>>22)&1);
+
+		int syndrome=(r1<<0)^(r2<<1)^(r3<<2)^(r4<<3)^(r5<<4)^(data&1)^(((data>>1)&1)<<1)^(((data>>3)&1)<<2)^(((data>>7)&1)<<3)^(((data>>15)&1)<<4);
+		// System.out.println(r1);
+		// System.out.println(r2);
+		// System.out.println(r3);
+		// System.out.println(r4);
+		// System.out.println(r5);
+		// System.out.println(data&1);
+		// System.out.println((data>>1)&1);
+		// System.out.println((data>>3)&1);
+		// System.out.println((data>>7)&1);
+		// System.out.println((data>>15)&1);
+
+		// System.out.println(data>>23);
+		// System.out.println("--------");
+
+		if(syndrome==0 && (((data>>23)&1)^(gp))==0){
 			return true;
 		}
 		else{
@@ -92,12 +109,14 @@ public strictfp class Communications extends Globals{
 	public static int[] encode(int[] data){
 		//takes int[9], adds hamming to each, then given int
 		int[] hammingData = new int[9];
+		// System.out.println(data[0]);
 		for(int i=0;i<9;i++){
 			hammingData[i]=hamming18to24(data[i]);
 		}
+		// System.out.println(hammingData[0]);
 
 		int[] message = new int[7];
-		message[0]|=(38<<24);	
+		message[0]|=(38<<24);
 		//first 8 bits for key
 		//the 8 bit key is 38
 		
@@ -105,14 +124,14 @@ public strictfp class Communications extends Globals{
 			int whichdata = i/24;
 			int whichbit = i%24;
 
-			int sourcebit = ((data[whichdata]&(1<<(23-whichbit)))>0)?1:0;
-
+			int sourcebit = ((hammingData[whichdata]&(1<<(23-whichbit)))>0)?1:0;
 
 			int targetdata = (i+8)/32;
 			int targetbit = (i+8)%32;
 
 			message[targetdata]|=sourcebit<<(31-targetbit);
 		}
+		// System.out.println(message[0]);
 
 		message[0]^=-903849746;
 		message[1]^=-172817894;
@@ -139,8 +158,6 @@ public strictfp class Communications extends Globals{
 
 		int[] message = messageTransaction.getMessage();
 
-		// System.out.println(message[0]);
-
 		message[0]^=-903849746;
 		message[1]^=-172817894;
 		message[2]^=293009196;
@@ -149,9 +166,11 @@ public strictfp class Communications extends Globals{
 		message[5]^=-1561017189;
 		message[6]^=2092647876;
 
+		// System.out.println(message[0]);
+
 		if(((message[0]>>24)&255) != 38){
 			//it was not our message
-			// System.out.println("NOT OUR MESSAGE");
+			System.out.println("NOT OUR MESSAGE");
 			return decoded;
 		}
 
@@ -166,8 +185,12 @@ public strictfp class Communications extends Globals{
 			decoded[whichdata]|=sourcebit<<(23-whichbit);
 		}
 
+		System.out.println(decoded[0]);
+		System.out.println(isCorrect(decoded[0]));
+
+
 		int[] hammingChecked=new int[9];
-		for(int i=0;i<12;i++){
+		for(int i=0;i<9;i++){
 			if(isCorrect(decoded[i])){
 				hammingChecked[i]=unhamming24to18(decoded[i]);
 			}
@@ -198,7 +221,9 @@ public strictfp class Communications extends Globals{
 		int[][] interpreted = new int[theBlock.length][12];
 
 		for(int i=0;i<theBlock.length;i++){
+			// System.out.println(theBlock[i].getMessage()[0]);
 			interpreted[i]=decode(theBlock[i]);
+			// System.out.println(interpreted[i]);
 		}
 
 		return interpreted;

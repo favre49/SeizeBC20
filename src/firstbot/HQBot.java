@@ -20,107 +20,125 @@ public strictfp class HQBot extends Globals
 
     public static void run(RobotController rc) throws GameActionException
     {
-		/*The following code makes the HQ broadcast it's own location*/
-		System.out.println("HQ:");
-		System.out.println(roundNum);
-		System.out.println(objectArraySize);
-		for(int i=0;i<objectArraySize;i++){
-			System.out.println("i:");
-			System.out.println(i);
-			// System.out.println(objectArray[i].rt);
-			// System.out.println(objectArray[i].loc.x);
-			// System.out.println(objectArray[i].loc.y);
 
-			System.out.println("Soup location is:" + soupLocation);
-			System.out.println("Refinery location is:" + refineryLocation);
-			System.out.println("To be refinery location is:" + toBeRefineryLocation);
-		}
+    	if(roundNum==1){
+    		// yoyoyo
+    		int[] arr = new int[9];
+    		arr[0]=Communications.getCommsNum(ObjectType.SOUP, new MapLocation(55,2));
+    		Communications.sendComs(arr,10);
+    	}
+    	else{
+    		int[][] commsArr=Communications.getComms(1);
+    		for(int i=0;i<commsArr.length;i++){
+    			// for(int j=0;j<commsArr[i].length;j++){
+					System.out.println(Communications.getLocationFromInt(commsArr[i][0]).rt);
+					System.out.println(Communications.getLocationFromInt(commsArr[i][0]).loc.x);
+					System.out.println(Communications.getLocationFromInt(commsArr[i][0]).loc.y);
+				// }
+    		}
+    	}
 
-		if(roundNum==1){
-			soupLocation = senseNearbySoup();
-			int initialArr[] = new int[12];
-			initialArr[0] = Communications.getCommsNum(Globals.myObjectType,Globals.currentPos);
-			System.out.print(Communications.sendComs(initialArr,0));
-   		}
-   		else if (roundNum>1){
-   			//first, read last message pool and update the ObjectArray
-			int commsArr[][]=Communications.getComms(roundNum-1);
+		// /*The following code makes the HQ broadcast it's own location*/
+		// System.out.println("HQ:");
+		// System.out.println(roundNum);
+		// System.out.println(objectArraySize);
+		// for(int i=0;i<objectArraySize;i++){
+		// 	System.out.println("i:");
+		// 	System.out.println(i);
+		// 	// System.out.println(objectArray[i].rt);
+		// 	// System.out.println(objectArray[i].loc.x);
+		// 	// System.out.println(objectArray[i].loc.y);
 
-			// Set this up to be a switch case?
-			for(int i=0;i<commsArr.length;i++)
-			{
-				innerloop:
-				for(int j=0;j<commsArr[i].length;j++)
-				{
-	                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
-					System.out.println(currLocation.rt + " " + currLocation.loc);
-					boolean exists = false;
+		// 	System.out.println("Soup location is:" + soupLocation);
+		// 	System.out.println("Refinery location is:" + refineryLocation);
+		// 	System.out.println("To be refinery location is:" + toBeRefineryLocation);
+		// }
 
-					switch(currLocation.rt)
-					{
-						case COW:
-						break innerloop;
+		// if(roundNum==1){
+		// 	soupLocation = senseNearbySoup();
+		// 	int initialArr[] = new int[12];
+		// 	initialArr[0] = Communications.getCommsNum(Globals.myObjectType,Globals.currentPos);
+		// 	System.out.print(Communications.sendComs(initialArr,0));
+  //  		}
+  //  		else if (roundNum>1){
+  //  			//first, read last message pool and update the ObjectArray
+		// 	int commsArr[][]=Communications.getComms(roundNum-1);
 
-						case REFINERY:
-						if (refineryLocation == null)
-						{
-							refineryLocation = currLocation.loc;
-							toBeRefineryLocation = null;
-						}
-						break;
+		// 	// Set this up to be a switch case?
+		// 	for(int i=0;i<commsArr.length;i++)
+		// 	{
+		// 		innerloop:
+		// 		for(int j=0;j<commsArr[i].length;j++)
+		// 		{
+	 //                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+		// 			System.out.println(currLocation.rt + " " + currLocation.loc);
+		// 			boolean exists = false;
 
-						case TO_BE_REFINERY:
-						if (refineryLocation != null && currLocation.loc.distanceSquaredTo(refineryLocation) <= 5)
-						{
-							toBeRefineryLocation = null;
-						}
-						else if (refineryLocation == null)
-						{
-							toBeRefineryLocation = currLocation.loc;
-						}
-						break;
+		// 			switch(currLocation.rt)
+		// 			{
+		// 				case COW:
+		// 				break innerloop;
 
-						case SOUP:
-	                	if (soupLocation == null)
-							soupLocation = currLocation.loc;
-						break;
+		// 				case REFINERY:
+		// 				if (refineryLocation == null)
+		// 				{
+		// 					refineryLocation = currLocation.loc;
+		// 					toBeRefineryLocation = null;
+		// 				}
+		// 				break;
 
-						case NO_SOUP:
-						soupLocation = null;
-						refineryLocation = null;
+		// 				case TO_BE_REFINERY:
+		// 				if (refineryLocation != null && currLocation.loc.distanceSquaredTo(refineryLocation) <= 5)
+		// 				{
+		// 					toBeRefineryLocation = null;
+		// 				}
+		// 				else if (refineryLocation == null)
+		// 				{
+		// 					toBeRefineryLocation = currLocation.loc;
+		// 				}
+		// 				break;
 
-					}
-				}
-			}
+		// 				case SOUP:
+	 //                	if (soupLocation == null)
+		// 					soupLocation = currLocation.loc;
+		// 				break;
+
+		// 				case NO_SOUP:
+		// 				soupLocation = null;
+		// 				refineryLocation = null;
+
+		// 			}
+		// 		}
+		// 	}
 
 			
 
-			//Now, if we're on our turn, broadcast our entire array
-			if(roundNum%broadCastFrequency==0){
-				int broadCastArr[] = new int[12];
-				// for(int i=0;i<Math.min(objectArraySize,12);i++){
-				// 	broadCastArr[i] = Communications.getCommsNum(objectArray[i].rt,objectArray[i].loc);
-				// }
-				if (soupLocation != null)
-					broadCastArr[0] = Communications.getCommsNum(ObjectType.SOUP,soupLocation);
-				else
-					broadCastArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP,new MapLocation(0,0));
-				if (refineryLocation != null)
-					broadCastArr[1] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
-				if (toBeRefineryLocation != null)
-					broadCastArr[2] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
-				System.out.print(Communications.sendComs(broadCastArr,0));
-			}
+		// 	//Now, if we're on our turn, broadcast our entire array
+		// 	if(roundNum%broadCastFrequency==0){
+		// 		int broadCastArr[] = new int[12];
+		// 		// for(int i=0;i<Math.min(objectArraySize,12);i++){
+		// 		// 	broadCastArr[i] = Communications.getCommsNum(objectArray[i].rt,objectArray[i].loc);
+		// 		// }
+		// 		if (soupLocation != null)
+		// 			broadCastArr[0] = Communications.getCommsNum(ObjectType.SOUP,soupLocation);
+		// 		else
+		// 			broadCastArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP,new MapLocation(0,0));
+		// 		if (refineryLocation != null)
+		// 			broadCastArr[1] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
+		// 		if (toBeRefineryLocation != null)
+		// 			broadCastArr[2] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
+		// 		System.out.print(Communications.sendComs(broadCastArr,0));
+		// 	}
 
-			int nearbyDroneID = senseDrones();
-			if (nearbyDroneID != -1)
-				rc.shootUnit(nearbyDroneID);
+		// 	int nearbyDroneID = senseDrones();
+		// 	if (nearbyDroneID != -1)
+		// 		rc.shootUnit(nearbyDroneID);
 
-			if(minerCount<3){
-				buildMiner();
-			}
+		// 	if(minerCount<3){
+		// 		buildMiner();
+		// 	}
 
-		}
+		// }
     }
 
     static Boolean buildMiner() throws GameActionException
