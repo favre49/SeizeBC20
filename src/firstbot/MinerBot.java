@@ -349,7 +349,7 @@ public strictfp class MinerBot extends Globals
                 for (int y = -maxY; y <= maxY; y++)
                 {
                     MapLocation checkingPos = currentPos.translate(x,y);
-                    if (inBounds(checkingPos) && !exploredGrid[checkingPos.x][checkingPos.y])
+                    if (inBounds(checkingPos) && !exploredGrid[checkingPos.x][checkingPos.y] && !rc.senseFlooding(checkingPos))
                     {
                         exploredGrid[checkingPos.x][checkingPos.y] = true;
                         if (rc.senseSoup(checkingPos) > 0)
