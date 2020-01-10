@@ -112,6 +112,10 @@ public strictfp class HQBot extends Globals
 				System.out.print(Communications.sendComs(broadCastArr,0));
 			}
 
+			int nearbyDroneID = senseDrones();
+			if (nearbyDroneID != -1)
+				rc.shootUnit(nearbyDroneID);
+
 			if(minerCount<3){
 				buildMiner();
 			}
@@ -131,4 +135,15 @@ public strictfp class HQBot extends Globals
     	//communicate that HQ is boxed in; 
     	return false;
     }
+
+	static int senseDrones() throws GameActionException
+	{
+		RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+		for (int i = 0; i < nearbyRobots.length; i++)
+		{
+			if (nearbyRobots[i].type == RobotType.DELIVERY_DRONE && nearbyRobots[i].team == opponent && nearbyRobots[i].location.distanceSquaredTo(currentPos) <= GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED)
+				return nearbyRobots[i].ID;
+		}
+		return -1;
+	}
 }
