@@ -11,22 +11,77 @@ import battlecode.common.*;
  */
 public strictfp class LandscaperBot extends Globals
 {
-    public static Direction dumpingTo = Direction.NORTH;
-    public static boolean dumping = false;
+    public static Direction dumpingTo = Direction.NORTH;  //not using this anymore
+    public static boolean dumping = false;					//^^^
+
 
     public static void run(RobotController rc)  throws GameActionException
     {
-    	//move to base
-    	navigate(new MapLocation(Globals.baseLoc.x+1, Globals.baseLoc.y+1));
- 		if(currentPos == new MapLocation(Globals.baseLoc.x+1, Globals.baseLoc.y+1)){
-    		fortifyBase();
- 		}
+		if(rc.getLocation().distanceSquaredTo(baseLoc) <= 8){
+			fortifyBase2();
+		}    	
     }
 
-    static void fortifyBase() throws GameActionException
+    static void fortifyBase2() throws GameActionException
     {
-		short x[] = {-1, 0, 1, 1, 1, 0, -1, -1};
-	    short y[] = {-1, -1, -1, 0, 1, 1, 1, 0};
+		if(rc.getLocation().distanceSquaredTo(baseLoc) <= 2){
+ 			//get into position
+ 			RobotInfo nearBase[] = rc.senseNearbyRobots(baseLoc, 2, rc.getTeam());
+ 			if(nearBase.length < 9){
+				for(int i = 0; i < 8; i++){
+	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + x[i], baseLoc.y + y[i]))){
+	 					navigate(new MapLocation(baseLoc.x + x[i], baseLoc.y + y[i]));
+	 				}
+	 			}
+	 		}
+			if(rc.getDirtCarrying() == 0){
+    			rc.digDirt(Direction.CENTER);
+    		}
+    		else{
+    			Direction lowestSquareDirectionInOuterLayer = Direction.CENTER;
+    			int lowestElevation = 1000;
+    			//lay dirt down in the lowest location of the outer layer
+    			for(int i = 0; i < 8; i++)
+    			{	
+    				if(rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) < lowestElevation && rc.canDepositDirt(directions[i]) && baseLoc.distanceSquaredTo(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) > 2){
+    					lowestElevation = rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i]));
+    					lowestSquareDirectionInOuterLayer = directions[i];
+    				}
+    				rc.depositDirt(lowestSquareDirectionInOuterLayer);
+    			}
+    		}	
+		}
+		else{
+			//get into formation;
+			int xx[] = {-2, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2};
+			int yy[] = {-2, -2, -2, -2, -2, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1};
+			RobotInfo nearBase[] = rc.senseNearbyRobots(baseLoc, 8, rc.getTeam());
+ 			if(nearBase.length < 25){
+				for(int i = 0; i < x.length; i++){
+	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + xx[i], baseLoc.y + yy[i]))){
+	 					navigate(new MapLocation(baseLoc.x + xx[i], baseLoc.y + yy[i]));
+	 				}
+	 			}
+	 		}
+			Direction digsFrom1 = currentPos.directionTo(baseLoc);
+			Direction digsFrom2 = baseLoc.directionTo(currentPos);
+			if(rc.getDirtCarrying() == 0){
+				//should I check if availble from other sources, this should cover it
+				if(rc.canDigDirt(digsFrom1)){
+					rc.digDirt(digsFrom1);
+				}
+				else{
+					rc.digDirt(digsFrom2);
+				}
+			}
+			else{
+				rc.depositDirt(Direction.CENTER);
+			}
+		}
+    }
+
+    static void fortifyBase1() throws GameActionException //not using this anymore
+    {
     	if(dumping){
     		if(rc.getDirtCarrying() > 0){
     			Globals.rc.depositDirt(dumpingTo);
