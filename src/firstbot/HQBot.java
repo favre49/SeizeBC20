@@ -120,6 +120,9 @@ public strictfp class HQBot extends Globals
 				buildMiner();
 			}
 
+			if(roundNum >= 150 && minerCount !=4)
+				buildMiner();			
+
 		}
     }
 

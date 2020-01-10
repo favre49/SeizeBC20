@@ -20,7 +20,8 @@ public strictfp class MinerBot extends Globals
     private static MapLocation refineryLocation;
     private static MapLocation toBeRefineryLocation;
     private static MapLocation soupLocation;
-    private static int numRefineries = 0;
+    private static boolean receivedMessage = true;
+    private static boolean builtDesignSchool = false;
 
     public static void run(RobotController rc) throws GameActionException
     {
@@ -29,8 +30,9 @@ public strictfp class MinerBot extends Globals
         FastMath.initRand(rc);
 
         // Listen for soup locations every 5 turns.
-        if(roundNum%broadCastFrequency==1)
+        if(roundNum%broadCastFrequency==1 || !receivedMessage)
         {
+            receivedMessage = false;
             int[][] commsarr=Communications.getLastIntervalComms();
             for(int i=0;i<commsarr.length;i++)
             {
@@ -41,20 +43,24 @@ public strictfp class MinerBot extends Globals
                     switch(currObjectLocation.rt)
                     {
                         case REFINERY:
+                        receivedMessage = true;
                         refineryLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
                         toBeRefineryLocation = null;
                         break;
 
                         case TO_BE_REFINERY:
+                        receivedMessage = true;
                         toBeRefineryLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
                         break;
 
                         case SOUP:
+                        receivedMessage = true;
                         isExploring = false;
                         soupLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
                         break;
 
                         case NO_SOUP:
+                        receivedMessage = true;
                         isExploring = true;
                         soupLocation= null;
                         refineryLocation = null;
@@ -67,6 +73,24 @@ public strictfp class MinerBot extends Globals
             System.out.println("Refinery is at: " + refineryLocation);
             System.out.println("We will build refinery at" + toBeRefineryLocation);
             System.out.println("Soup is at" + soupLocation);
+        }
+
+        // The if else ladder that is the brain of the miner. Pray that we don't let it become too complicated.
+        if (roundNum >= 150 && !builtDesignSchool &&currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
+        {
+            MapLocation designLoc = baseLoc.add(Direction.EAST);
+            if (currentPos.distanceSquaredTo(baseLoc)<=2)
+            {
+                if (rc.getTeamSoup() >= 200)
+                {
+                    builtDesignSchool = true;
+                    buildDesignSchool(currentPos.directionTo(designLoc));
+                }
+                else
+                    rc.move(Direction.CENTER); // wait till you are able to.
+            }
+            else
+                navigate(designLoc);
         }
 
         if (isExploring)
@@ -262,17 +286,21 @@ public strictfp class MinerBot extends Globals
     private static boolean isExploring = true;
     private static MapLocation exploreDest;
     private static int stepSize = 5; // Picking a hardcoded step size for now.
+    private static int maxTurns = 10; // If you don't reach your destination in 10 turns, take lite.
+    private static int currentNumberOfTurns = 0;
 
     private static void explore() throws GameActionException
     {
         if (!isExploring) return;
-        // System.out.println("HELLO2");
 
         if (exploreDest == null)
         {
             exploreDest = currentPos;
             pickNewExploreDest();
         }
+
+        if (currentNumberOfTurns == maxTurns)
+            pickNewExploreDest();
         
         if (rc.canSenseLocation(exploreDest) && rc.senseFlooding(exploreDest))
         {
@@ -323,10 +351,14 @@ public strictfp class MinerBot extends Globals
             }
             // System.out.println(Clock.getBytecodeNum());            
             pickNewExploreDest();
+            currentNumberOfTurns++;
             navigate(exploreDest);
         }
         else
+        {
+            currentNumberOfTurns++;
             navigate(exploreDest);
+        }
     }
 
     // Picks a new destination for exploration.
@@ -400,12 +432,17 @@ public strictfp class MinerBot extends Globals
         int i;
         for(i = 0; i < 8; i++){
     		if(rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i])){
-    			rc.buildRobot(RobotType.MINER, directions[i]);
+    			rc.buildRobot(RobotType.DESIGN_SCHOOL, directions[i]);
     			break;
     		}
     	}
         return currentPos.add(directions[i]);
 
+    }
+
+    private static void buildDesignSchool(Direction dir) throws GameActionException
+    {
+        rc.buildRobot(RobotType.DESIGN_SCHOOL, dir);
     }
 
     private static MapLocation buildNetGun() throws GameActionException
