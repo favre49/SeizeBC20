@@ -12,8 +12,8 @@ import battlecode.common.*;
  */
 public strictfp class VaporatorBot extends Globals
 {
-    public static void run(RobotController rc)
-    {
-        
-    }
+	public static void run(RobotController rc)
+	{
+		
+	}
 }
