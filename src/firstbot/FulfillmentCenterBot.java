@@ -10,25 +10,27 @@ import battlecode.common.*;
  */
 public strictfp class FulfillmentCenterBot extends Globals
 {
-    public static int dronesBuilt = 0;
-    public static void run(RobotController rc) throws GameActionException
-    {
-        while(dronesBuilt < 4){
-    		if(buildDrone()){
-    			dronesBuilt++;
-    		}
-    	}
-    }
+	public static int dronesBuilt = 0;
+	public static void run(RobotController rc) throws GameActionException
+	{
+		while(dronesBuilt < 4)
+		{
+			if(buildDrone())
+				dronesBuilt++;
+		}
+	}
 
-    static Boolean buildDrone() throws GameActionException
-    {
-    	for(int i = 0; i < 8; i++){
-    		if(rc.canBuildRobot(RobotType.DELIVERY_DRONE, directions[i])){
-    			rc.buildRobot(RobotType.DELIVERY_DRONE, directions[i]);
-    			return true;
-    		}
-    	}
-    	//communicate that HQ is boxed in; 
-    	return false;
-    }
+	static Boolean buildDrone() throws GameActionException
+	{
+		for(int i = 0; i < 8; i++)
+		{
+			if(rc.canBuildRobot(RobotType.DELIVERY_DRONE, directions[i]))
+			{
+				rc.buildRobot(RobotType.DELIVERY_DRONE, directions[i]);
+				return true;
+			}
+		}
+		//communicate that HQ is boxed in; 
+		return false;
+	}
 }
