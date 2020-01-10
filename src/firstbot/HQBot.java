@@ -21,6 +21,7 @@ public strictfp class HQBot extends Globals
 
     public static void run(RobotController rc) throws GameActionException
     {
+		System.out.println("THe tbrf is " + toBeRefineryLocation);
 		if(roundNum==1){
 			soupLocation = senseNearbySoup();
 			int initialArr[] = new int[9];
@@ -45,7 +46,7 @@ public strictfp class HQBot extends Globals
 					switch(currLocation.rt)
 					{
 						case COW:
-						break innerloop;
+						break;
 
 						case REFINERY:
 						if (refineryLocation == null)
@@ -103,7 +104,10 @@ public strictfp class HQBot extends Globals
 				if (refineryLocation != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
 				if (toBeRefineryLocation != null)
+				{
+					System.out.println("I should be broadcasting rn");
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
+				}
 				if (opponentHQLoc != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
 				if (builtFulfilmentCenter)
@@ -119,7 +123,7 @@ public strictfp class HQBot extends Globals
 				buildMiner();
 			}
 
-			if(roundNum >= 150)
+			if(roundNum >= 150 && roundNum <= 160)
 			{
 				if (refineryLocation == null && soupLocation != null  && toBeRefineryLocation == null)
 				{
@@ -132,7 +136,9 @@ public strictfp class HQBot extends Globals
 					}
 					System.out.println(toBeRefineryLocation);
 				}
-
+			}
+			if (roundNum >= 150)
+			{
 				if (minerCount != 4)
 					buildMiner();
 			}

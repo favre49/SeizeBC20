@@ -131,7 +131,25 @@ public strictfp class Communications extends Globals{
 
 			message[targetdata]|=sourcebit<<(31-targetbit);
 		}
+
+		// for(int i=0;i<216;i++){
+		// 	int whichdata = i/24;
+		// 	int whichbit = i%24;
+
+		// 	int messagedata = (i+8)/32;
+		// 	int messagebit = (i+8)%32;
+
+		// 	int sourcebit = ((message[messagedata]&(1<<(31-messagebit)))>0)?1:0;
+		// 	decoded[whichdata]|=sourcebit<<(23-whichbit);
+		// }
+
 		// System.out.println(message[0]);
+		for(int i=0;i<9;i++){
+			System.out.println(data[i]);
+			System.out.println(hammingData[i]);
+			if(i<7)
+				System.out.println(message[i]);
+		}
 
 		message[0]^=-903849746;
 		message[1]^=-172817894;
@@ -181,12 +199,16 @@ public strictfp class Communications extends Globals{
 			int messagedata = (i+8)/32;
 			int messagebit = (i+8)%32;
 
-			int sourcebit = ((message[messagedata]&(1<<31-messagebit))>0)?1:0;
+			int sourcebit = ((message[messagedata]&(1<<(31-messagebit)))>0)?1:0;
 			decoded[whichdata]|=sourcebit<<(23-whichbit);
 		}
 
-		System.out.println(decoded[0]);
-		System.out.println(isCorrect(decoded[0]));
+		// for(int i=0;i<decoded.length;i++){
+		// 	System.out.println(decoded[i]);
+		// }
+
+		// System.out.println(decoded[0]);
+		// System.out.println(isCorrect(decoded[0]));
 
 
 		int[] hammingChecked=new int[9];
@@ -195,6 +217,15 @@ public strictfp class Communications extends Globals{
 				hammingChecked[i]=unhamming24to18(decoded[i]);
 			}
 		}
+
+		// System.out.println("HELLO");
+		for(int i=0;i<9;i++){
+			System.out.println(decoded[i]);
+			System.out.println(hammingChecked[i]);
+			if(i<7)
+				System.out.println(message[i]);
+		}
+
 
 		return hammingChecked;
 	}	
@@ -218,7 +249,7 @@ public strictfp class Communications extends Globals{
 	public static int[][] getComms(int roundno) throws GameActionException{
 
 		Transaction[] theBlock = rc.getBlock(roundno);
-		int[][] interpreted = new int[theBlock.length][12];
+		int[][] interpreted = new int[theBlock.length][9];
 
 		for(int i=0;i<theBlock.length;i++){
 			// System.out.println(theBlock[i].getMessage()[0]);
@@ -236,7 +267,7 @@ public strictfp class Communications extends Globals{
 		if(roundToQuery==0)roundToQuery=1;
 
 		Transaction[] theBlock = rc.getBlock(roundToQuery);
-		int[][] interpreted = new int[theBlock.length][12];
+		int[][] interpreted = new int[theBlock.length][9];
 
 		for(int i=0;i<theBlock.length;i++){
 			interpreted[i]=decode(theBlock[i]);

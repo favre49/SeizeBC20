@@ -95,8 +95,8 @@ public class Globals
         baseCooldown = myType.actionCooldown;
 
         //add HQ pos update
-        if(myType!=RobotType.HQ){
-            int[][] commsarr=Communications.getComms(1);
+        if(myType != RobotType.HQ){
+            int[][] commsarr=Communications.getComms(2);
             for(int i=0;i<commsarr.length;i++){
                 //this loop iterates over all messages of round 2 (since we don't know which one is ours)
                 //listening on first packet
@@ -118,7 +118,6 @@ public class Globals
         currentPos = rc.getLocation();
         roundNum = rc.getRoundNum();
         sensorRadiusSquared = rc.getCurrentSensorRadiusSquared();
-        updateObjectType();
     }
 
     public static boolean inBounds(MapLocation loc)

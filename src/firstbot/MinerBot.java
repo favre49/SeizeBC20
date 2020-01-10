@@ -54,7 +54,6 @@ public strictfp class MinerBot extends Globals
                         break;
 
                         case TO_BE_REFINERY:
-                        System.out.println("I'm a fucking retard");
                         toBeRefineryLocation = currObjectLocation.loc;
                         break;
 
@@ -78,7 +77,6 @@ public strictfp class MinerBot extends Globals
                         break;
 
                         case COW:
-                        break innerloop;
                     }
                 }
             }
@@ -90,7 +88,7 @@ public strictfp class MinerBot extends Globals
             MapLocation designLoc = baseLoc.add(Direction.EAST);
             if (currentPos.distanceSquaredTo(designLoc)<=2)
             {
-                if (rc.getTeamSoup() >= 200)
+                if (rc.getTeamSoup() >= 200 && rc.isReady())
                 { 
                     builtDesignSchool = true;
                     buildDesignSchool(currentPos.directionTo(designLoc));
