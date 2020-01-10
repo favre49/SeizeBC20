@@ -118,7 +118,10 @@ public strictfp class HQBot extends Globals
 				if (refineryLocation != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
 				if (toBeRefineryLocation != null)
+				{
+					System.out.println(toBeRefineryLocation);
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
+				}
 				if (opponentHQLoc != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
 				if (builtFulfilmentCenter)
@@ -134,9 +137,9 @@ public strictfp class HQBot extends Globals
 				buildMiner();
 			}
 
-			if(roundNum >= 150 && minerCount !=4)
+			if(roundNum >= 150)
 			{
-				if (refineryLocation == null && soupLocation != null)
+				if (refineryLocation == null && soupLocation != null  && toBeRefineryLocation == null)
 				{
 					Direction dirToCenter = currentPos.directionTo(new MapLocation(mapWidth/2,mapHeight/2));
 					toBeRefineryLocation = currentPos.translate(dirToCenter.dx*4, dirToCenter.dy*4);
@@ -145,8 +148,11 @@ public strictfp class HQBot extends Globals
 						dirToCenter = dirToCenter.rotateLeft();
 						toBeRefineryLocation = currentPos.translate(dirToCenter.dx*4, dirToCenter.dy*4);
 					}
+					System.out.println(toBeRefineryLocation);
 				}
-				buildMiner();
+
+				if (minerCount != 4)
+					buildMiner();
 			}
 
 		}

@@ -13,7 +13,7 @@ public strictfp class DesignSchoolBot extends Globals
 	public static int landscapersBuilt = 0;
 	public static void run(RobotController rc) throws GameActionException
     {	
-    	while(landscapersBuilt < 4){
+    	while(landscapersBuilt < 25){
     		if(buildLandscaper()){
     			landscapersBuilt++;
     		}

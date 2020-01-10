@@ -24,11 +24,17 @@ public strictfp class MinerBot extends Globals
     private static boolean builtDesignSchool = false;
     private static boolean builtFulfillmentCenter = false;
 
+    public static int soupLastRpund = 0;
+
     public static void run(RobotController rc) throws GameActionException
     {
         // System.out.println("HELLO");
         // Seed random number generator.
         FastMath.initRand(rc);
+
+        System.out.println("Soup location is " + soupLocation);
+        System.out.println("TRB location is " + toBeRefineryLocation);
+        System.out.println("R location is " + refineryLocation);
 
         // Listen for soup locations every 5 turns.
         if(roundNum%broadCastFrequency == 1 || !receivedMessage)
@@ -85,29 +91,30 @@ public strictfp class MinerBot extends Globals
         }
 
         // The if else ladder that is the brain of the miner. Pray that we don't let it become too complicated.
-        if (roundNum >= 150 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
-        {
-            MapLocation designLoc = baseLoc.add(Direction.EAST);
-            if (currentPos.distanceSquaredTo(designLoc)<=2)
-            {
-                if (rc.getTeamSoup() >= 200)
-                { 
-                    builtDesignSchool = true;
-                    buildDesignSchool(currentPos.directionTo(designLoc));
-                }
-                else
-                    rc.move(Direction.CENTER); // wait till you are able to.
-            }
-            else
-                navigate(designLoc);
-        }
+        // if (roundNum >= 150 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
+        // {
+        //     MapLocation designLoc = baseLoc.add(Direction.EAST);
+        //     if (currentPos.distanceSquaredTo(designLoc)<=2)
+        //     {
+        //         if (rc.getTeamSoup() >= 200)
+        //         { 
+        //             builtDesignSchool = true;
+        //             buildDesignSchool(currentPos.directionTo(designLoc));
+        //         }
+        //         else
+        //             rc.move(Direction.CENTER); // wait till you are able to.
+        //     }
+        //     else
+        //         navigate(designLoc);
+        // }
 
         // Build a fulfillment center.
-        System.out.println(roundNum + " " + builtFulfillmentCenter);
-        if (roundNum >= 250 && !builtFulfillmentCenter && rc.getTeamSoup() >= 200)
-        {
-            
-        }
+        // System.out.println(roundNum + " " + builtFulfillmentCenter);
+        // if (roundNum >= 250 && !builtFulfillmentCenter && rc.getTeamSoup() >= 200)
+        // {
+        //     builtFulfillmentCenter = true;
+        //     buildFulfillmentCenter();
+        // }
 
         if (roundNum >= 250 && builtFulfillmentCenter && rc.getTeamSoup() >= 1000)
         {
@@ -143,7 +150,6 @@ public strictfp class MinerBot extends Globals
         }
         else  // Now we found the soup location. Let's go there and mine!
         {
-            System.out.println(soupLocation);
             // If we are nearby, we should start looking for soup.
             if (currentPos.distanceSquaredTo(soupLocation) < NEAR_SOUP)
             {
@@ -163,7 +169,10 @@ public strictfp class MinerBot extends Globals
                     rc.mineSoup(currentPos.directionTo(loc));
                 }
                 else
+                {
+                    soupLocation = loc;
                     navigate(soupLocation);
+                }
             }
             else
                 navigate(soupLocation);
