@@ -21,14 +21,15 @@ public strictfp class HQBot extends Globals
 
     public static void run(RobotController rc) throws GameActionException
     {
-
 		if(roundNum==1){
 			soupLocation = senseNearbySoup();
-			int initialArr[] = new int[12];
-			initialArr[0] = Communications.getCommsNum(Globals.myObjectType,Globals.currentPos);
+			int initialArr[] = new int[9];
+			initialArr[0] = Communications.getCommsNum(ObjectType.HQ,currentPos);
+			if (soupLocation != null)
+				initialArr[1] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
 			System.out.print(Communications.sendComs(initialArr,0));
    		}
-   		else if (roundNum>2){
+   		else if (roundNum>1){
    			//first, read last message pool and update the ObjectArray
 			int commsArr[][]=Communications.getComms(roundNum-1);
 
@@ -71,7 +72,8 @@ public strictfp class HQBot extends Globals
 						break;
 
 						case HQ:
-						opponentHQLoc = currLocation.loc;
+						if (currLocation.loc != currentPos)
+							opponentHQLoc = currLocation.loc;
 						break;
 
 						case FULFILLMENT_CENTER:
@@ -87,82 +89,9 @@ public strictfp class HQBot extends Globals
 				}
 			}
 
-		// /*The following code makes the HQ broadcast it's own location*/
-		// System.out.println("HQ:");
-		// System.out.println(roundNum);
-		// System.out.println(objectArraySize);
-		// for(int i=0;i<objectArraySize;i++){
-		// 	System.out.println("i:");
-		// 	System.out.println(i);
-		// 	// System.out.println(objectArray[i].rt);
-		// 	// System.out.println(objectArray[i].loc.x);
-		// 	// System.out.println(objectArray[i].loc.y);
-
-		// 	System.out.println("Soup location is:" + soupLocation);
-		// 	System.out.println("Refinery location is:" + refineryLocation);
-		// 	System.out.println("To be refinery location is:" + toBeRefineryLocation);
-		// }
-
-		// if(roundNum==1){
-		// 	soupLocation = senseNearbySoup();
-		// 	int initialArr[] = new int[12];
-		// 	initialArr[0] = Communications.getCommsNum(Globals.myObjectType,Globals.currentPos);
-		// 	System.out.print(Communications.sendComs(initialArr,0));
-  //  		}
-  //  		else if (roundNum>1){
-  //  			//first, read last message pool and update the ObjectArray
-		// 	int commsArr[][]=Communications.getComms(roundNum-1);
-
-		// 	// Set this up to be a switch case?
-		// 	for(int i=0;i<commsArr.length;i++)
-		// 	{
-		// 		innerloop:
-		// 		for(int j=0;j<commsArr[i].length;j++)
-		// 		{
-	 //                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
-		// 			System.out.println(currLocation.rt + " " + currLocation.loc);
-		// 			boolean exists = false;
-
-		// 			switch(currLocation.rt)
-		// 			{
-		// 				case COW:
-		// 				break innerloop;
-
-		// 				case REFINERY:
-		// 				if (refineryLocation == null)
-		// 				{
-		// 					refineryLocation = currLocation.loc;
-		// 					toBeRefineryLocation = null;
-		// 				}
-		// 				break;
-
-		// 				case TO_BE_REFINERY:
-		// 				if (refineryLocation != null && currLocation.loc.distanceSquaredTo(refineryLocation) <= 5)
-		// 				{
-		// 					toBeRefineryLocation = null;
-		// 				}
-		// 				else if (refineryLocation == null)
-		// 				{
-		// 					toBeRefineryLocation = currLocation.loc;
-		// 				}
-		// 				break;
-
-		// 				case SOUP:
-	 //                	if (soupLocation == null)
-		// 					soupLocation = currLocation.loc;
-		// 				break;
-
-		// 				case NO_SOUP:
-		// 				soupLocation = null;
-		// 				refineryLocation = null;
-
-		// 			}
-		// 		}
-		// 	}
-
 			//Now, if we're on our turn, broadcast our entire array
 			if(roundNum%broadCastFrequency==0){
-				int broadCastArr[] = new int[12];
+				int broadCastArr[] = new int[9];
 				int numBroadCasts = 0;
 				// for(int i=0;i<Math.min(objectArraySize,12);i++){
 				// 	broadCastArr[i] = Communications.getCommsNum(objectArray[i].rt,objectArray[i].loc);
@@ -174,10 +103,7 @@ public strictfp class HQBot extends Globals
 				if (refineryLocation != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
 				if (toBeRefineryLocation != null)
-				{
-					System.out.println(toBeRefineryLocation);
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
-				}
 				if (opponentHQLoc != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
 				if (builtFulfilmentCenter)

@@ -232,6 +232,7 @@ public strictfp class Communications extends Globals{
 	public static int[][] getLastIntervalComms() throws GameActionException{
 
 		int roundToQuery = roundNum-roundNum%broadCastFrequency;
+		if (roundToQuery == roundNum) roundToQuery = roundNum - broadCastFrequency;
 		if(roundToQuery==0)roundToQuery=1;
 
 		Transaction[] theBlock = rc.getBlock(roundToQuery);
