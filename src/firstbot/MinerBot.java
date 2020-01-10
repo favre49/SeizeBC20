@@ -54,6 +54,11 @@ public strictfp class MinerBot extends Globals
                         soupLocation = new MapLocation(currObjectLocation.loc.x,currObjectLocation.loc.y);
                         break;
 
+                        case NO_SOUP:
+                        isExploring = true;
+                        soupLocation= null;
+                        refineryLocation = null;
+
                         case COW:
                         break innerloop;
                     }
@@ -77,7 +82,7 @@ public strictfp class MinerBot extends Globals
         }
         else if (rc.getSoupCarrying() == 100) // Refine if we have enough.
         {
-            if (numRefineries == 0)
+            if (refineryLocation == null)
             {
                 if (currentPos.distanceSquaredTo(baseLoc) <= 2)
                     rc.depositSoup(currentPos.directionTo(baseLoc), rc.getSoupCarrying());
@@ -102,6 +107,10 @@ public strictfp class MinerBot extends Globals
                 if (loc == null)  // No soup nearby? Must be no soup left!!
                 {
                     isExploring = true;
+                    int[] toSendArr = new int[12];
+
+                    toSendArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP, soupLocation);
+                    Communications.sendComs(toSendArr,0);
                     explore();
                 }
                 else if(currentPos.distanceSquaredTo(loc) <= 2)

@@ -169,6 +169,9 @@ public strictfp class Communications extends Globals{
 			case TO_BE_REFINERY:
 				theinttype=13;
 				break;
+			case NO_SOUP:
+				theinttype=14;
+				break;
 			default:
 				theinttype=0;
 				break;
@@ -239,7 +242,10 @@ public strictfp class Communications extends Globals{
 				break;
 			case 13:
 				theRobot=ObjectType.TO_BE_REFINERY;
-				break;				
+				break;	
+			case 14:
+				theRobot=ObjectType.NO_SOUP;
+				break;			
 			default:
 				// theRobot=0;
 				break;

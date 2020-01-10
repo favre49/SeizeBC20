@@ -37,6 +37,7 @@ public strictfp class HQBot extends Globals
 		}
 
 		if(roundNum==1){
+			soupLocation = senseNearbySoup();
 			int initialArr[] = new int[12];
 			initialArr[0] = Communications.getCommsNum(Globals.myObjectType,Globals.currentPos);
 			System.out.print(Communications.sendComs(initialArr,0));
@@ -52,6 +53,7 @@ public strictfp class HQBot extends Globals
 				for(int j=0;j<commsArr[i].length;j++)
 				{
 	                ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+					System.out.println(currLocation.rt + " " + currLocation.loc);
 					boolean exists = false;
 
 					switch(currLocation.rt)
@@ -60,12 +62,7 @@ public strictfp class HQBot extends Globals
 						break innerloop;
 
 						case REFINERY:
-						if (refineryLocation != null && currLocation.loc.distanceSquaredTo(toBeRefineryLocation) <= 5)
-						{
-							refineryLocation = currLocation.loc;
-							toBeRefineryLocation = null;
-						}
-						else if (refineryLocation == null)
+						if (refineryLocation == null)
 						{
 							refineryLocation = currLocation.loc;
 							toBeRefineryLocation = null;
@@ -88,6 +85,10 @@ public strictfp class HQBot extends Globals
 							soupLocation = currLocation.loc;
 						break;
 
+						case NO_SOUP:
+						soupLocation = null;
+						refineryLocation = null;
+
 					}
 				}
 			}
@@ -102,6 +103,8 @@ public strictfp class HQBot extends Globals
 				// }
 				if (soupLocation != null)
 					broadCastArr[0] = Communications.getCommsNum(ObjectType.SOUP,soupLocation);
+				else
+					broadCastArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP,new MapLocation(0,0));
 				if (refineryLocation != null)
 					broadCastArr[1] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
 				if (toBeRefineryLocation != null)
@@ -109,7 +112,7 @@ public strictfp class HQBot extends Globals
 				System.out.print(Communications.sendComs(broadCastArr,0));
 			}
 
-			if(minerCount<5){
+			if(minerCount<3){
 				buildMiner();
 			}
 
