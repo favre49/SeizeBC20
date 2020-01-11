@@ -14,6 +14,9 @@ public strictfp class LandscaperBot extends Globals
     public static Direction dumpingTo = Direction.NORTH;  //not using this anymore
     public static boolean dumping = false;				//^^^
 
+    public static Direction[] path = {Direction.EAST, Direction.SOUTH, Direction.SOUTH, Direction.SOUTH, Direction.WEST, Direction.WEST, Direction.NORTH, Direction.NORTH};
+    
+
 
     public static void run(RobotController rc)  throws GameActionException
     {
@@ -44,70 +47,87 @@ public strictfp class LandscaperBot extends Globals
 
     static void fortifyBase2() throws GameActionException
     {
+    	System.out.println("BaseLOC   " + baseLoc);
 		if(rc.getLocation().distanceSquaredTo(baseLoc) <= 2)
 		{
  			//get into position
  			RobotInfo nearBase[] = rc.senseNearbyRobots(baseLoc, 2, rc.getTeam());
- 			if(nearBase.length < 9)
+ 			Direction path[] = {Direction.EAST, Direction.EAST, Direction.SOUTH, Direction.SOUTH, Direction.WEST, Direction.WEST, Direction.NORTH, Direction.NORTH};
+    
+ 			if(nearBase.length < 23)
  			{
 				for(int i = 0; i < 8; i++)
 				{
-	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + x[i], baseLoc.y + y[i])))
+	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + x[(i+1)%8], baseLoc.y + y[(i+1)%8])) && currentPos.equals(new MapLocation(baseLoc.x + x[i], baseLoc.y + y[i])))
 	 				{
-	 					navigate(new MapLocation(baseLoc.x + x[i], baseLoc.y + y[i]));
+	 					if(rc.canMove(path[(i+1)%8]))
+	 						rc.move(path[(i+1)%8]);
+
 	 				}
 	 			}
 	 		}
-			
-			if(rc.getDirtCarrying() == 0)
-			{
-    			rc.digDirt(Direction.CENTER);
+			else{
+				//System.out.println("in POSIUSdekl;jnfla;sjknbLKUJGHLJKUHLIUHUIKLH");
+				if(rc.getDirtCarrying() <= 0)
+				{
+					System.out.println("DIGGING");
+					if(rc.canDigDirt(Direction.CENTER))
+	    				rc.digDirt(Direction.CENTER);
+	    		}
+	    		else
+	    		{	
+	    			Direction lowestSquareDirectionInOuterLayer = Direction.CENTER;
+	    			int lowestElevation = 1000;
+	    			//lay dirt down in the lowest location of the outer layer
+	    			for(int i = 0; i < 8; i++)
+	    			{	
+	    				if(rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) < lowestElevation 
+	    					&& rc.canDepositDirt(directions[i]) 
+	    					&& baseLoc.distanceSquaredTo(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) > 2
+	    					&& baseLoc.distanceSquaredTo(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) <= 8)
+	    				{
+	    					lowestElevation = rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i]));
+	    					lowestSquareDirectionInOuterLayer = directions[i];
+	    				}
+	    				if(rc.canDepositDirt(lowestSquareDirectionInOuterLayer))
+	    					rc.depositDirt(lowestSquareDirectionInOuterLayer);
+	    				System.out.println("dumping dirt");
+	    			}
+	    		}	
     		}
-    		else
-    		{
-    			Direction lowestSquareDirectionInOuterLayer = Direction.CENTER;
-    			int lowestElevation = 1000;
-    			//lay dirt down in the lowest location of the outer layer
-    			for(int i = 0; i < 8; i++)
-    			{	
-    				if(rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) < lowestElevation 
-    					&& rc.canDepositDirt(directions[i]) 
-    					&& baseLoc.distanceSquaredTo(new MapLocation(currentPos.x + x[i], currentPos.y + y[i])) > 2)
-    				{
-    					lowestElevation = rc.senseElevation(new MapLocation(currentPos.x + x[i], currentPos.y + y[i]));
-    					lowestSquareDirectionInOuterLayer = directions[i];
-    				}
-    				rc.depositDirt(lowestSquareDirectionInOuterLayer);
-    			}
-    		}	
 		}
 		else{
 			//get into formation;
-			int xx[] = {-2, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2};
-			int yy[] = {-2, -2, -2, -2, -2, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1};
+			int xx[] = {-2, -1,  0,  1,  2,  2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2};
+			int yy[] = {-2, -2, -2, -2, -2, -1, 0, 1, 2, 2, 2,  2,  2,  1,  0, -1};
+			Direction path2[] = {Direction.SOUTH, Direction.EAST, Direction.EAST, Direction.EAST, Direction.EAST, Direction.NORTH, Direction.NORTH, Direction.NORTH, Direction.NORTH, Direction.WEST, Direction.WEST, Direction.WEST, Direction.WEST, Direction.SOUTH, Direction.SOUTH, Direction.SOUTH};
 			RobotInfo nearBase[] = rc.senseNearbyRobots(baseLoc, 8, rc.getTeam());
- 			if(nearBase.length < 25)
+ 			if(nearBase.length < 23)
  			{
-				for(int i = 0; i < x.length; i++)
+				for(int i = 0; i < xx.length; i++)
 				{
-	 				if(!rc.isLocationOccupied(new MapLocation(baseLoc.x + xx[i], baseLoc.y + yy[i])))
-	 					navigate(new MapLocation(baseLoc.x + xx[i], baseLoc.y + yy[i]));
+	 				if(currentPos.equals(new MapLocation(baseLoc.x + xx[i], baseLoc.y + yy[i])) && !rc.isLocationOccupied(new MapLocation(baseLoc.x + xx[(i+1)%16], baseLoc.y + yy[(i + 1)%16])))
+	 					if(rc.canMove(path2[(i+1)%16]))
+	 						rc.move(path2[(i+1)%16]);
 	 			}
 	 		}
-			Direction digsFrom1 = currentPos.directionTo(baseLoc);
-			Direction digsFrom2 = baseLoc.directionTo(currentPos);
-			if(rc.getDirtCarrying() == 0)
-			{
-				//should I check if availble from other sources, this should cover it
-				if(rc.canDigDirt(digsFrom1))
-					rc.digDirt(digsFrom1);
+	 		else{
+				Direction digsFrom1 = currentPos.directionTo(baseLoc);
+				Direction digsFrom2 = baseLoc.directionTo(currentPos);
+				if(rc.getDirtCarrying() <= 0)
+				{
+					//should I check if availble from other sources, this should cover it
+					if(rc.canDigDirt(digsFrom1))
+						rc.digDirt(digsFrom1);
+					else
+						rc.digDirt(digsFrom2);
+				}
 				else
-					rc.digDirt(digsFrom2);
-			}
-			else
-			{
-				rc.depositDirt(Direction.CENTER);
-			}
+				{
+					if(rc.canDepositDirt(Direction.CENTER))
+					rc.depositDirt(Direction.CENTER);
+				}
+	 		}
 		}
     }
 

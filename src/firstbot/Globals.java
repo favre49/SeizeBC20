@@ -7,6 +7,8 @@ public class Globals
     public static short x[] = {0, 1, 1, 1, 0, -1, -1, -1};
     public static short y[] = {1, 1, 0, -1, -1, -1, 0, 1};
     public static Direction[] directions = {Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST, Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST};
+    //Direction path[] = {DIrection.EAST, Direction.EAST, Direction.SOUTH, Direction.SOUTH, Direction.WEST, Direction.WEST, Direction.NORTH, Direction.NORTH};
+    
     public static int mapWidth;
     public static int mapHeight;
     public static int roundNum;
