@@ -51,6 +51,8 @@ public strictfp class Communications extends Globals
 		return newData;
 	}
 
+	// ERROR IS SOMETHWERE HERE
+
 	public static boolean isCorrect(int data)
 	{
 		int r1 = ((data>>2)&1)^((data>>4)&1)^((data>>6)&1)^((data>>8)&1)^((data>>10)&1)^((data>>12)&1)^((data>>14)&1)^((data>>16)&1)^((data>>18)&1)^((data>>20)&1)^((data>>22)&1);
@@ -62,21 +64,8 @@ public strictfp class Communications extends Globals
 		int gp = ((data>>0)&1)^((data>>1)&1)^((data>>2)&1)^((data>>3)&1)^((data>>4)&1)^((data>>5)&1)^((data>>6)&1)^((data>>7)&1)^((data>>8)&1)^((data>>9)&1)^((data>>10)&1)^((data>>11)&1)^((data>>12)&1)^((data>>13)&1)^((data>>14)&1)^((data>>15)&1)^((data>>16)&1)^((data>>17)&1)^((data>>18)&1)^((data>>19)&1)^((data>>20)&1)^((data>>21)&1)^((data>>22)&1);
 
 		int syndrome = (r1<<0)^(r2<<1)^(r3<<2)^(r4<<3)^(r5<<4)^(data&1)^(((data>>1)&1)<<1)^(((data>>3)&1)<<2)^(((data>>7)&1)<<3)^(((data>>15)&1)<<4);
-		// System.out.println(r1);
-		// System.out.println(r2);
-		// System.out.println(r3);
-		// System.out.println(r4);
-		// System.out.println(r5);
-		// System.out.println(data&1);
-		// System.out.println((data>>1)&1);
-		// System.out.println((data>>3)&1);
-		// System.out.println((data>>7)&1);
-		// System.out.println((data>>15)&1);
 
-		// System.out.println(data>>23);
-		// System.out.println("--------");
-
-		if(syndrome == 0 && (((data>>23) & 1) ^ (gp))==0)
+		if(syndrome == 0)
 		{
 			return true;
 		}
@@ -115,12 +104,10 @@ public strictfp class Communications extends Globals
 	{
 		//takes int[9], adds hamming to each, then given int
 		int[] hammingData = new int[9];
-		// System.out.println(data[0]);
 		for(int i = 0; i < 9; i++)
 		{
 			hammingData[i] = hamming18to24(data[i]);
 		}
-		// System.out.println(hammingData[0]);
 
 		int[] message = new int[7];
 		message[0] |= (38 << 24);
@@ -152,12 +139,6 @@ public strictfp class Communications extends Globals
 		// }
 
 		// System.out.println(message[0]);
-		for(int i=0;i<9;i++){
-			System.out.println(data[i]);
-			System.out.println(hammingData[i]);
-			if(i<7)
-				System.out.println(message[i]);
-		}
 
 		message[0] ^= -903849746;
 		message[1] ^= -172817894;
@@ -210,21 +191,9 @@ public strictfp class Communications extends Globals
 			int messagedata = (i+8)/32;
 			int messagebit = (i+8)%32;
 
-<<<<<<< HEAD
-			int sourcebit = ((message[messagedata]&(1<<(31-messagebit)))>0)?1:0;
-			decoded[whichdata]|=sourcebit<<(23-whichbit);
-=======
 			int sourcebit = ((message[messagedata] & (1 << 31-messagebit)) > 0) ? 1 : 0;
 			decoded[whichdata] |= sourcebit << (23-whichbit);
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
 		}
-
-		// for(int i=0;i<decoded.length;i++){
-		// 	System.out.println(decoded[i]);
-		// }
-
-		// System.out.println(decoded[0]);
-		// System.out.println(isCorrect(decoded[0]));
 
 
 		int[] hammingChecked = new int[9];
@@ -234,16 +203,11 @@ public strictfp class Communications extends Globals
 			{
 				hammingChecked[i]=unhamming24to18(decoded[i]);
 			}
+			else
+			{
+				System.out.println("It isn't right!");
+			}
 		}
-
-		// System.out.println("HELLO");
-		for(int i=0;i<9;i++){
-			System.out.println(decoded[i]);
-			System.out.println(hammingChecked[i]);
-			if(i<7)
-				System.out.println(message[i]);
-		}
-
 
 		return hammingChecked;
 	}	
@@ -273,9 +237,7 @@ public strictfp class Communications extends Globals
 
 		for(int i = 0; i < theBlock.length; i++)
 		{
-			// System.out.println(theBlock[i].getMessage()[0]);
 			interpreted[i] = decode(theBlock[i]);
-			// System.out.println(interpreted[i]);
 		}
 
 		return interpreted;
@@ -355,15 +317,6 @@ public strictfp class Communications extends Globals
 		theint |= theinttype << 12;
 		theint |= theloc.x << 6;
 		theint |= theloc.y;
-
-		// System.out.println(theinttype);
-		// System.out.println(theinttype<<12);
-		// System.out.println(theloc.x);
-		// System.out.println(theloc.x<<6);
-		// System.out.println(theloc.y);
-		// System.out.println(theloc.y);
-
-
 		return theint;
 	}
 
@@ -429,46 +382,5 @@ public strictfp class Communications extends Globals
 		}
 
 		return new ObjectLocation(theRobot,theLocation);
-
-		// /*RobotLocation theRobotLoc =*/return new RobotLocation(theRobot,theLocation);
-		// theRobotLoc.rt = theRobot;
-		// theRobotLoc.loc = theLocation;
-		// return theRobotLoc;
 	}
 }
-
-
-
-/*
-		Code for testing comms.
-
-		if(Globals.roundNum < 10)
-		{
-			int arr[] = new int[12];
-			arr[0] = arr[1] = arr[2] = (getCommsNum(Globals.myType,Globals.currentPos));
-			System.out.println(sendComs(arr,10));
-		}
-		else
-		{
-			int[][] newarr = getComms(5);
-			System.out.println(newarr.length);
-			System.out.println(newarr[0].length);
-			for(int i = 0; i < newarr.length; i++)
-			{
-				System.out.println(newarr[i][0]);
-				System.out.println(getLocationFromInt(newarr[i][0]).rt);
-				System.out.println(getLocationFromInt(newarr[i][0]).loc.x);
-				System.out.println(getLocationFromInt(newarr[i][0]).loc.y);
-
-				System.out.println(newarr[i][1]);
-				System.out.println(getLocationFromInt(newarr[i][1]).rt);
-				System.out.println(getLocationFromInt(newarr[i][1]).loc.x);
-				System.out.println(getLocationFromInt(newarr[i][1]).loc.y);
-
-				System.out.println(newarr[i][2]);
-				System.out.println(getLocationFromInt(newarr[i][2]).rt);
-				System.out.println(getLocationFromInt(newarr[i][2]).loc.x);
-				System.out.println(getLocationFromInt(newarr[i][2]).loc.y);
-			}
-		}   
-*/

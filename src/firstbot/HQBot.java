@@ -19,25 +19,21 @@ public strictfp class HQBot extends Globals
 	public static MapLocation refineryLocation;
 	public static boolean builtFulfilmentCenter = false; 
 
-<<<<<<< HEAD
     public static void run(RobotController rc) throws GameActionException
     {
 		System.out.println("THe tbrf is " + toBeRefineryLocation);
-		if(roundNum==1){
-=======
-	public static void run(RobotController rc) throws GameActionException
-	{
-		if(roundNum == 1)
-		{
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
+		System.out.println("THe sl is " + soupLocation);
+		System.out.println("THe rf is " + refineryLocation);
+
+		if(roundNum == 1){
 			soupLocation = senseNearbySoup();
 			int initialArr[] = new int[9];
 			initialArr[0] = Communications.getCommsNum(ObjectType.HQ,currentPos);
 			if(soupLocation != null)
 				initialArr[1] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
-			System.out.print(Communications.sendComs(initialArr,0));
+			System.out.print(Communications.sendComs(initialArr,1));
 		}
-		else if(roundNum > 1)
+		else if(roundNum > 2)
 		{
 			//first, read last message pool and update the ObjectArray
 			int commsArr[][]=Communications.getComms(roundNum-1);
@@ -45,10 +41,10 @@ public strictfp class HQBot extends Globals
 			// Set this up to be a switch case?
 			for(int i = 0; i < commsArr.length; i++)
 			{
-				innerloop:
 				for(int j = 0; j < commsArr[i].length; j++)
 				{
 					ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+					System.out.println(">");
 					System.out.println(currLocation.rt + " " + currLocation.loc);
 
 					switch(currLocation.rt)
@@ -77,7 +73,7 @@ public strictfp class HQBot extends Globals
 						break;
 
 						case SOUP:
-						if(soupLocation == null)
+						if (soupLocation == null)
 							soupLocation = currLocation.loc;
 						break;
 
@@ -110,33 +106,23 @@ public strictfp class HQBot extends Globals
 				if(soupLocation != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
 				else
-<<<<<<< HEAD
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.NO_SOUP,new MapLocation(0,0));
-				if (refineryLocation != null)
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
-				if (toBeRefineryLocation != null)
-				{
-					System.out.println("I should be broadcasting rn");
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
-				}
-				if (opponentHQLoc != null)
-=======
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.NO_SOUP, new MapLocation(0,0));
 				
 				if(refineryLocation != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY, refineryLocation);
 				
 				if(toBeRefineryLocation != null)
+				{
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY, toBeRefineryLocation);
+				}
 				
 				if(opponentHQLoc != null)
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
 				
 				if(builtFulfilmentCenter)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.FULFILLMENT_CENTER, new MapLocation(0,0));
 
-				System.out.print(Communications.sendComs(broadCastArr,0));
+				System.out.print(Communications.sendComs(broadCastArr,1));
 			}
 
 			int nearbyDroneID = senseDrones();
@@ -148,7 +134,7 @@ public strictfp class HQBot extends Globals
 				buildMiner();
 			}
 
-			if(roundNum >= 150 && roundNum <= 160)
+			if(roundNum >= 190 && roundNum <= 210)
 			{
 				if(refineryLocation == null 
 					&& soupLocation != null 
@@ -162,17 +148,11 @@ public strictfp class HQBot extends Globals
 						dirToCenter = dirToCenter.rotateLeft();
 						toBeRefineryLocation = currentPos.translate(dirToCenter.dx*4, dirToCenter.dy*4);
 					}
-					System.out.println(toBeRefineryLocation);
 				}
-<<<<<<< HEAD
 			}
-			if (roundNum >= 150)
+			if (roundNum >= 200)
 			{
 				if (minerCount != 4)
-=======
-
-				if(minerCount != 4)
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
 					buildMiner();
 			}
 

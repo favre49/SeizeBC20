@@ -12,7 +12,6 @@ import battlecode.common.*;
 
 public strictfp class MinerBot extends Globals
 {
-<<<<<<< HEAD
     // Hardcoded constants I use.
     private static int NEAR_SOUP = 5;
     private static int REFINERY_DISTANCE = 6;
@@ -59,8 +58,11 @@ public strictfp class MinerBot extends Globals
                         break;
 
                         case SOUP:
-                        isExploring = false;
-                        soupLocation = currObjectLocation.loc;
+						if (soupLocation==null)
+						{
+                        	isExploring = false;
+                        	soupLocation = currObjectLocation.loc;
+						}
                         break;
 
                         case NO_SOUP:
@@ -78,13 +80,14 @@ public strictfp class MinerBot extends Globals
                         break;
 
                         case COW:
+						break innerloop;
                     }
                 }
             }
         }
 
         // The if else ladder that is the brain of the miner. Pray that we don't let it become too complicated.
-        if (roundNum >= 150 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
+        if (roundNum >= 200 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
         {
             MapLocation designLoc = baseLoc.add(Direction.EAST);
             if (currentPos.distanceSquaredTo(designLoc)<=2)
@@ -115,20 +118,26 @@ public strictfp class MinerBot extends Globals
 
         if (isExploring)
         {
-            System.out.println("Exploring");
             explore();
         }
         else if(rc.getTeamSoup() >= 200 && toBeRefineryLocation != null) // Build a refinery if we have enough.
         {
-            System.out.println("Exploring idiot");
             if (currentPos.distanceSquaredTo(toBeRefineryLocation) <= 2)
-                refineryLocation = buildRefinery();
+			{
+				RobotInfo bot = rc.senseRobotAtLocation(toBeRefineryLocation);
+				if (bot != null && bot.type == RobotType.REFINERY)
+				{
+					refineryLocation = toBeRefineryLocation;
+					toBeRefineryLocation = null;
+				}
+				else
+                	buildRefinery(currentPos.directionTo(toBeRefineryLocation));
+			}
             else
                 navigate(toBeRefineryLocation);
         }
         else if (rc.getSoupCarrying() == 100) // Refine if we have enough.
         {
-            System.out.println("Exploring retard");
             if (refineryLocation == null)
             {
                 if (currentPos.distanceSquaredTo(baseLoc) <= 2)
@@ -146,7 +155,6 @@ public strictfp class MinerBot extends Globals
         }
         else  // Now we found the soup location. Let's go there and mine!
         {
-            System.out.println("Exploring pos");
             // If we are nearby, we should start looking for soup.
             if (currentPos.distanceSquaredTo(soupLocation) < NEAR_SOUP)
             {
@@ -157,7 +165,7 @@ public strictfp class MinerBot extends Globals
                     int[] toSendArr = new int[9];
 
                     toSendArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP, soupLocation);
-                    Communications.sendComs(toSendArr,0);
+                    Communications.sendComs(toSendArr,1);
                     explore();
                 }
                 else if(currentPos.distanceSquaredTo(loc) <= 2)
@@ -183,181 +191,6 @@ public strictfp class MinerBot extends Globals
     private static MapLocation bugDest = new MapLocation(0,0);
     private static boolean bugTracing = false;
     private static MapLocation bugLastWall = null;
-=======
-	// Hardcoded constants I use.
-	private static int NEAR_SOUP = 5;
-	private static int REFINERY_DISTANCE = 6;
-
-	private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
-	private static MapLocation refineryLocation;
-	private static MapLocation toBeRefineryLocation;
-	private static MapLocation soupLocation;
-	private static boolean builtDesignSchool = false;
-	private static boolean builtFulfillmentCenter = false;
-
-	public static void run(RobotController rc) throws GameActionException
-	{
-		// System.out.println("HELLO");
-		// Seed random number generator.
-		FastMath.initRand(rc);
-		currentNumberOfTurns++;
-
-		System.out.println("Soup location is " + soupLocation);
-		System.out.println("TRB location is " + toBeRefineryLocation);
-		System.out.println("R location is " + refineryLocation);
-		System.out.println("Base Location " + baseLoc);
-
-		// Listen for soup locations every 5 turns.
-		if(roundNum%broadCastFrequency == 1 || currentNumberOfTurns == 1)
-		{
-			int[][] commsarr=Communications.getLastIntervalComms();
-			for(int i = 0; i < commsarr.length; i++)
-			{
-				innerloop:
-				for(int j = 0; j < commsarr[i].length; j++)
-				{
-					ObjectLocation currObjectLocation = Communications.getLocationFromInt(commsarr[i][j]);
-					System.out.println(currObjectLocation.rt + " " + currObjectLocation.loc);
-					switch(currObjectLocation.rt)
-					{
-						case REFINERY:
-						refineryLocation = currObjectLocation.loc;
-						toBeRefineryLocation = null;
-						break;
-
-						case TO_BE_REFINERY:
-						System.out.println("I'm a fucking retard");
-						toBeRefineryLocation = currObjectLocation.loc;
-						break;
-
-						case SOUP:
-						isExploring = false;
-						soupLocation = currObjectLocation.loc;
-						break;
-
-						case NO_SOUP:
-						isExploring = true;
-						soupLocation= null;
-						refineryLocation = null;
-						break;
-
-						case HQ:
-						opponentHQLoc = currObjectLocation.loc;
-						break;
-
-						case FULFILLMENT_CENTER:
-						builtFulfillmentCenter = true;
-						break;
-
-						case COW:
-						break innerloop;
-					}
-				}
-			}
-		}
-
-		// The if else ladder that is the brain of the miner. Pray that we don't let it become too complicated.
-		if(roundNum >= 150 && !builtDesignSchool 
-			&& currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
-		{
-			MapLocation designLoc = baseLoc.add(Direction.EAST);
-			if(currentPos.distanceSquaredTo(designLoc) <= 2)
-			{
-				if(rc.getTeamSoup() >= 200)
-				{ 
-					builtDesignSchool = true;
-					buildDesignSchool(currentPos.directionTo(designLoc));
-				}
-				else
-					rc.move(Direction.CENTER); // wait till you are able to.
-			}
-			else
-				navigate(designLoc);
-		}
-
-		// Build a fulfillment center.
-		// System.out.println(roundNum + " " + builtFulfillmentCenter);
-		// if (roundNum >= 250 && !builtFulfillmentCenter && rc.getTeamSoup() >= 200)
-		// {
-		//     builtFulfillmentCenter = true;
-		//     buildFulfillmentCenter();
-		// }
-
-		// if (roundNum >= 250 && builtFulfillmentCenter && rc.getTeamSoup() >= 1000)
-		// {
-		// }
-
-		if (isExploring)
-		{
-			System.out.println("Exploring");
-			explore();
-		}
-		else if(rc.getTeamSoup() >= 200 && toBeRefineryLocation != null) // Build a refinery if we have enough.
-		{
-			System.out.println("Exploring idiot");
-			if (currentPos.distanceSquaredTo(toBeRefineryLocation) <= 2)
-				refineryLocation = buildRefinery();
-			else
-				navigate(toBeRefineryLocation);
-		}
-		else if(rc.getSoupCarrying() == 100) // Refine if we have enough.
-		{
-			System.out.println("Exploring retard");
-			if(refineryLocation == null)
-			{
-				if(currentPos.distanceSquaredTo(baseLoc) <= 2)
-					rc.depositSoup(currentPos.directionTo(baseLoc), rc.getSoupCarrying());
-				else
-					navigate(baseLoc);
-			}
-			else
-			{
-				if(currentPos.distanceSquaredTo(refineryLocation) <= 2)
-					rc.depositSoup(currentPos.directionTo(refineryLocation), rc.getSoupCarrying());
-				else
-					navigate(refineryLocation);
-			}    
-		}
-		else  // Now we found the soup location. Let's go there and mine!
-		{
-			System.out.println("Exploring pos");
-			// If we are nearby, we should start looking for soup.
-			if(currentPos.distanceSquaredTo(soupLocation) < NEAR_SOUP)
-			{
-				MapLocation loc = senseNearbySoup();
-				if(loc == null)  // No soup nearby? Must be no soup left!!
-				{
-					isExploring = true;
-					int[] toSendArr = new int[9];
-
-					toSendArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP, soupLocation);
-					Communications.sendComs(toSendArr,0);
-					explore();
-				}
-				else if(currentPos.distanceSquaredTo(loc) <= 2)
-				{
-					soupLocation = loc;
-					rc.mineSoup(currentPos.directionTo(loc));
-				}
-				else
-				{
-					soupLocation = loc;
-					navigate(soupLocation);
-				}
-			}
-			else
-				navigate(soupLocation);
-		}
-	}
-
-
-	/******* NAVIGATION *************/
-
-	// Bug nav related stuff
-	private static MapLocation bugDest = new MapLocation(0,0);
-	private static boolean bugTracing = false;
-	private static MapLocation bugLastWall = null;
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
 	private static int closestDistWhileBugging = Integer.MAX_VALUE;	
 	private static int bugNumTurnsWithNoWall = 0;
 	private static boolean bugWallOnLeft = true; // whether the wall is on our left or our right
@@ -503,8 +336,11 @@ public strictfp class MinerBot extends Globals
 			pickNewExploreDest();
 		}
 
-		if(currentNumberOfTurns == maxTurns)
-			pickNewExploreDest();
+		if(currentNumberOfTurns >= maxTurns)
+		{
+			exploredGrid[exploreDest.x][exploreDest.y] = true;
+			exploreDest = currentPos;
+		}
 		
 		if(rc.canSenseLocation(exploreDest) && rc.senseFlooding(exploreDest))
 		{
@@ -548,7 +384,7 @@ public strictfp class MinerBot extends Globals
 
 							toSendArr[0] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
 							toSendArr[1] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY, toBeRefineryLocation);
-							Communications.sendComs(toSendArr,0);
+							Communications.sendComs(toSendArr,1);
 
 							break outerloop;
 						}
@@ -587,28 +423,15 @@ public strictfp class MinerBot extends Globals
 	}
 
 	/** Functions for building buildings. Separated in case we need different behavior for some reason. **/
-	private static MapLocation buildRefinery() throws GameActionException
+	private static MapLocation buildRefinery(Direction dir) throws GameActionException
 	{
-		int i;
-		for(i = 0; i < 8; i++)
-		{
-			if(rc.canBuildRobot(RobotType.REFINERY, directions[i]))
-			{
-				rc.buildRobot(RobotType.REFINERY, directions[i]);
-
-				break;
-			}
-		}
-		//IF WE DO BUILD REFINERIES, SEND LOCATION.
-		if(i!=8)
-		{
-			refineryLocation = currentPos.add(directions[i]);
-			toBeRefineryLocation = null;
-			int[] sendArr = new int[9];
-			sendArr[0] = Communications.getCommsNum(ObjectType.REFINERY, currentPos.add(directions[i]));
-			Communications.sendComs(sendArr,0);
-		}
-		return currentPos.add(directions[i]);
+		rc.buildRobot(RobotType.REFINERY, dir);
+		refineryLocation = currentPos.add(dir);
+		toBeRefineryLocation = null;
+		int[] sendArr = new int[9];
+		sendArr[0] = Communications.getCommsNum(ObjectType.REFINERY, currentPos.add(dir));
+		Communications.sendComs(sendArr,1);
+		return currentPos.add(dir);
 	}
 
 	private static MapLocation buildVaporator() throws GameActionException
@@ -642,7 +465,7 @@ public strictfp class MinerBot extends Globals
 			builtFulfillmentCenter = true;
 			int[] sendArr = new int[9];
 			sendArr[0] = Communications.getCommsNum(ObjectType.REFINERY, currentPos.add(directions[i]));
-			Communications.sendComs(sendArr,0);
+			Communications.sendComs(sendArr,1);
 		}
 
 		return currentPos.add(directions[i]);
