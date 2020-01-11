@@ -30,6 +30,7 @@ public strictfp class MinerBot extends Globals
         FastMath.initRand(rc);
         currentNumberOfTurns++;
 
+		// If we don't have the base location, let's find out.
 		if (baseLoc == null)
 		{
 			int[][] commsarr=Communications.getComms(1);
@@ -125,10 +126,6 @@ public strictfp class MinerBot extends Globals
             builtFulfillmentCenter = true;
             buildFulfillmentCenter();
         }
-
-        // if (roundNum >= 250 && builtFulfillmentCenter && rc.getTeamSoup() >= 1000)
-        // {
-        // }
 
         if (isExploring)
         {
