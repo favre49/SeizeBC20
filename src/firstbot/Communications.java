@@ -111,8 +111,6 @@ public strictfp class Communications extends Globals
 
 		int[] message = new int[7];
 		message[0] |= (38 << 24);
-		//first 8 bits for key
-		//the 8 bit key is 38
 		
 		for(int i = 0; i < 216; i++)
 		{
@@ -126,19 +124,6 @@ public strictfp class Communications extends Globals
 
 			message[targetdata] |= sourcebit << (31-targetbit);
 		}
-
-		// for(int i=0;i<216;i++){
-		// 	int whichdata = i/24;
-		// 	int whichbit = i%24;
-
-		// 	int messagedata = (i+8)/32;
-		// 	int messagebit = (i+8)%32;
-
-		// 	int sourcebit = ((message[messagedata]&(1<<(31-messagebit)))>0)?1:0;
-		// 	decoded[whichdata]|=sourcebit<<(23-whichbit);
-		// }
-
-		// System.out.println(message[0]);
 
 		message[0] ^= -903849746;
 		message[1] ^= -172817894;
@@ -178,7 +163,6 @@ public strictfp class Communications extends Globals
 
 		if(((message[0]>>24) & 255) != 38)
 		{
-			//it was not our message
 			System.out.println("NOT OUR MESSAGE");
 			return decoded;
 		}
@@ -200,13 +184,7 @@ public strictfp class Communications extends Globals
 		for(int i = 0; i < 9; i++)
 		{
 			if(isCorrect(decoded[i]))
-			{
 				hammingChecked[i]=unhamming24to18(decoded[i]);
-			}
-			else
-			{
-				System.out.println("It isn't right!");
-			}
 		}
 
 		return hammingChecked;
@@ -223,9 +201,7 @@ public strictfp class Communications extends Globals
 			return true;
 		}
 		else
-		{
 			return false;
-		}
 
 	}
 
@@ -236,9 +212,7 @@ public strictfp class Communications extends Globals
 		int[][] interpreted = new int[theBlock.length][9];
 
 		for(int i = 0; i < theBlock.length; i++)
-		{
 			interpreted[i] = decode(theBlock[i]);
-		}
 
 		return interpreted;
 	}
@@ -253,9 +227,7 @@ public strictfp class Communications extends Globals
 		int[][] interpreted = new int[theBlock.length][9];
 
 		for(int i = 0; i < theBlock.length; i++)
-		{
 			interpreted[i] = decode(theBlock[i]);
-		}
 
 		return interpreted;
 	}

@@ -35,6 +35,26 @@ public strictfp class MinerBot extends Globals
         System.out.println("R location is " + refineryLocation);
         System.out.println("Base Location " + baseLoc);
 
+		if (baseLoc == null)
+		{
+			int[][] commsarr=Communications.getComms(1);
+            System.out.println("Length of commsarr is " + commsarr.length);
+            outerloop:
+            for(int i=0;i<commsarr.length;i++){
+                for (int j = 0; j < commsarr[i].length; j++)
+                {
+                    ObjectLocation objectHQLocation = Communications.getLocationFromInt(commsarr[i][j]); 
+                    System.out.println(objectHQLocation.rt);
+                    if(objectHQLocation.rt==ObjectType.HQ)
+                    {
+                        System.out.println("I should be understanding shit rn" + objectHQLocation.loc);
+                        baseLoc = new MapLocation(objectHQLocation.loc.x,objectHQLocation.loc.y);
+                        break outerloop;
+                    }
+                }
+            }
+		}
+
         // Listen for soup locations every 5 turns.
         if(roundNum%broadCastFrequency == 1 || currentNumberOfTurns == 1)
         {
@@ -338,6 +358,7 @@ public strictfp class MinerBot extends Globals
 
 		if(currentNumberOfTurns >= maxTurns)
 		{
+			currentNumberOfTurns = 0;
 			exploredGrid[exploreDest.x][exploreDest.y] = true;
 			exploreDest = currentPos;
 		}
@@ -393,12 +414,10 @@ public strictfp class MinerBot extends Globals
 			}
 			// System.out.println(Clock.getBytecodeNum());            
 			pickNewExploreDest();
-			currentNumberOfTurns++;
 			navigate(exploreDest);
 		}
 		else
 		{
-			currentNumberOfTurns++;
 			navigate(exploreDest);
 		}
 	}
