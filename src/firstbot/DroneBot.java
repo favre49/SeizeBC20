@@ -38,7 +38,6 @@ public strictfp class DroneBot extends Globals
                     System.out.println(objectHQLocation.rt);
                     if(objectHQLocation.rt==ObjectType.HQ)
                     {
-                        System.out.println("I should be understanding shit rn" + objectHQLocation.loc);
                         baseLoc = new MapLocation(objectHQLocation.loc.x,objectHQLocation.loc.y);
                         break outerloop;
                     }

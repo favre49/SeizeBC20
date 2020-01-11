@@ -133,7 +133,7 @@ public strictfp class HQBot extends Globals
 				if(builtFulfilmentCenter)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.FULFILLMENT_CENTER, new MapLocation(0,0));
 
-				System.out.print(Communications.sendComs(broadCastArr,1));
+				System.out.print(Communications.sendComs(broadCastArr,5));
 			}
 
 			int nearbyDroneID = senseDrones();

@@ -179,7 +179,6 @@ public strictfp class Communications extends Globals
 			decoded[whichdata] |= sourcebit << (23-whichbit);
 		}
 
-
 		int[] hammingChecked = new int[9];
 		for(int i = 0; i < 9; i++)
 		{
@@ -211,8 +210,10 @@ public strictfp class Communications extends Globals
 		Transaction[] theBlock = rc.getBlock(roundno);
 		int[][] interpreted = new int[theBlock.length][9];
 
+		System.out.println("Pre decoding" + Clock.getBytecodeNum());
 		for(int i = 0; i < theBlock.length; i++)
 			interpreted[i] = decode(theBlock[i]);
+		System.out.println("Post decoding" + Clock.getBytecodeNum());
 
 		return interpreted;
 	}

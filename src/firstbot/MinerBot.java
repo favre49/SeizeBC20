@@ -30,24 +30,32 @@ public strictfp class MinerBot extends Globals
         FastMath.initRand(rc);
         currentNumberOfTurns++;
 
+		System.out.println("THe tbrf is " + toBeRefineryLocation);
+		System.out.println("THe sl is " + soupLocation);
+		System.out.println("THe rf is " + refineryLocation);
+		System.out.println("The base locationis" + baseLoc);
+
 		// If we don't have the base location, let's find out.
 		if (baseLoc == null)
 		{
+			System.out.println(Clock.getBytecodeNum());
 			int[][] commsarr=Communications.getComms(1);
+			System.out.println(Clock.getBytecodeNum());
             outerloop:
             for(int i=0;i<commsarr.length;i++){
                 for (int j = 0; j < commsarr[i].length; j++)
                 {
                     ObjectLocation objectHQLocation = Communications.getLocationFromInt(commsarr[i][j]); 
-                    System.out.println(objectHQLocation.rt);
                     if(objectHQLocation.rt==ObjectType.HQ)
                     {
                         System.out.println("I should be understanding shit rn" + objectHQLocation.loc);
                         baseLoc = new MapLocation(objectHQLocation.loc.x,objectHQLocation.loc.y);
+						isExploring = true;
                         break outerloop;
                     }
                 }
             }
+			System.out.println(Clock.getBytecodeNum());
 		}
 
         // Listen for soup locations every 5 turns.
@@ -135,13 +143,17 @@ public strictfp class MinerBot extends Globals
         {
             if (currentPos.distanceSquaredTo(toBeRefineryLocation) <= 2)
 			{
-				RobotInfo bot = rc.senseRobotAtLocation(toBeRefineryLocation);
-				if (bot != null && bot.type == RobotType.REFINERY)
+				RobotInfo[] bots = rc.senseNearbyRobots(toBeRefineryLocation, sensorRadiusSquared, team);
+				for (int i = 0; i < bots.length; i++)
 				{
-					refineryLocation = toBeRefineryLocation;
-					toBeRefineryLocation = null;
+					if (bots[i].type == RobotType.REFINERY)
+					{
+						refineryLocation = bots[i].location;
+						toBeRefineryLocation = null;
+						break;
+					}
 				}
-				else
+				if (toBeRefineryLocation!=null)
                 	buildRefinery(currentPos.directionTo(toBeRefineryLocation));
 			}
             else
@@ -331,7 +343,7 @@ public strictfp class MinerBot extends Globals
 
 	/******* END NAVIGATION *******/
 
-	private static boolean isExploring = true;
+	private static boolean isExploring = false;
 	private static MapLocation exploreDest;
 	private static int stepSize = 5; // Picking a hardcoded step size for now.
 	private static int maxTurns = 10; // If you don't reach your destination in 10 turns, take lite.
@@ -385,11 +397,17 @@ public strictfp class MinerBot extends Globals
 							soupLocation = checkingPos;
 							isExploring = false;
 							toBeRefineryLocation = currentPos;
+							if (toBeRefineryLocation.distanceSquaredTo(baseLoc) <=5)
+							{
+								toBeRefineryLocation = null;
+								refineryLocation = baseLoc;
+							}
 
 							int[] toSendArr = new int[9];
 
 							toSendArr[0] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
-							toSendArr[1] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY, toBeRefineryLocation);
+							if (toBeRefineryLocation != null)
+								toSendArr[1] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY, toBeRefineryLocation);
 							Communications.sendComs(toSendArr,1);
 
 							break outerloop;
