@@ -23,8 +23,6 @@ public strictfp class MinerBot extends Globals
     private static boolean builtDesignSchool = false;
     private static boolean builtFulfillmentCenter = false;
 
-	private static int teamSoup = 0;
-
     public static void run(RobotController rc) throws GameActionException
     {
         // System.out.println("HELLO");
@@ -122,7 +120,7 @@ public strictfp class MinerBot extends Globals
 
         // Build a fulfillment center.
         System.out.println(roundNum + " " + builtFulfillmentCenter);
-        if (roundNum >= 300 && !builtFulfillmentCenter && rc.getTeamSoup() >= 200 && rc.getRobotCount() == 5)
+        if (roundNum >= 300 && !builtFulfillmentCenter && rc.getTeamSoup() >= 1000)
         {
             builtFulfillmentCenter = true;
             buildFulfillmentCenter();

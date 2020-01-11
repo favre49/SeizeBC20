@@ -13,11 +13,7 @@ public strictfp class FulfillmentCenterBot extends Globals
 	public static int dronesBuilt = 0;
 	public static void run(RobotController rc) throws GameActionException
 	{
-		while(dronesBuilt < 4)
-		{
-			if(buildDrone())
-				dronesBuilt++;
-		}
+		buildDrone();
 	}
 
 	static Boolean buildDrone() throws GameActionException

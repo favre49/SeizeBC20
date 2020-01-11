@@ -27,6 +27,25 @@ public strictfp class DroneBot extends Globals
 	{
 		FastMath.initRand(rc);
 
+		if (baseLoc == null)
+		{
+			int[][] commsarr=Communications.getComms(1);
+            outerloop:
+            for(int i=0;i<commsarr.length;i++){
+                for (int j = 0; j < commsarr[i].length; j++)
+                {
+                    ObjectLocation objectHQLocation = Communications.getLocationFromInt(commsarr[i][j]); 
+                    System.out.println(objectHQLocation.rt);
+                    if(objectHQLocation.rt==ObjectType.HQ)
+                    {
+                        System.out.println("I should be understanding shit rn" + objectHQLocation.loc);
+                        baseLoc = new MapLocation(objectHQLocation.loc.x,objectHQLocation.loc.y);
+                        break outerloop;
+                    }
+                }
+            }
+		}
+
 		if(opponentHQLoc == null)
 		{
 			int[][] commsarr=Communications.getLastIntervalComms();
