@@ -210,13 +210,9 @@ public strictfp class Communications extends Globals
 			int messagedata = (i+8)/32;
 			int messagebit = (i+8)%32;
 
-<<<<<<< HEAD
-			int sourcebit = ((message[messagedata]&(1<<(31-messagebit)))>0)?1:0;
-			decoded[whichdata]|=sourcebit<<(23-whichbit);
-=======
+
 			int sourcebit = ((message[messagedata] & (1 << 31-messagebit)) > 0) ? 1 : 0;
 			decoded[whichdata] |= sourcebit << (23-whichbit);
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
 		}
 
 		// for(int i=0;i<decoded.length;i++){

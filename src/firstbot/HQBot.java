@@ -19,17 +19,11 @@ public strictfp class HQBot extends Globals
 	public static MapLocation refineryLocation;
 	public static boolean builtFulfilmentCenter = false; 
 
-<<<<<<< HEAD
+
     public static void run(RobotController rc) throws GameActionException
     {
 		System.out.println("THe tbrf is " + toBeRefineryLocation);
 		if(roundNum==1){
-=======
-	public static void run(RobotController rc) throws GameActionException
-	{
-		if(roundNum == 1)
-		{
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
 			soupLocation = senseNearbySoup();
 			int initialArr[] = new int[9];
 			initialArr[0] = Communications.getCommsNum(ObjectType.HQ,currentPos);
@@ -110,27 +104,18 @@ public strictfp class HQBot extends Globals
 				if(soupLocation != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
 				else
-<<<<<<< HEAD
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.NO_SOUP,new MapLocation(0,0));
+				
 				if (refineryLocation != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY,refineryLocation);
+				
 				if (toBeRefineryLocation != null)
 				{
 					System.out.println("I should be broadcasting rn");
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY,toBeRefineryLocation);
 				}
+				
 				if (opponentHQLoc != null)
-=======
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.NO_SOUP, new MapLocation(0,0));
-				
-				if(refineryLocation != null)
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY, refineryLocation);
-				
-				if(toBeRefineryLocation != null)
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY, toBeRefineryLocation);
-				
-				if(opponentHQLoc != null)
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
 				
 				if(builtFulfilmentCenter)
@@ -164,15 +149,10 @@ public strictfp class HQBot extends Globals
 					}
 					System.out.println(toBeRefineryLocation);
 				}
-<<<<<<< HEAD
 			}
 			if (roundNum >= 150)
 			{
 				if (minerCount != 4)
-=======
-
-				if(minerCount != 4)
->>>>>>> aeccac758035be480a78e83d02ef090ed7b85ae9
 					buildMiner();
 			}
 
