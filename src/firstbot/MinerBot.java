@@ -23,6 +23,8 @@ public strictfp class MinerBot extends Globals
     private static boolean builtDesignSchool = false;
     private static boolean builtFulfillmentCenter = false;
 
+	private static int teamSoup = 0;
+
     public static void run(RobotController rc) throws GameActionException
     {
         // System.out.println("HELLO");
@@ -30,15 +32,9 @@ public strictfp class MinerBot extends Globals
         FastMath.initRand(rc);
         currentNumberOfTurns++;
 
-        System.out.println("Soup location is " + soupLocation);
-        System.out.println("TRB location is " + toBeRefineryLocation);
-        System.out.println("R location is " + refineryLocation);
-        System.out.println("Base Location " + baseLoc);
-
 		if (baseLoc == null)
 		{
 			int[][] commsarr=Communications.getComms(1);
-            System.out.println("Length of commsarr is " + commsarr.length);
             outerloop:
             for(int i=0;i<commsarr.length;i++){
                 for (int j = 0; j < commsarr[i].length; j++)
@@ -65,7 +61,6 @@ public strictfp class MinerBot extends Globals
                 for(int j=0;j<commsarr[i].length;j++)
                 {
                     ObjectLocation currObjectLocation = Communications.getLocationFromInt(commsarr[i][j]);
-                    System.out.println(currObjectLocation.rt + " " + currObjectLocation.loc);
                     switch(currObjectLocation.rt)
                     {
                         case REFINERY:
@@ -104,6 +99,7 @@ public strictfp class MinerBot extends Globals
                     }
                 }
             }
+
         }
 
         // The if else ladder that is the brain of the miner. Pray that we don't let it become too complicated.
@@ -125,12 +121,12 @@ public strictfp class MinerBot extends Globals
         }
 
         // Build a fulfillment center.
-        // System.out.println(roundNum + " " + builtFulfillmentCenter);
-        // if (roundNum >= 250 && !builtFulfillmentCenter && rc.getTeamSoup() >= 200)
-        // {
-        //     builtFulfillmentCenter = true;
-        //     buildFulfillmentCenter();
-        // }
+        System.out.println(roundNum + " " + builtFulfillmentCenter);
+        if (roundNum >= 300 && !builtFulfillmentCenter && rc.getTeamSoup() >= 200 && rc.getRobotCount() == 5)
+        {
+            builtFulfillmentCenter = true;
+            buildFulfillmentCenter();
+        }
 
         // if (roundNum >= 250 && builtFulfillmentCenter && rc.getTeamSoup() >= 1000)
         // {
@@ -345,6 +341,7 @@ public strictfp class MinerBot extends Globals
 	private static int stepSize = 5; // Picking a hardcoded step size for now.
 	private static int maxTurns = 10; // If you don't reach your destination in 10 turns, take lite.
 	private static int currentNumberOfTurns = 0;
+	private static int exploredTurns = 0;
 
 	private static void explore() throws GameActionException
 	{
@@ -356,9 +353,9 @@ public strictfp class MinerBot extends Globals
 			pickNewExploreDest();
 		}
 
-		if(currentNumberOfTurns >= maxTurns)
+		if(exploredTurns >= maxTurns)
 		{
-			currentNumberOfTurns = 0;
+			exploredTurns = 0;
 			exploredGrid[exploreDest.x][exploreDest.y] = true;
 			exploreDest = currentPos;
 		}
@@ -373,13 +370,6 @@ public strictfp class MinerBot extends Globals
 		{
 			exploredGrid[exploreDest.x][exploreDest.y] = true;
 			int r = (int)Math.sqrt(sensorRadiusSquared);
-
-			if(rc.senseSoup(currentPos) > 0)
-			{
-				soupLocation = currentPos;
-				isExploring = false;
-				return;
-			}
 
 			// Uses tons of bytecodes i think.
 			// System.out.println(Clock.getBytecodeNum());
@@ -418,6 +408,7 @@ public strictfp class MinerBot extends Globals
 		}
 		else
 		{
+			exploredTurns++;
 			navigate(exploreDest);
 		}
 	}
@@ -439,6 +430,7 @@ public strictfp class MinerBot extends Globals
 			firsttime=false;
 		}
 		while(!inBounds(exploreDest) ||exploredGrid[exploreDest.x][exploreDest.y]);
+		exploredTurns = 0;
 	}
 
 	/** Functions for building buildings. Separated in case we need different behavior for some reason. **/

@@ -12,7 +12,7 @@ import battlecode.common.*;
 public strictfp class LandscaperBot extends Globals
 {
     public static Direction dumpingTo = Direction.NORTH;  //not using this anymore
-    public static boolean dumping = false;					//^^^
+    public static boolean dumping = false;				//^^^
 
 
     public static void run(RobotController rc)  throws GameActionException

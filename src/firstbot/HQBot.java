@@ -26,12 +26,23 @@ public strictfp class HQBot extends Globals
 		System.out.println("THe rf is " + refineryLocation);
 
 		if(roundNum == 1){
-			soupLocation = senseNearbySoup();
+			System.out.println("I entered where I am supposed to");
+			// soupLocation = senseNearbySoup();
 			int initialArr[] = new int[9];
 			initialArr[0] = Communications.getCommsNum(ObjectType.HQ,currentPos);
-			if(soupLocation != null)
-				initialArr[1] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
+			// if(soupLocation != null)
+			// 	initialArr[1] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
 			System.out.print(Communications.sendComs(initialArr,1));
+		}
+		else if (roundNum == 2)
+		{
+			soupLocation = senseNearbySoup();
+			int initialArr[] = new int[9];
+			if(soupLocation != null)
+			{
+				initialArr[0] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
+				System.out.print(Communications.sendComs(initialArr,1));
+			}
 		}
 		else if(roundNum > 2)
 		{
