@@ -195,6 +195,67 @@ public strictfp class Communications extends Globals
 		return hammingChecked;
 	}
 
+	static int getHash(int[] data)
+	{
+		int hash = 0;
+		for(int i = 0; i < 9; ++i)
+		{
+			hash += 31 * data[i];
+		}
+		return hash;
+	}
+
+	public static int[] encodeHash(int[] data)
+	{
+		int hash = getHash(data);
+
+		int[] message = new int[7];
+		for(int i = 0; i < 7; ++i)
+		{
+			message[i] = data[i];
+		}
+
+		message[0] |= (data[7] << 14) & 0xFFFC0000; //14 bits
+		message[1] |= (data[7] << 28) & 0xF0000000;	//4 bits
+
+		message[2] |= (data[8] << 14) & 0xFFFC0000; //10 bits
+		message[3] |= (data[8] << 28) & 0xF0000000; //4 bits
+
+		message[4] |= (hash) & 0xFFFC0000; //14 bits
+		message[5] |= (hash << 14) & 0xFFFC0000; //14 bits
+		message[6] |= (hash << 28) & 0xF0000000; //4 bits
+
+		return message;
+	}
+
+	public static int[] decodeHash(Transaction messageTransaction) throws GameActionException
+	{
+		int[] decoded = new int[9];
+
+		int[] message = messageTransaction.getMessage();
+
+		if (message.length != 7)
+		{
+			System.out.println("NOT OUR MESSAGE");
+			return decoded;
+		}
+
+		for(int i = 0; i < 7; ++i)
+		{
+			decoded[i] = message[i] & 0x0003FFFF;
+		}
+
+		decoded[7] = ((message[0] >> 14) & 0x0003FFF0) | (message[1] >> 28);
+		decoded[8] = ((message[2] >> 14) & 0x0003FFF0) | (message[3] >> 28);
+		int check = (message[4] & 0xFFFC0000) | ((message[5] >> 14) & 0x0003FFF0) | (message[6] >> 28);
+
+		if(check != getHash(decoded))
+		{
+			System.out.println("NOT OUR MESSAGE");
+		}
+		return decoded;
+	}
+
 	public static int[] encode(int[] data)
 	{
 		return encodeHamming(data);
