@@ -18,6 +18,7 @@ public strictfp class HQBot extends Globals
 	public static MapLocation toBeRefineryLocation;
 	public static MapLocation refineryLocation;
 	public static boolean builtFulfilmentCenter = false; 
+	public static boolean builtDesignSchool = false;
 
     public static void run(RobotController rc) throws GameActionException
     {
@@ -97,6 +98,10 @@ public strictfp class HQBot extends Globals
 						builtFulfilmentCenter = true;
 						break;
 
+						case DESIGN_SCHOOL:
+						builtDesignSchool = true;
+						break;
+
 						case NO_SOUP:
 						soupLocation = null;
 						refineryLocation = null;
@@ -123,15 +128,16 @@ public strictfp class HQBot extends Globals
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY, refineryLocation);
 				
 				if(toBeRefineryLocation != null)
-				{
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY, toBeRefineryLocation);
-				}
 				
 				if(opponentHQLoc != null)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
 				
 				if(builtFulfilmentCenter)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.FULFILLMENT_CENTER, new MapLocation(0,0));
+
+				if(builtDesignSchool)
+					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.DESIGN_SCHOOL, new MapLocation(0,0));
 
 				System.out.print(Communications.sendComs(broadCastArr,3));
 			}
@@ -140,19 +146,19 @@ public strictfp class HQBot extends Globals
 			if(nearbyDroneID != -1)
 				rc.shootUnit(nearbyDroneID);
 
-			if(minerCount < 5)
+			if(minerCount < 4)
 			{
 				buildMiner();
 			}
 
-			if(roundNum >= 170 && roundNum <= 190)
+			if(rc.getTeamSoup() > 1300)
 			{
 				if(refineryLocation == null 
 					&& soupLocation != null 
 					&& toBeRefineryLocation == null)
 				{
 					Direction dirToCenter = currentPos.directionTo(new MapLocation(mapWidth/2,mapHeight/2));
-					toBeRefineryLocation = currentPos.translate(dirToCenter.dx*4, dirToCenter.dy*4);
+					toBeRefineryLocation = currentPos.translate(dirToCenter.dx*3, dirToCenter.dy*3);
 					while(!inBounds(toBeRefineryLocation) 
 						|| rc.senseFlooding(toBeRefineryLocation) || (Math.abs(rc.senseElevation(toBeRefineryLocation)-rc.senseElevation(currentPos)) > 3))
 					{
@@ -161,9 +167,9 @@ public strictfp class HQBot extends Globals
 					}
 				}
 			}
-			if (roundNum >= 200)
+			if (rc.getTeamSoup() >= 1350)
 			{
-				if (minerCount != 6)
+				if (minerCount != 5)
 					buildMiner();
 			}
 

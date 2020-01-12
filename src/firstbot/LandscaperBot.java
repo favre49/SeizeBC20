@@ -51,8 +51,9 @@ public strictfp class LandscaperBot extends Globals
     {
     	//how do I make this pollution independent?
     	
+
     	//detect your own locations of the base and the Mother Design School
-    	if(detectedBaseLoc == null || detectedDesignSchoolLoc == null)
+    	if(detectedDesignSchoolLoc == null)
     	{
 	    	RobotInfo nearbyUnits[] = rc.senseNearbyRobots();
 	    	for(int i = 0; i < nearbyUnits.length; i++){
@@ -64,24 +65,34 @@ public strictfp class LandscaperBot extends Globals
 	    		}
 	    	}
 	    	//try again later
-	    	if(detectedBaseLoc == null){
-	    		for(int i = 0; i < 8; i++)
-				{
-	 				if(!rc.isLocationOccupied(new MapLocation(detectedDesignSchoolLoc.x + x[(i+1)%8], detectedDesignSchoolLoc.y + y[(i+1)%8])) && currentPos.equals(new MapLocation(detectedDesignSchoolLoc.x + x[i], detectedDesignSchoolLoc.y + y[i])))
-	 				{
-	 					if(rc.canMove(path[(i+1)%8]))
-	 						rc.move(path[(i+1)%8]);
-					}
-	 			}
-	    	}
+	    	
 	    }
 	    else
 	    {
-	    	RobotInfo nearbyUnits[] = rc.senseNearbyRobots(detectedBaseLoc, 2, rc.getTeam());
-	    	if(rc.getLocation().distanceSquaredTo(detectedBaseLoc) <= 2 && nearbyUnits.length == 8){
-	    		dig3();
+	    	System.out.println("123123123123123123");
+			if(detectedBaseLoc == null)
+			{
+				System.out.println("467456456456456");
+				navigate(baseLoc);
+			}
+			System.out.println("1AAAAAAA");
+			
+	    	if(currentPos.distanceSquaredTo(baseLoc) <= 2){
+	    		System.out.println("Eeeeeeeeeeeeeeeeeeeeeee");
+				RobotInfo nearbyUnits[] = rc.senseNearbyRobots(baseLoc, 2, rc.getTeam());
+	    		if(nearbyUnits.length == 8)
+	    			dig3();
 	    	}
-	    	navigate(detectedBaseLoc);
+	    	else{
+				for(int i = 0; i < 8; i++){
+					if(!rc.canSenseLocation(baseLoc.add(directions[i])) || !rc.isLocationOccupied(baseLoc.add(directions[i])))
+					{
+						System.out.println("79087987980");
+						navigate(baseLoc.add(directions[i]));
+					}
+
+				}
+	    	}
 	    	/*if(currentPos.distanceSquaredTo(detectedBaseLoc) <= 2)
 	    	{
 		    	if(detectedBaseLoc.directionTo(currentPos) == detectedDesignSchoolLoc.directionTo(detectedBaseLoc) || detectedBaseLoc.directionTo(currentPos).opposite() == detectedDesignSchoolLoc.directionTo(detectedBaseLoc)){

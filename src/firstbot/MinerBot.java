@@ -29,6 +29,12 @@ public strictfp class MinerBot extends Globals
         // Seed random number generator.
         FastMath.initRand(rc);
         currentNumberOfTurns++;
+        System.out.println("Base Location is " + baseLoc);
+        System.out.println("Expolore dest is  " + exploreDest);
+        System.out.println("Soup Location " + soupLocation);
+        System.out.println("tbrf Location " + toBeRefineryLocation);
+        System.out.println("rf Location " + refineryLocation);
+
 
 		// If we don't have the base location, let's find out.
 		if (baseLoc == null)
@@ -95,6 +101,10 @@ public strictfp class MinerBot extends Globals
                         builtFulfillmentCenter = true;
                         break;
 
+                        case DESIGN_SCHOOL:
+                        builtDesignSchool = true;
+                        break;
+
                         case COW:
 						break innerloop;
                     }
@@ -104,7 +114,7 @@ public strictfp class MinerBot extends Globals
         }
 
         // The if else ladder that is the brain of the miner. Pray that we don't let it become too complicated.
-        if (roundNum >= 180 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
+        if (rc.getTeamSoup() >= 1350 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
         {
 
             MapLocation designLoc = baseLoc.add(Direction.EAST).add(Direction.EAST);
@@ -124,7 +134,7 @@ public strictfp class MinerBot extends Globals
 
         // Build a fulfillment center.
         System.out.println(roundNum + " " + builtFulfillmentCenter);
-        if (roundNum >= 300 && !builtFulfillmentCenter && rc.getTeamSoup() >= 1000)
+        if (roundNum >= 300 && builtDesignSchool && !builtFulfillmentCenter && rc.getTeamSoup() >= 1000)
         {
             builtFulfillmentCenter = true;
             buildFulfillmentCenter();
@@ -136,6 +146,14 @@ public strictfp class MinerBot extends Globals
         }
         else if(rc.getTeamSoup() >= 200 && toBeRefineryLocation != null) // Build a refinery if we have enough.
         {
+        	if (currentPos.distanceSquaredTo(toBeRefineryLocation) == 0)
+        	{
+        		for(int i = 0; i < 8; i++){
+        			if(rc.canMove(directions[i]))
+        				rc.move(directions[i]);
+        		}
+        	}
+
             if (currentPos.distanceSquaredTo(toBeRefineryLocation) <= 2)
 			{
 				RobotInfo[] bots = rc.senseNearbyRobots(toBeRefineryLocation, sensorRadiusSquared, team);
@@ -437,7 +455,7 @@ public strictfp class MinerBot extends Globals
 			}
 			firsttime=false;
 		}
-		while(!inBounds(exploreDest) ||exploredGrid[exploreDest.x][exploreDest.y]);
+		while(!inBounds(exploreDest) || exploredGrid[exploreDest.x][exploreDest.y] || rc.senseFlooding(exploreDest));
 		exploredTurns = 0;
 	}
 
@@ -509,6 +527,9 @@ public strictfp class MinerBot extends Globals
 	private static void buildDesignSchool(Direction dir) throws GameActionException
 	{
 		rc.buildRobot(RobotType.DESIGN_SCHOOL, dir);
+		int[] sendArr = new int[9];
+		sendArr[0] = Communications.getCommsNum(ObjectType.DESIGN_SCHOOL, currentPos.add(dir));
+		Communications.sendComs(sendArr,3);
 	}
 
 	private static MapLocation buildNetGun() throws GameActionException
