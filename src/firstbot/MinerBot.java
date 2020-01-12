@@ -30,11 +30,6 @@ public strictfp class MinerBot extends Globals
         FastMath.initRand(rc);
         currentNumberOfTurns++;
 
-		System.out.println("THe tbrf is " + toBeRefineryLocation);
-		System.out.println("THe sl is " + soupLocation);
-		System.out.println("THe rf is " + refineryLocation);
-		System.out.println("The base locationis" + baseLoc);
-
 		// If we don't have the base location, let's find out.
 		if (baseLoc == null)
 		{
@@ -51,6 +46,8 @@ public strictfp class MinerBot extends Globals
 						isExploring = true;
                         break outerloop;
                     }
+					else if (objectHQLocation.rt == ObjectType.COW)
+						break;
                 }
             }
 		}
@@ -109,10 +106,8 @@ public strictfp class MinerBot extends Globals
         // The if else ladder that is the brain of the miner. Pray that we don't let it become too complicated.
         if (roundNum >= 180 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
         {
-            MapLocation designLoc = baseLoc.add(Direction.EAST);
-            if (rc.isLocationOccupied(designLoc))
-            	builtDesignSchool = true;
 
+            MapLocation designLoc = baseLoc.add(Direction.EAST).add(Direction.EAST);
             if (currentPos.distanceSquaredTo(designLoc)<=2)
             {
                 if (rc.getTeamSoup() >= 200 && rc.isReady())
