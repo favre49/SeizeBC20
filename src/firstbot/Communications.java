@@ -151,6 +151,12 @@ public strictfp class Communications extends Globals
 
 		int[] message = messageTransaction.getMessage();
 
+		if (message.length != 7)
+		{
+			System.out.println("NOT OUR MESSAGE");
+			return decoded;
+		}
+
 		message[0] ^= -903849746;
 		message[1] ^= -172817894;
 		message[2] ^= 293009196;
