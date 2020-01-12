@@ -100,7 +100,7 @@ public strictfp class Communications extends Globals
 		return newData;
 	}
 
-	public static int[] encode(int[] data)
+	public static int[] encodeHamming(int[] data)
 	{
 		//takes int[9], adds hamming to each, then given int
 		int[] hammingData = new int[9];
@@ -145,7 +145,7 @@ public strictfp class Communications extends Globals
 		return message;
 	}
 
-	public static int[] decode(Transaction messageTransaction) throws GameActionException
+	public static int[] decodeHamming(Transaction messageTransaction) throws GameActionException
 	{
 		int[] decoded = new int[9];
 
@@ -193,8 +193,17 @@ public strictfp class Communications extends Globals
 		}
 
 		return hammingChecked;
-	}	
+	}
 
+	public static int[] encode(int[] data)
+	{
+		return encodeHamming(data);
+	}
+
+	public static int[] decode(Transaction messageTransaction) throws GameActionException
+	{
+		return decodeHamming(messageTransaction);
+	}
 
 	public static boolean sendComs(int[] data, int bidamount/*message, bid amount*/) throws GameActionException
 	{
