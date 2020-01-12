@@ -55,12 +55,12 @@ public strictfp class LandscaperBot extends Globals
     	if(detectedBaseLoc == null || detectedDesignSchoolLoc == null)
     	{
 	    	RobotInfo nearbyUnits[] = rc.senseNearbyRobots();
-	    	for(int i = 0; i < nearbyUnits.length(){
-	    		if(nearbyUnits[i].getType == RobotType.HQ){
+	    	for(int i = 0; i < nearbyUnits.length; i++){
+	    		if(nearbyUnits[i].getType() == RobotType.HQ){
 	    			detectedBaseLoc = nearbyUnits[i].getLocation();
 	    		}
-	    		if(nearbyUnits[i].getType == RobotType.DESIGN_SCHOOL && currentPos.distanceSquaredTo() <= 2){
-	    			detectedDesignSchoolLoc == nearbyUnits[i].getLocation();
+	    		if(nearbyUnits[i].getType() == RobotType.DESIGN_SCHOOL && currentPos.distanceSquaredTo(nearbyUnits[i].getLocation()) <= 2){
+	    			detectedDesignSchoolLoc = nearbyUnits[i].getLocation();
 	    		}
 	    	}
 	    	//try again later
@@ -77,7 +77,12 @@ public strictfp class LandscaperBot extends Globals
 	    }
 	    else
 	    {
-	    	if(currentPos.distanceSquaredTo(detectedBaseLoc) <= 2)
+	    	RobotInfo nearbyUnits[] = rc.senseNearbyRobots(detectedBaseLoc, 2, rc.getTeam());
+	    	if(rc.getLocation().distanceSquaredTo(detectedBaseLoc) <= 2 && nearbyUnits.length == 8){
+	    		dig3();
+	    	}
+	    	navigate(detectedBaseLoc);
+	    	/*if(currentPos.distanceSquaredTo(detectedBaseLoc) <= 2)
 	    	{
 		    	if(detectedBaseLoc.directionTo(currentPos) == detectedDesignSchoolLoc.directionTo(detectedBaseLoc) || detectedBaseLoc.directionTo(currentPos).opposite() == detectedDesignSchoolLoc.directionTo(detectedBaseLoc)){
 		    		dig3();
@@ -111,7 +116,7 @@ public strictfp class LandscaperBot extends Globals
 		    			rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc));
 		    		}
 
-		    		if(detectedBaseLoc.directionTo(currentPos).rotateLeft()) == detectedBaseLoc.directionTo(detectedDesignSchoolLoc && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc)) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateRight().rotateRight())){
+		    		if(detectedBaseLoc.directionTo(currentPos).rotateLeft() == detectedBaseLoc.directionTo(detectedDesignSchoolLoc) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc)) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateRight().rotateRight())){
 		    			dig3();//start Digging
 		    		}
 		    		else{
@@ -123,7 +128,7 @@ public strictfp class LandscaperBot extends Globals
 		    			}
 		    		}
 
-		    		if(detectedBaseLoc.directionTo(currentPos).rotateRight()) == detectedBaseLoc.directionTo(detectedDesignSchoolLoc && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc)) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft().rotateLeft())){
+		    		if(detectedBaseLoc.directionTo(currentPos).rotateRight() == detectedBaseLoc.directionTo(detectedDesignSchoolLoc) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc)) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft().rotateLeft())){
 		    			dig3();//start Digging
 		    		}
 		    		else{
@@ -152,7 +157,7 @@ public strictfp class LandscaperBot extends Globals
 		    			rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft());
 		    		}
 		    	}
-		    }
+		    }*/
 		}
 
     }
@@ -169,7 +174,7 @@ public strictfp class LandscaperBot extends Globals
 	    	}
 	    }
 	    else{
-	    	rec.depositDirt(Direction.CENTER);
+	    	rc.depositDirt(Direction.CENTER);
 	    	/*int lowestElevation = rc.senseElevation(currentPos);
 	    	Direction lowestSquareDirectionInInnerLayer = Direction.CENTER;
 	    	for(int i = 0; i < 8; i++){

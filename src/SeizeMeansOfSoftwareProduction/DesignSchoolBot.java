@@ -10,12 +10,14 @@ import battlecode.common.*;
  */
 public strictfp class DesignSchoolBot extends Globals
 {	
-	public static void run(RobotController rc) throws GameActionException
-    {	
-    	
-		buildLandscaper();
-	
+    public static int landscapersbuilt = 0;
+    public static void run(RobotController rc) throws GameActionException
+    {   
+        if(landscapersbuilt<8)
+            buildLandscaper();
+    
     }
+
 
     static Boolean buildLandscaper() throws GameActionException
     {
@@ -24,6 +26,7 @@ public strictfp class DesignSchoolBot extends Globals
     		if(rc.canBuildRobot(RobotType.LANDSCAPER, directions[i]))
             {
     			rc.buildRobot(RobotType.LANDSCAPER, directions[i]);
+                landscapersbuilt++;
     			return true;
     		}
         }
