@@ -259,7 +259,7 @@ public strictfp class DroneBot extends Globals
 					int[] toSendArr = new int[9];
 
 					toSendArr[0] = Communications.getCommsNum(ObjectType.HQ,opponentHQLoc);
-					Communications.sendComs(toSendArr,1);
+					Communications.sendComs(toSendArr,3);
 					break;
 				}
 			}

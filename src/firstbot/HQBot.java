@@ -133,19 +133,19 @@ public strictfp class HQBot extends Globals
 				if(builtFulfilmentCenter)
 					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.FULFILLMENT_CENTER, new MapLocation(0,0));
 
-				System.out.print(Communications.sendComs(broadCastArr,5));
+				System.out.print(Communications.sendComs(broadCastArr,3));
 			}
 
 			int nearbyDroneID = senseDrones();
 			if(nearbyDroneID != -1)
 				rc.shootUnit(nearbyDroneID);
 
-			if(minerCount < 3)
+			if(minerCount < 5)
 			{
 				buildMiner();
 			}
 
-			if(roundNum >= 190 && roundNum <= 210)
+			if(roundNum >= 170 && roundNum <= 190)
 			{
 				if(refineryLocation == null 
 					&& soupLocation != null 
@@ -154,7 +154,7 @@ public strictfp class HQBot extends Globals
 					Direction dirToCenter = currentPos.directionTo(new MapLocation(mapWidth/2,mapHeight/2));
 					toBeRefineryLocation = currentPos.translate(dirToCenter.dx*4, dirToCenter.dy*4);
 					while(!inBounds(toBeRefineryLocation) 
-						&& rc.senseFlooding(toBeRefineryLocation))
+						|| rc.senseFlooding(toBeRefineryLocation) || (Math.abs(rc.senseElevation(toBeRefineryLocation)-rc.senseElevation(currentPos)) > 3))
 					{
 						dirToCenter = dirToCenter.rotateLeft();
 						toBeRefineryLocation = currentPos.translate(dirToCenter.dx*4, dirToCenter.dy*4);
@@ -163,7 +163,7 @@ public strictfp class HQBot extends Globals
 			}
 			if (roundNum >= 200)
 			{
-				if (minerCount != 4)
+				if (minerCount != 6)
 					buildMiner();
 			}
 

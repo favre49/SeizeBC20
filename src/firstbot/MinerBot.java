@@ -38,9 +38,7 @@ public strictfp class MinerBot extends Globals
 		// If we don't have the base location, let's find out.
 		if (baseLoc == null)
 		{
-			System.out.println(Clock.getBytecodeNum());
 			int[][] commsarr=Communications.getComms(1);
-			System.out.println(Clock.getBytecodeNum());
             outerloop:
             for(int i=0;i<commsarr.length;i++){
                 for (int j = 0; j < commsarr[i].length; j++)
@@ -55,7 +53,6 @@ public strictfp class MinerBot extends Globals
                     }
                 }
             }
-			System.out.println(Clock.getBytecodeNum());
 		}
 
         // Listen for soup locations every 5 turns.
@@ -110,9 +107,12 @@ public strictfp class MinerBot extends Globals
         }
 
         // The if else ladder that is the brain of the miner. Pray that we don't let it become too complicated.
-        if (roundNum >= 200 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
+        if (roundNum >= 180 && !builtDesignSchool && currentPos.distanceSquaredTo(baseLoc) < 5) // Now we enter the landscaper phase.
         {
             MapLocation designLoc = baseLoc.add(Direction.EAST);
+            if (rc.isLocationOccupied(designLoc))
+            	builtDesignSchool = true;
+
             if (currentPos.distanceSquaredTo(designLoc)<=2)
             {
                 if (rc.getTeamSoup() >= 200 && rc.isReady())
@@ -188,7 +188,7 @@ public strictfp class MinerBot extends Globals
                     int[] toSendArr = new int[9];
 
                     toSendArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP, soupLocation);
-                    Communications.sendComs(toSendArr,1);
+                    Communications.sendComs(toSendArr,3);
                     explore();
                 }
                 else if(currentPos.distanceSquaredTo(loc) <= 2)
@@ -408,7 +408,7 @@ public strictfp class MinerBot extends Globals
 							toSendArr[0] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
 							if (toBeRefineryLocation != null)
 								toSendArr[1] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY, toBeRefineryLocation);
-							Communications.sendComs(toSendArr,1);
+							Communications.sendComs(toSendArr,3);
 
 							break outerloop;
 						}
@@ -454,7 +454,7 @@ public strictfp class MinerBot extends Globals
 		toBeRefineryLocation = null;
 		int[] sendArr = new int[9];
 		sendArr[0] = Communications.getCommsNum(ObjectType.REFINERY, currentPos.add(dir));
-		Communications.sendComs(sendArr,1);
+		Communications.sendComs(sendArr,3);
 		return currentPos.add(dir);
 	}
 
@@ -489,7 +489,7 @@ public strictfp class MinerBot extends Globals
 			builtFulfillmentCenter = true;
 			int[] sendArr = new int[9];
 			sendArr[0] = Communications.getCommsNum(ObjectType.REFINERY, currentPos.add(directions[i]));
-			Communications.sendComs(sendArr,1);
+			Communications.sendComs(sendArr,3);
 		}
 
 		return currentPos.add(directions[i]);

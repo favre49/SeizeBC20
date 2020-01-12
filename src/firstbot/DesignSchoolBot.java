@@ -10,16 +10,11 @@ import battlecode.common.*;
  */
 public strictfp class DesignSchoolBot extends Globals
 {	
-	public static int landscapersBuilt = 0;
 	public static void run(RobotController rc) throws GameActionException
     {	
-    	while(landscapersBuilt < 25)
-        {
-    		if(buildLandscaper())
-            {
-    			landscapersBuilt++;
-    		}
-    	}
+    	
+		buildLandscaper();
+	
     }
 
     static Boolean buildLandscaper() throws GameActionException
@@ -31,7 +26,8 @@ public strictfp class DesignSchoolBot extends Globals
     			rc.buildRobot(RobotType.LANDSCAPER, directions[i]);
     			return true;
     		}
-    	}
+        }
+        System.out.println("BOOOHOOO COULDNT NSAF:DLUIJHA:Float");
     	//communicate that HQ is boxed in; 
     	return false;
     }
