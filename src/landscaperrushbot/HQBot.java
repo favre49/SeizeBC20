@@ -34,121 +34,25 @@ public strictfp class HQBot extends Globals
 			// 	initialArr[1] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
 			System.out.print(Communications.sendComs(initialArr,1));
 		}
-		else if (roundNum == 2)
+
+		int nearbyDroneID = senseDrones();
+		if(nearbyDroneID != -1)
+			rc.shootUnit(nearbyDroneID);
+
+		if(minerCount < 5)
 		{
-			soupLocation = senseNearbySoup();
-			int initialArr[] = new int[9];
-			if(soupLocation != null)
-			{
-				initialArr[0] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
-				System.out.print(Communications.sendComs(initialArr,1));
-			}
+			buildMiner();
 		}
-		else if(roundNum > 2)
+
+		if (roundNum > 80 && minerCount != 6)
 		{
-			//first, read last message pool and update the ObjectArray
-			int commsArr[][]=Communications.getComms(roundNum-1);
-
-			// Set this up to be a switch case?
-			for(int i = 0; i < commsArr.length; i++)
-			{
-				for(int j = 0; j < commsArr[i].length; j++)
-				{
-					ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
-					System.out.println(">");
-					System.out.println(currLocation.rt + " " + currLocation.loc);
-
-					switch(currLocation.rt)
-					{
-						case COW:
-						break;
-
-						case REFINERY:
-						if(refineryLocation == null)
-						{
-							refineryLocation = currLocation.loc;
-							toBeRefineryLocation = null;
-						}
-						break;
-
-						case TO_BE_REFINERY:
-						if(refineryLocation != null 
-							&& currLocation.loc.distanceSquaredTo(refineryLocation) <= 5)
-						{
-							toBeRefineryLocation = null;
-						}
-						else if(refineryLocation == null)
-						{
-							toBeRefineryLocation = currLocation.loc;
-						}
-						break;
-
-						case SOUP:
-						if (soupLocation == null)
-							soupLocation = currLocation.loc;
-						break;
-
-						case HQ:
-						if(currLocation.loc != currentPos)
-							opponentHQLoc = currLocation.loc;
-						break;
-
-						case FULFILLMENT_CENTER:
-						builtFulfilmentCenter = true;
-						break;
-
-						case NO_SOUP:
-						soupLocation = null;
-						refineryLocation = null;
-						break;
-
-					}
-				}
-			}
-
-			//Now, if we're on our turn, broadcast our entire array
-			if(roundNum%broadCastFrequency == 0)
-			{
-				int broadCastArr[] = new int[9];
-				int numBroadCasts = 0;
-				// for(int i=0;i<Math.min(objectArraySize,12);i++){
-				// 	broadCastArr[i] = Communications.getCommsNum(objectArray[i].rt,objectArray[i].loc);
-				// }
-				if(soupLocation != null)
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
-				else
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.NO_SOUP, new MapLocation(0,0));
-				
-				if(refineryLocation != null)
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.REFINERY, refineryLocation);
-				
-				if(toBeRefineryLocation != null)
-				{
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.TO_BE_REFINERY, toBeRefineryLocation);
-				}
-				
-				if(opponentHQLoc != null)
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
-				
-				if(builtFulfilmentCenter)
-					broadCastArr[numBroadCasts++] = Communications.getCommsNum(ObjectType.FULFILLMENT_CENTER, new MapLocation(0,0));
-
-				System.out.print(Communications.sendComs(broadCastArr,5));
-			}
-
-			int nearbyDroneID = senseDrones();
-			if(nearbyDroneID != -1)
-				rc.shootUnit(nearbyDroneID);
-
-			if(minerCount < 4)
-			{
-				buildMiner();
-			}
-
+			if (rc.canBuildRobot(RobotType.MINER, Direction.NORTH))
+				buildMiner(Direction.NORTH);
 		}
+
 	}
 
-	static Boolean buildMiner() throws GameActionException
+	static boolean buildMiner() throws GameActionException
 	{
 		for(int i = 0; i < 8; i++)
 		{
@@ -161,6 +65,12 @@ public strictfp class HQBot extends Globals
 		}
 		//communicate that HQ is boxed in; 
 		return false;
+	}
+
+	static void buildMiner(Direction dir) throws GameActionException
+	{
+		minerCount++;
+		rc.buildRobot(RobotType.MINER, dir);
 	}
 
 	static int senseDrones() throws GameActionException

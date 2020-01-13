@@ -15,6 +15,13 @@ public strictfp class LandscaperBot extends Globals
 	public static int offset = 0;
 	public static MapLocation exploreDest;
 
+	public static boolean isProtector = false;
+	public static boolean firstTurn = true;
+
+	// Variables for protecting
+	public static MapLocation[] wallArr = new MapLocation[16];
+	public static int idx = -1;
+
     public static void run(RobotController rc)  throws GameActionException
     {
 		if (baseLoc == null)
@@ -36,48 +43,210 @@ public strictfp class LandscaperBot extends Globals
             }
 		}
 
-		if(opponentHQLoc == null)
+		if (currentPos.distanceSquaredTo(baseLoc) <= 8 && firstTurn)
 		{
-			int[][] commsarr=Communications.getLastIntervalComms();
-			for(int i = 0; i < commsarr.length; i++)
-			{
-				innerloop:
-				for(int j = 0; j < commsarr[i].length; j++)
-				{
-					ObjectLocation currObjectLocation = Communications.getLocationFromInt(commsarr[i][j]);
-					switch(currObjectLocation.rt)
-					{
-						case HQ:
-						opponentHQLoc = currObjectLocation.loc;
-						break;
+			firstTurn = false;
+			isProtector = true;
+		}
+		else
+		{
+			firstTurn = false;
+		}
 
-						case COW:
-						break innerloop;
+		if (isProtector) // Protecting landscaper
+		{
+			if (roundNum > 1000)
+			{
+				if (opponentHQLoc == null)
+				{
+					RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
+					for (int i = 0; i < nearbyBots.length; i++)
+					{
+						if (nearbyBots[i].type == RobotType.HQ)
+						{
+							opponentHQLoc = nearbyBots[i].location;
+							break;
+						}
+					}
+				}
+				else
+				{
+					Direction tryDir = currentPos.directionTo(opponentHQLoc);
+					if (rc.canMove(tryDir))
+					{
+						rc.move(tryDir);
+					}
+					else if (rc.senseFlooding(currentPos.add(tryDir)) || rc.senseRobotAtLocation(currentPos.add(tryDir)) != null || rc.senseElevation(currentPos) > rc.senseElevation(currentPos.add(tryDir)) + 3)
+					{
+						if (rc.getDirtCarrying() > 0)
+						{
+							rc.depositDirt(tryDir);
+						}
+						for (int i = 0; i < 8; i++)
+						{
+							if (directions[i] != tryDir && rc.canDigDirt(directions[i]))
+							{
+								rc.digDirt(directions[i]);
+							}
+						}
+					}
+					else if (rc.senseElevation(currentPos) + 3 < rc.senseElevation(currentPos.add(tryDir)))
+					{
+						if (rc.getDirtCarrying() < 25)
+						{
+							rc.digDirt(tryDir);
+						}
+						for (int i = 0; i < 8; i++)
+						{
+							if (directions[i] != tryDir && rc.canDigDirt(directions[i]))
+							{
+								rc.depositDirt(directions[i]);
+							}
+						}
 					}
 				}
 			}
-		}
 
-		if(opponentHQLoc == null)
-		{
-			switch((myID + offset) % 3)
+			// Dig low wall
+			if (wallArr[0] == null)
 			{
-				case 0:
-				exploreDest = new MapLocation(mapWidth-baseLoc.x, mapHeight-baseLoc.y);
-				break;
-
-				case 1:
-				exploreDest = new MapLocation(baseLoc.x, mapHeight-baseLoc.y);
-				break;
-				
-				case 2:
-				exploreDest = new MapLocation(mapWidth-baseLoc.x, baseLoc.y);
-				break;
+				wallArr = new MapLocation[]{baseLoc.translate(2,0),
+						   baseLoc.translate(2,1),
+						   baseLoc.translate(2,2),
+						   baseLoc.translate(2,3),
+						   baseLoc.translate(1,3),
+						   baseLoc.translate(0,3),
+						   baseLoc.translate(-1,3),
+						   baseLoc.translate(-2,3),
+						   baseLoc.translate(-2,2),
+						   baseLoc.translate(-2,1),
+						   baseLoc.translate(-2,0),
+						   baseLoc.translate(-2,-1),
+						   baseLoc.translate(-2,-2),
+						   baseLoc.translate(-1,-2),
+						   baseLoc.translate(0,-2),
+						   baseLoc.translate(1,-2),
+						   baseLoc.translate(2,-2),
+						   baseLoc.translate(2,-1)};
 			}
-			findHQ();
-		}
 
-		buryHQ();
+			if (idx == -1)
+			{
+				int closest = 0;
+				int closestDistance = Integer.MAX_VALUE;
+				for (int i = 0; i < 18; i++)
+				{
+					if (currentPos.distanceSquaredTo(wallArr[i]) < closestDistance)
+					{
+						closest = i;
+						closestDistance = currentPos.distanceSquaredTo(wallArr[i]);
+					}
+				}
+				idx = closest;
+			}
+
+			if (currentPos.distanceSquaredTo(baseLoc) <= 2)
+			{
+				// First, check if the base is under attack.
+				if (rc.canDigDirt(currentPos.directionTo(baseLoc)))
+				{
+					if (rc.getDirtCarrying() < 25)
+						rc.digDirt(currentPos.directionTo(baseLoc));
+					else
+					{
+						for (int i = 0; i < 8; i++)
+						{
+							if (directions[i] != currentPos.directionTo(baseLoc) && rc.canDigDirt(directions[i]))
+							{
+								rc.depositDirt(directions[i]);
+							}
+						}
+					}
+				}
+
+				// Next, check whether you should be building or protecting
+				RobotInfo bot = rc.senseRobotAtLocation(currentPos.add(Direction.NORTH));
+				if (bot != null && bot.type == RobotType.DESIGN_SCHOOL)
+				{
+					idx = -1;
+				}
+			}
+
+
+			if (idx != -1 && currentPos.equals(wallArr[idx]))
+			{
+				RobotInfo blockingBot = rc.senseRobotAtLocation(wallArr[(idx+1)%18]);
+				if (blockingBot != null)
+				{
+					System.out.println("Get out of the way!!! " + blockingBot.type + "at" + blockingBot.location) ;
+				}
+				else if (rc.senseElevation(wallArr[(idx+1)%18]) > rc.senseElevation(currentPos)+3)
+				{
+					if (rc.canDigDirt(currentPos.directionTo(wallArr[(idx+1)%18])))
+					{
+						rc.digDirt(currentPos.directionTo(wallArr[(idx+1)%18]));
+					}
+				}
+				else if (rc.getDirtCarrying() == 0)
+				{
+					System.out.println("Dig dig dig!!");
+					Direction digDirection = currentPos.directionTo(baseLoc).opposite();
+					if (rc.canDigDirt(digDirection))
+					{
+						rc.digDirt(digDirection);
+					}
+					else if (rc.canDigDirt(digDirection.rotateLeft()))
+					{
+						rc.digDirt(digDirection.rotateLeft());
+					}
+					else if (rc.canDigDirt(digDirection.rotateRight()))
+					{
+						rc.digDirt(digDirection.rotateRight());
+					}
+				}
+				else
+				{
+					System.out.println("Put em in!!!!");
+					if (rc.isReady())
+					{
+						if (rc.senseElevation(wallArr[(idx+1)%18]) < rc.senseElevation(currentPos))
+						{
+							rc.depositDirt(currentPos.directionTo(wallArr[(idx+1)%18]));
+						}
+						else if (rc.senseElevation(wallArr[(idx+1)%18]) - rc.senseElevation(currentPos) == 3)
+						{
+							idx = (idx+1)%18;
+						}
+						else
+						{
+							idx = (idx+1)%18;
+							rc.depositDirt(currentPos.directionTo(wallArr[idx]));
+						}
+					}
+				}
+			}
+			else if (idx != -1 && !currentPos.equals(wallArr[idx]))
+			{
+				if (rc.canMove(currentPos.directionTo(wallArr[idx])) && !rc.isLocationOccupied(wallArr[(idx+1)%18]))
+					rc.move(currentPos.directionTo(wallArr[idx]));
+			}
+		}
+		else // Attacking landscaper
+		{
+			if (opponentHQLoc == null)
+			{
+				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, opponent);
+				for (int i = 0; i < nearbyBots.length; i++)
+				{
+					if (nearbyBots[i].type == RobotType.HQ)
+					{
+						opponentHQLoc = nearbyBots[i].location;
+						break;
+					}
+				}
+			}		
+			buryHQ();
+		}
 
     }
 
@@ -223,59 +392,33 @@ public strictfp class LandscaperBot extends Globals
 
     /******* END NAVIGATION *******/
 
-
-	public static void findHQ() throws GameActionException
-	{
-		if (currentPos.distanceSquaredTo(exploreDest) <= sensorRadiusSquared)
-		{
-			RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-			for (int i = 0; i < nearbyBots.length; i++)
-			{
-				if (nearbyBots[i].team == team)
-					continue;
-
-				if (nearbyBots[i].type == RobotType.HQ)
-				{
-					opponentHQLoc = nearbyBots[i].location;
-					exploreDest = null;
-
-					// Broadcast it.
-					int[] toSendArr = new int[9];
-
-					toSendArr[0] = Communications.getCommsNum(ObjectType.HQ,opponentHQLoc);
-					Communications.sendComs(toSendArr,1);
-					break;
-				}
-			}
-			if (opponentHQLoc == null)
-				offset++;
-		}
-		else
-		{
-			navigate(exploreDest);
-		}
-	}
-
 	public static void buryHQ() throws GameActionException
 	{
 		if (currentPos.distanceSquaredTo(opponentHQLoc)<=2)
 		{
 			if (rc.getDirtCarrying() == 0)
 			{
+				System.out.println("I am digging");
 				int i;
 				for (i = 0; i < 8; i++)
 				{
-					if (rc.canDigDirt(directions[i]))
+					if (directions[i]!=currentPos.directionTo(opponentHQLoc) && rc.canDigDirt(directions[i]))
 						break;
 				}
 				if (i!=8)
 				{
 					rc.digDirt(directions[i]);
 				}
+				else
+				{
+					System.out.println("I am unable to dig dirt");
+				}
 			}
 			else
 			{
-				rc.depositDirt(currentPos.directionTo(opponentHQLoc));
+				System.out.println("I should be dumping"+rc.getDirtCarrying());
+				if (rc.isReady())
+					rc.depositDirt(currentPos.directionTo(opponentHQLoc));
 			}
 		}
 		else

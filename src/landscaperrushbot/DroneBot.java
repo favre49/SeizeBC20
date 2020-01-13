@@ -11,16 +11,16 @@ import battlecode.common.*;
  */
 public strictfp class DroneBot extends Globals
 {
-	public static boolean carryingCow = false;
-	public static boolean carryingOpponent = false;
-	public static boolean foundCow = false;
-	public static boolean foundLandscaper = false;
 	public static boolean foundWater = false;
 	public static boolean foundHQ = false;
 	public static boolean isExploring = true;
 	public static MapLocation exploreDest;
 	public static int stepSize = 5;
 
+	public static MapLocation closestPos;
+	public static boolean isProtector = false;
+
+	// Rush variables.
 	public static int offset = 0;
 
 	public static void run(RobotController rc) throws GameActionException
@@ -31,7 +31,7 @@ public strictfp class DroneBot extends Globals
 		{
 			int[][] commsarr=Communications.getComms(1);
             outerloop:
-            for(int i=0;i<commsarr.length;i++){
+            for(int i = 0; i<commsarr.length;i++){
                 for (int j = 0; j < commsarr[i].length; j++)
                 {
                     ObjectLocation objectHQLocation = Communications.getLocationFromInt(commsarr[i][j]); 
@@ -45,59 +45,195 @@ public strictfp class DroneBot extends Globals
             }
 		}
 
-		if(opponentHQLoc == null)
+		if (roundNum > 800)
 		{
-			int[][] commsarr=Communications.getLastIntervalComms();
-			for(int i = 0; i < commsarr.length; i++)
-			{
-				innerloop:
-				for(int j = 0; j < commsarr[i].length; j++)
-				{
-					ObjectLocation currObjectLocation = Communications.getLocationFromInt(commsarr[i][j]);
-					switch(currObjectLocation.rt)
-					{
-						case HQ:
-						opponentHQLoc = currObjectLocation.loc;
-						break;
+			System.out.println("I got here!!");
 
-						case COW:
-						break innerloop;
+			// Begin drone rush!
+			if (rc.getRobotCount() < 30 && opponentHQLoc == null)
+			{
+				findHQ();
+			}
+			else if (rc.getRobotCount() < 50 && opponentHQLoc == null)
+			{
+				if (currentPos.distanceSquaredTo(baseLoc) <= 2)
+				{
+					if (!rc.isCurrentlyHoldingUnit())
+					{
+						RobotInfo bot = rc.senseRobotAtLocation(baseLoc.add(Direction.SOUTH));
+						if (bot != null && bot.type == RobotType.LANDSCAPER)
+						{
+							if (rc.canPickUpUnit(bot.ID))
+								rc.pickUpUnit(bot.ID);
+						}
+					}
+					else
+					{
+						findHQ();
+					}
+				}
+				else
+				{
+					findHQ();
+				}
+			}
+			else
+			{
+				System.out.println(opponentHQLoc);
+				if (opponentHQLoc == null)
+				{
+					System.out.println("I should be looking for the opponent rn");
+					findHQ();
+				}
+				else
+				{
+					// int nearbyTeamNum = rc.senseNearbyRobots(currentPos,sensorRadiusSquared, team).length;
+					// System.out.println(nearbyTeamNum);
+					if (roundNum > 1500)
+					{
+						// Attack!!!!
+						if (!rc.isCurrentlyHoldingUnit())
+						{
+							RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
+							for (int i = 0; i < nearbyBots.length; i++)
+							{
+								if (nearbyBots[i].type == RobotType.LANDSCAPER || nearbyBots[i].type == RobotType.MINER)
+								{
+									if (currentPos.distanceSquaredTo(nearbyBots[i].location) <= 2)
+									{
+										if (rc.canPickUpUnit(nearbyBots[i].ID))
+											rc.pickUpUnit(nearbyBots[i].ID);
+									}
+									else
+										navigate(nearbyBots[i].location);
+								}
+							}
+						}
+						else
+						{
+							if (currentPos.distanceSquaredTo(opponentHQLoc) < 8)
+							{
+								for (int i = 0; i < 8; i++)
+								{
+									if (!rc.senseFlooding(currentPos.add(directions[i])) && rc.canDropUnit(directions[i]))
+									{
+										rc.dropUnit(directions[i]);
+									}
+								}
+							}
+							else
+							{
+								navigate(opponentHQLoc);
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			if (currentPos.distanceSquaredTo(baseLoc) <= 5 || isProtector) // Protecting drone.
+			{
+				isProtector = true;
+
+				if (rc.isCurrentlyHoldingUnit())
+				{
+					dropInWater();
+				}
+				else
+				{
+					if (currentPos.distanceSquaredTo(baseLoc) < 15)
+					{
+						RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
+						for (int i = 0; i < nearbyBots.length; i++)
+						{
+							if (nearbyBots[i].type == RobotType.LANDSCAPER || nearbyBots[i].type == RobotType.MINER)
+							{
+								if (currentPos.distanceSquaredTo(nearbyBots[i].location) <= 2)
+								{
+									if (rc.canPickUpUnit(nearbyBots[i].ID))
+										rc.pickUpUnit(nearbyBots[i].ID);
+								}
+								else
+									navigate(nearbyBots[i].location);
+							}
+						}
+					}
+					else
+					{
+						navigate(baseLoc);
+					}
+				}
+			}
+			else // Helper drone
+			{
+				System.out.println("I should be going for the miner!!");
+				if (!rc.isCurrentlyHoldingUnit())
+				{
+					RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, 5, team);
+					for (int i = 0; i < nearbyBots.length; i++)
+					{
+						if (nearbyBots[i].type == RobotType.MINER)
+						{
+							if (rc.canPickUpUnit(nearbyBots[i].ID))
+								rc.pickUpUnit(nearbyBots[i].ID);
+							else
+							{
+								navigate(nearbyBots[i].location);
+							}
+						}
+					}
+				}
+				else
+				{
+					if (closestPos == null) // Find out where to carry miner.
+					{
+						MapLocation HQPos1 = new MapLocation(mapWidth-baseLoc.x-1, baseLoc.y);
+						MapLocation HQPos2 = new MapLocation(mapWidth-baseLoc.x-1, mapHeight-baseLoc.y-1);
+						MapLocation HQPos3 = new MapLocation(baseLoc.x, mapHeight-baseLoc.y-1);
+
+						int min = currentPos.distanceSquaredTo(HQPos1);
+						closestPos = HQPos1;
+
+						if (min > currentPos.distanceSquaredTo(HQPos2))
+						{
+							min  = currentPos.distanceSquaredTo(HQPos2);
+							closestPos = HQPos2;
+						}
+
+						if (min > currentPos.distanceSquaredTo(HQPos3))
+						{
+							min  = currentPos.distanceSquaredTo(HQPos3);
+							closestPos = HQPos3;
+						}
+					}
+					else // Go where you should.
+					{
+						if (currentPos.distanceSquaredTo(closestPos) <= 5)
+						{
+							Direction dir = currentPos.directionTo(closestPos);
+							do
+							{
+								if (rc.canDropUnit(dir) && !rc.senseFlooding(currentPos.add(dir)))
+								{
+									rc.dropUnit(dir);
+								}
+								else
+								{
+									dir = dir.rotateLeft();
+								}
+							}
+							while (dir != currentPos.directionTo(closestPos));
+						}
+						else
+							navigate(closestPos);
 					}
 				}
 			}
 		}
 
-		if(opponentHQLoc == null)
-		{
-			switch((myID + offset) % 3)
-			{
-				case 0:
-				exploreDest = new MapLocation(mapWidth-baseLoc.x, mapHeight-baseLoc.y);
-				break;
 
-				case 1:
-				exploreDest = new MapLocation(baseLoc.x, mapHeight-baseLoc.y);
-				break;
-				
-				case 2:
-				exploreDest = new MapLocation(mapWidth-baseLoc.x, baseLoc.y);
-				break;
-			}
-			findHQ();
-		}
 
-		if(carryingCow)
-			dropCow();
-		else if(carryingOpponent)
-			dropOpponent();
-
-		// Explore
-		if(isExploring)
-			explore();
-		else if(foundLandscaper)
-			getLandscaper();
-		else if(foundCow)
-			getCow();
 	}
 
 
@@ -240,159 +376,7 @@ public strictfp class DroneBot extends Globals
 	/******* END NAVIGATION *******/
 
 
-	public static void findHQ() throws GameActionException
-	{
-		if (currentPos.distanceSquaredTo(exploreDest) <= sensorRadiusSquared)
-		{
-			RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-			for (int i = 0; i < nearbyBots.length; i++)
-			{
-				if (nearbyBots[i].team == team)
-					continue;
-
-				if (nearbyBots[i].type == RobotType.HQ)
-				{
-					opponentHQLoc = nearbyBots[i].location;
-					exploreDest = null;
-
-					// Broadcast it.
-					int[] toSendArr = new int[9];
-
-					toSendArr[0] = Communications.getCommsNum(ObjectType.HQ,opponentHQLoc);
-					Communications.sendComs(toSendArr,1);
-					break;
-				}
-			}
-			if (opponentHQLoc == null)
-				offset++;
-		}
-		else
-		{
-			navigate(exploreDest);
-		}
-	}
-
-	public static void explore() throws GameActionException
-	{
-		if (exploreDest == null)
-		{
-			exploreDest = currentPos;
-			pickNewExploreDest();
-		}
-
-		if (currentPos.equals(exploreDest))
-		{
-			RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-			for (int i = 0; i < nearbyBots.length; i++)
-			{
-				if (nearbyBots[i].team == team)
-					continue;
-
-				switch(nearbyBots[i].type)
-				{
-					case LANDSCAPER:
-					exploreDest = nearbyBots[i].location;
-					foundLandscaper = true;
-					foundCow = false;
-					isExploring = false;
-					break;
-
-					case COW:
-					exploreDest = nearbyBots[i].location;
-					foundCow = true;
-					isExploring = false;
-					break;
-
-					case HQ:
-					foundHQ = true;
-					opponentHQLoc = nearbyBots[i].location;
-					// Broadcast that we found it.
-				}
-
-				foundCow = !foundLandscaper && foundCow;
-			}
-			if (!foundCow && !foundLandscaper)
-				pickNewExploreDest();
-			navigate(exploreDest);
-		}
-		else
-		{
-			navigate(exploreDest);
-		}
-		
-	}
-
-	// Picks a new destination for exploration.
-	private static void pickNewExploreDest() throws GameActionException 
-	{
-		// Check if do while is a bad way to do this.
-		boolean firsttime = true;
-		do
-		{
-			Direction dir = directions[FastMath.rand256()%8];
-			exploreDest = exploreDest.translate(dir.dx*stepSize, dir.dy*stepSize);
-			if(!firsttime && !inBounds(exploreDest)){
-				//this is the quick fix.
-				exploreDest = exploreDest.translate(-1*dir.dx*stepSize, -1*dir.dy*stepSize);                
-			}
-			firsttime=false;
-		}
-		while(!inBounds(exploreDest));
-	}
-
-	// Find and pick up cow.
-	private static void getCow() throws GameActionException
-	{
-		RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-		boolean found = false;
-		for (int i = 0; i < nearbyBots.length; i++)
-		{
-			if (nearbyBots[i].type == RobotType.COW)
-			{
-				if (nearbyBots[i].location.distanceSquaredTo(currentPos) <= 2)
-				{
-					rc.pickUpUnit(nearbyBots[i].ID);
-					carryingCow = true;
-					foundCow = false;
-				}
-				else
-					exploreDest = nearbyBots[i].location;
-				found = true;
-			}
-		}
-		if (!found) // We lost it.
-			isExploring = true;
-		navigate(exploreDest);
-	}
-
-	// Find and pick up Landscaper
-	private static void getLandscaper() throws GameActionException
-	{
-		RobotInfo[] nearbyBots = rc.senseNearbyRobots();
-		boolean found = false;
-		for (int i = 0; i < nearbyBots.length; i++)
-		{
-			if (nearbyBots[i].type == RobotType.LANDSCAPER)
-			{
-				if (nearbyBots[i].location.distanceSquaredTo(currentPos) <= 2)
-				{
-					rc.pickUpUnit(nearbyBots[i].ID);
-					carryingOpponent = true;
-					foundLandscaper = false;
-				}
-				else
-					exploreDest = nearbyBots[i].location;
-				found = true;
-			}
-		}
-		if (!found) // We lost it.
-			isExploring = true;
-		navigate(exploreDest);
-	}
-
-	// Look for water and drop it there
-	// TODO: Make it easier to look for water?
-	private static void dropOpponent() throws GameActionException
+	public static void dropInWater() throws GameActionException
 	{
 		System.out.println("Looking to drop my opponent");
 		int r = (int)Math.sqrt(sensorRadiusSquared);
@@ -423,27 +407,103 @@ public strictfp class DroneBot extends Globals
 			{
 				rc.dropUnit(currentPos.directionTo(exploreDest));
 				foundWater = false;
-				carryingOpponent = false;
-				isExploring = true;
 			}
 			else
 				navigate(exploreDest);
 		}
 	}
 
-	// Look for HQ (?)and drop it there
-	// TODO: Make it easier to look for water?
-	private static void dropCow() throws GameActionException
+	private static void pickNewExploreDest() throws GameActionException 
 	{
-		if (currentPos.distanceSquaredTo(opponentHQLoc) <= 8)
+		// Check if do while is a bad way to do this.
+		boolean firsttime = true;
+		do
 		{
-			rc.dropUnit(currentPos.directionTo(opponentHQLoc));
-			carryingCow = false;
-			isExploring = true;
+			Direction dir = directions[FastMath.rand256()%8];
+			exploreDest = exploreDest.translate(dir.dx*stepSize, dir.dy*stepSize);
+			if(!firsttime && !inBounds(exploreDest))
+			{
+				//this is the quick fix.
+				exploreDest = exploreDest.translate(-1*dir.dx*stepSize, -1*dir.dy*stepSize);                
+			}
+			firsttime=false;
 		}
-		else
-			navigate(opponentHQLoc);
+		while(!inBounds(exploreDest));
 	}
 
+	private static void findHQ() throws GameActionException
+	{
+		System.out.println("I am looking for HQ!!!");
+		switch(offset)
+		{
+			case 0: exploreDest = new MapLocation(mapWidth-baseLoc.x-1, baseLoc.y);
+			break;
 
+			case 1: exploreDest = new MapLocation(mapWidth-baseLoc.x-1, mapHeight-baseLoc.y-1);
+			break;
+
+			case 2: exploreDest = new MapLocation(baseLoc.x, mapHeight-baseLoc.y-1);
+			break;
+		}
+
+		if (rc.canSenseLocation(exploreDest))
+		{
+			System.out.println("I can sense it!");
+			RobotInfo bot = rc.senseRobotAtLocation(exploreDest);
+			if (bot != null && bot.type == RobotType.HQ)
+				opponentHQLoc = bot.location;
+			else
+				offset++;
+		}
+		else
+		{
+			MapLocation netGunLoc = null;
+
+			RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
+			for (int i = 0; i < nearbyBots.length; i++)
+			{
+				if (nearbyBots[i].type == RobotType.NET_GUN)
+				{
+					netGunLoc = nearbyBots[i].location;
+					break;
+				}
+			}
+
+			if (netGunLoc != null && currentPos.distanceSquaredTo(netGunLoc) == 25)
+			{
+				if (rc.canMove(currentPos.directionTo(netGunLoc).rotateLeft()))
+				{
+					rc.move(currentPos.directionTo(netGunLoc).rotateLeft());
+				}
+				else if (rc.canMove(currentPos.directionTo(netGunLoc).rotateLeft()))
+				{
+					rc.move(currentPos.directionTo(netGunLoc).rotateLeft());
+				}
+				else
+				{
+					rc.move(currentPos.directionTo(netGunLoc).rotateLeft().rotateLeft());
+				}
+			}
+
+			if (currentPos.distanceSquaredTo(exploreDest) == 25)
+			{
+				if (rc.canMove(currentPos.directionTo(exploreDest).rotateLeft()))
+				{
+					rc.move(currentPos.directionTo(exploreDest).rotateLeft());
+				}
+				else if (rc.canMove(currentPos.directionTo(exploreDest).rotateLeft()))
+				{
+					rc.move(currentPos.directionTo(exploreDest).rotateLeft());
+				}
+				else
+				{
+					rc.move(currentPos.directionTo(exploreDest).rotateLeft().rotateLeft());
+				}
+			}
+			else
+			{
+				navigate(exploreDest);
+			}
+		}
+	}
 }
