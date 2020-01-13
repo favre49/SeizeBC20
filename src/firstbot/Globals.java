@@ -140,4 +140,16 @@ public class Globals
         return null;
     }
 
+    public static boolean isEnemyBuildingAtLocation(MapLocation jaja) throws GameActionException
+    {
+        RobotInfo temp = rc.senseRobotAtLocation(jaja);
+        if(temp != null)    
+        {
+            RobotType t = temp.getType();
+            if(temp.getTeam() != team && (t == RobotType.NET_GUN || t == RobotType.DESIGN_SCHOOL || t == RobotType.VAPORATOR || t == RobotType.FULFILLMENT_CENTER))
+                return true;
+        }
+        return false;        
+    }
+
 }

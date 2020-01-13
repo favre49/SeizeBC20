@@ -11,6 +11,11 @@ import battlecode.common.*;
  */
 public strictfp class DroneBot extends Globals
 {
+	//aryaman
+	public static boolean carryingTeammate = false;
+	public static RobotType carryingRobotType;
+
+	//rahul
 	public static boolean carryingCow = false;
 	public static boolean carryingOpponent = false;
 	public static boolean foundCow = false;
@@ -20,8 +25,10 @@ public strictfp class DroneBot extends Globals
 	public static boolean isExploring = true;
 	public static MapLocation exploreDest;
 	public static int stepSize = 5;
-
+	public static boolean baseGuardCompleted = false;
 	public static int offset = 0;
+
+
 
 	public static void run(RobotController rc) throws GameActionException
 	{
@@ -240,6 +247,65 @@ public strictfp class DroneBot extends Globals
 	/******* END NAVIGATION *******/
 
 
+
+
+	//incomplete
+	public static void guardHQ() throws GameActionException
+	{
+		//assumption that, the base already has a wall
+		//we might need comms for this
+		if(!carryingOpponent)
+		{	
+			if(currentPos.distanceSquaredTo(baseLoc) > 8)
+			{
+				RobotInfo nearbyBots = rc.senseNearbyRobots(-1, team.opponent());
+				if(nearbyBots != null){
+					for(int i = 0; i < nearbyBots.length; i++)
+						if(nearbyBots[i].getType() == RobotType.MINER && nearbyBots[i].getLocation().distanceSquaredTo(baseLoc) < 32)
+							//function to get to the miner in sight and then pick it up
+				}
+				navigate(baseLoc);
+			}
+			else if(currentPos.distanceSquaredTo(baseLoc) > 2)
+			{
+				RobotInfo nearbyBots = rc.senseNearbyRobots(-1, team.opponent());
+				if(nearbyBots != null){
+					for(int i = 0; i < nearbyBots.length; i++)
+					{
+						if(nearbyBots[i].getType() == RobotType.MINER)
+							//function to get to the miner
+						else if(nearbyBots[i].getLocation().distanceSquaredTo(baseLoc) <= 18 && nearbyBots[i].getType() == Direction.LANDSCAPER)
+							navigate(nearbyBots[i].getLocation().add(nearbyBots[i].getLocation()directionTo(baseLoc)))
+					}
+
+				}
+			}
+			else
+			{
+				for(int i = 0; i < 8; i++)
+				{
+					RobotInfo nearbyBots = rc.senseNearbyRobots(2, team.opponent());
+					if(rc.canMove(directions[i]) && baseLoc.distanceSquaredTo(currentPos.add(directions[i])))
+						rc.move(directions[i])
+					else if(nearbyBots != null)
+					{
+						for(int i = 0; i < nearbyBots.length; i++)
+							if(rc.canPickUpUnit(nearbyBots[i].getID()))
+							{
+								carryingOpponent = true;
+								carryingRobotType = nearbyBots.getType();
+								rc.pickUpUnit(nearbyBots[i].getID());
+							}
+					}
+				}
+			}
+		}
+		else{
+			dropOpponent();
+		}
+	} 
+
+
 	public static void findHQ() throws GameActionException
 	{
 		if (currentPos.distanceSquaredTo(exploreDest) <= sensorRadiusSquared)
@@ -365,6 +431,8 @@ public strictfp class DroneBot extends Globals
 		navigate(exploreDest);
 	}
 
+
+
 	// Find and pick up Landscaper
 	private static void getLandscaper() throws GameActionException
 	{
@@ -424,6 +492,7 @@ public strictfp class DroneBot extends Globals
 				rc.dropUnit(currentPos.directionTo(exploreDest));
 				foundWater = false;
 				carryingOpponent = false;
+				carryingRobotType = null;
 				isExploring = true;
 			}
 			else

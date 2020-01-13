@@ -11,13 +11,12 @@ import battlecode.common.*;
  */
 public strictfp class LandscaperBot extends Globals
 {
-    public static Direction dumpingTo = Direction.NORTH;  //not using this anymore
-    public static boolean dumping = false;				//^^^
-    //not using this anymore
+    public static Direction dumpingTo = Direction.NORTH;  
+    public static boolean dumping = false;				
     public static Direction[] path = {Direction.EAST, Direction.SOUTH, Direction.SOUTH, Direction.SOUTH, Direction.WEST, Direction.WEST, Direction.NORTH, Direction.NORTH};
-    
-    public static MapLocation detectedBaseLoc = null;
     public static MapLocation detectedDesignSchoolLoc = null;
+    
+
 
     public static void run(RobotController rc)  throws GameActionException
     {
@@ -46,153 +45,126 @@ public strictfp class LandscaperBot extends Globals
 		} */
 		fortifyBase3();   	
     }
+    
+
+    //if a design school is built away from the base then we automatically build A base, I think if we use mother
+    //design school locations for determing which beahvior the miner will exhibit, it will be best.
+    static void buildSubBase() throws GameActionException
+    {
+    	
+    }
+
 
     static void fortifyBase3() throws GameActionException
     {
-    	//how do I make this pollution independent?
-    	
-
-    	//detect your own locations of the base and the Mother Design School
+    	//detect your own locations of the Mother Design School
     	if(detectedDesignSchoolLoc == null)
     	{
-	    	RobotInfo nearbyUnits[] = rc.senseNearbyRobots();
-	    	for(int i = 0; i < nearbyUnits.length; i++){
-	    		if(nearbyUnits[i].getType() == RobotType.HQ){
-	    			detectedBaseLoc = nearbyUnits[i].getLocation();
-	    		}
-	    		if(nearbyUnits[i].getType() == RobotType.DESIGN_SCHOOL && currentPos.distanceSquaredTo(nearbyUnits[i].getLocation()) <= 2){
+	    	RobotInfo nearbyUnits[] = rc.senseNearbyRobots(2);
+	    	for(int i = 0; i < nearbyUnits.length; i++)
+	    	{
+	    		if(nearbyUnits[i].getType() == RobotType.DESIGN_SCHOOL && currentPos.distanceSquaredTo(nearbyUnits[i].getLocation()) <= 2)
+	    		{
 	    			detectedDesignSchoolLoc = nearbyUnits[i].getLocation();
 	    		}
 	    	}
-	    	//try again later
-	    	
 	    }
-	    else
+		
+		if(detectedDesignSchoolLoc.distanceSquaredTo(baseLoc) <= 8)
 	    {
-	    	System.out.println("123123123123123123");
-			if(detectedBaseLoc == null)
-			{
-				System.out.println("467456456456456");
-				navigate(baseLoc);
-			}
-			System.out.println("1AAAAAAA");
-			
-	    	if(currentPos.distanceSquaredTo(baseLoc) <= 2){
-	    		System.out.println("Eeeeeeeeeeeeeeeeeeeeeee");
-				RobotInfo nearbyUnits[] = rc.senseNearbyRobots(baseLoc, 2, rc.getTeam());
-	    		if(nearbyUnits.length == 8)
-	    			dig3();
+	    	if(currentPos.distanceSquaredTo(baseLoc) <= 2)
+	    	{
+	    		System.out.println("in position, diggin");
+				dig3();
+	    	}
+	    	else if(currentPos.distanceSquaredTo(baseLoc) > 8)
+	    	{
+	    		System.out.println("Away from Base...");
+	    		navigate(baseLoc);
 	    	}
 	    	else{
 				for(int i = 0; i < 8; i++){
-					if(!rc.canSenseLocation(baseLoc.add(directions[i])) || !rc.isLocationOccupied(baseLoc.add(directions[i])))
-					{
-						System.out.println("79087987980");
-						navigate(baseLoc.add(directions[i]));
+					if(rc.canSenseLocation(baseLoc.add(directions[i]))){
+						if(!rc.isLocationOccupied(baseLoc.add(directions[i]))){
+							navigate(baseLoc.add(directions[i]));
+						}
 					}
-
+					else{
+						navigate(baseLoc.add(directions[i]).add(directions[i]));
+					}
 				}
 	    	}
-	    	/*if(currentPos.distanceSquaredTo(detectedBaseLoc) <= 2)
-	    	{
-		    	if(detectedBaseLoc.directionTo(currentPos) == detectedDesignSchoolLoc.directionTo(detectedBaseLoc) || detectedBaseLoc.directionTo(currentPos).opposite() == detectedDesignSchoolLoc.directionTo(detectedBaseLoc)){
-		    		dig3();
-		    	}
-		    	else{
-		    		if(detectedBaseLoc.directionTo(currentPos).rotateLeft() == detectedDesignSchoolLoc.directionTo(detectedBaseLoc) && !rc.canMove(detectedBaseLoc.directionTo(currentPos).rotateLeft().rotateLeft())){
-		    			dig3();
-		    		}
-		    		else{
-		    			rc.move(detectedBaseLoc.directionTo(currentPos).rotateLeft().rotateLeft());
-		    		}
-
-		    		if(detectedBaseLoc.directionTo(currentPos).rotateRight() == detectedDesignSchoolLoc.directionTo(detectedBaseLoc) && !rc.canMove(detectedBaseLoc.directionTo(currentPos).rotateRight().rotateRight())){
-		    			dig3();//start Digging
-		    		}
-		    		else{
-		    			rc.move(detectedBaseLoc.directionTo(currentPos).rotateRight().rotateRight());
-		    		}
-
-		    		if(detectedBaseLoc.directionTo(currentPos).rotateRight().rotateRight() == detectedDesignSchoolLoc.directionTo(detectedBaseLoc) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc))){
-		    			dig3();//start Digging
-		    		}
-		    		else{
-		    			rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc));
-		    		}
-
-		    		if(detectedBaseLoc.directionTo(currentPos).rotateLeft().rotateLeft() == detectedDesignSchoolLoc.directionTo(detectedBaseLoc) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc))){
-		    			dig3();//start Digging
-		    		}
-		    		else{
-		    			rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc));
-		    		}
-
-		    		if(detectedBaseLoc.directionTo(currentPos).rotateLeft() == detectedBaseLoc.directionTo(detectedDesignSchoolLoc) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc)) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateRight().rotateRight())){
-		    			dig3();//start Digging
-		    		}
-		    		else{
-		    			if(rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc))){
-		    				rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc));
-		    			}
-		    			else{
-		    				rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateRight().rotateRight());
-		    			}
-		    		}
-
-		    		if(detectedBaseLoc.directionTo(currentPos).rotateRight() == detectedBaseLoc.directionTo(detectedDesignSchoolLoc) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc)) && !rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft().rotateLeft())){
-		    			dig3();//start Digging
-		    		}
-		    		else{
-		    			if(rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc))){
-		    				rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc));
-		    			}
-		    			else{
-		    				rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft().rotateLeft());
-		    			}
-		    		}
-		    	}
-		    }
-		    else{
-		    	if((detectedDesignSchoolLoc.directionTo(currentPos).rotateRight().rotateRight() == detectedDesignSchoolLoc.directionTo(currentPos) || detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft().rotateLeft() == detectedDesignSchoolLoc.directionTo(currentPos) || detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateRight() == detectedDesignSchoolLoc.directionTo(currentPos) || detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft() == detectedDesignSchoolLoc.directionTo(currentPos))&& rc.canMove(detectedDesignSchoolLoc.directionTo(detectedBaseLoc))){
-		    		rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc));
-		    	}
-		    	else{	
-		    		navigate(detectedDesignSchoolLoc.add(detectedBaseLoc.directionTo(detectedDesignSchoolLoc)));
-		    	}
-
-		    	if(detectedDesignSchoolLoc.directionTo(currentPos) == detectedBaseLoc.directionTo(detectedDesignSchoolLoc)){
-		    		if(rc.isLocationOccupied(detectedDesignSchoolLoc.add(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft()))){
-		    			rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateRight());
-		    		}
-		    		else{
-		    			rc.move(detectedDesignSchoolLoc.directionTo(detectedBaseLoc).rotateLeft());
-		    		}
-		    	}
-		    }*/
-		}
+	    }
 
     }
 
     static void dig3() throws GameActionException
     {
-    	if(rc.getDirtCarrying() == 0)
-    	{
-	    	if(rc.canDigDirt(detectedBaseLoc.directionTo(currentPos))){
-	    		rc.digDirt(detectedBaseLoc.directionTo(currentPos));
-	    	}
-	    	else{
-	    		rc.digDirt(detectedBaseLoc.directionTo(currentPos).rotateLeft());
-	    	}
-	    }
-	    else{
-	    	rc.depositDirt(Direction.CENTER);
-	    	/*int lowestElevation = rc.senseElevation(currentPos);
-	    	Direction lowestSquareDirectionInInnerLayer = Direction.CENTER;
-	    	for(int i = 0; i < 8; i++){
-	    		
-	    	}*/
-	    }
+    	//dig from highest elevation the outer layer and the inner layer if unnoccupoied;
+    	//encapsulate this in another condition
+	    RobotInfo nearbyRobots[] = rc.senseNearbyRobots(baseLoc, 2, team);
+		    if(rc.canSenseRadiusSquared(8) && nearbyRobots.length < 8)
+		    {
+		    	System.out.println("Formation not ready Yet");
+		    	int highestElevation = 1000;
+		    	Direction highestElevationdirection = Direction.CENTER;
+		    	for(int i = 0; i < 8; i++){
+		    		if(currentPos.add(directions[i]).distanceSquaredTo(baseLoc) > 2){
+		    			if(rc.senseElevation(currentPos.add(directions[i])) < highestElevation && rc.canDigDirt(directions[i])){
+		    				highestElevation = rc.senseElevation(currentPos.add(directions[i]));
+		    				highestElevationdirection = directions[i];
+		    			}
+		    		}
+		    		else{
+		    			if(rc.senseElevation(currentPos.add(directions[i]))-3 < highestElevation && rc.canDigDirt(directions[i]) && !rc.isLocationOccupied(currentPos.add(directions[i]))){
+		    				highestElevation = rc.senseElevation(currentPos.add(directions[i])) - 3;
+		    				highestElevationdirection = directions[i];
+		    			}
+		    		}
+		    	}
+	    		if(rc.canDigDirt(currentPos.directionTo(baseLoc))){
+	    			highestElevationdirection = currentPos.directionTo(baseLoc);
+	    		}
+		    	rc.digDirt(highestElevationdirection);
+		    }
+		    else{
+		    	System.out.println("Formation Ready");
+		    	if(rc.getDirtCarrying() == 0){
+		    		int highestElevation = 1000;
+		    		Direction highestElevationdirection = Direction.CENTER;
+		    		for(int i =0; i < 8; i++){
+		    			if(rc.senseElevation(currentPos.add(directions[i])) < highestElevation && rc.canDigDirt(directions[i]) && !rc.isLocationOccupied(currentPos.add(directions[i]))){
+		    				highestElevation = rc.senseElevation(currentPos.add(directions[i]));
+		    				highestElevationdirection = directions[i];
+		    			}
+		    		}
+		    		if(rc.canDigDirt(currentPos.directionTo(baseLoc))){
+		    			highestElevationdirection = currentPos.directionTo(baseLoc);
+		    		}
+		    		rc.digDirt(highestElevationdirection);		
+		    	}
+		    	else{
+		    		//dposit on enemy buildings/lowest location
+		    		int lowestElevation = rc.senseElevation(currentPos);
+		    		Direction lowestElevationDirection = Direction.CENTER;
+
+		    		for(int i = 0; i < 8; i++){
+		    			if(lowestElevation > rc.senseElevation(currentPos.add(directions[i])) && baseLoc.distanceSquaredTo(currentPos.add(directions[i])) > 2){
+		    				lowestElevation = rc.senseElevation(currentPos.add(directions[i]));
+		    			}
+
+		    			if(isEnemyBuildingAtLocation(currentPos.add(directions[i]))){
+		    				lowestElevation = -5;
+		    				lowestElevationDirection = directions[i];
+		    			}
+		    		}
+		    		System.out.println("Dumping");
+					rc.depositDirt(lowestElevationDirection);
+		    	}
+		    }
     }
+
+
 
     static void fortifyBase2() throws GameActionException
     {
