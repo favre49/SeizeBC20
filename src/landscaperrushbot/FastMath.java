@@ -10,7 +10,7 @@ public class FastMath
 	
 	public static void initRand(RobotController rc)
 	{
-		randIndex = Math.abs(rc.getRoundNum()*23981 + rc.getID()*10289) % lookupRand256Length;
+		randIndex = Math.abs(rc.getRoundNum()*23981) % lookupRand256Length;
 	}
 	
 	public static int rand256()
