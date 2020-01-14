@@ -209,7 +209,7 @@ public strictfp class RobotPlayer {
     }
 
 
-static void tryBlockchain() throws GameActionException {
+    static void tryBlockchain() throws GameActionException {
         if (turnCount < 3) {
             int[] message = new int[7];
             for (int i = 0; i < 7; i++) {
