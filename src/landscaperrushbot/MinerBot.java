@@ -37,12 +37,12 @@ public strictfp class MinerBot extends Globals
         FastMath.initRand(rc);
 
 		// CHeck if you are the bomber.
-		// if (roundNum <= 5)
-		// {
-		// 	RobotInfo hq = rc.senseRobotAtLocation(currentPos.add(Direction.SOUTH));
-		// 	if (hq != null && hq.type == RobotType.HQ)
-		// 		isBomber = true;
-		// }
+		if (roundNum <= 5)
+		{
+			RobotInfo hq = rc.senseRobotAtLocation(currentPos.add(Direction.SOUTH));
+			if (hq != null && hq.type == RobotType.HQ)
+				isBomber = true;
+		}
 
 		// CHeck if you are the builder.
 		if (roundNum > 80 && firstTurn)
