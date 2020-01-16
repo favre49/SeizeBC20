@@ -491,7 +491,7 @@ public strictfp class MinerBot extends Globals
 				else
 					turnsWithoutGettingCloser++;
 				
-				if (turnsWithoutGettingCloser >= 8)
+				if (turnsWithoutGettingCloser >= 5)
 				{
 					if (rc.getTeamSoup() > 300)
 					{

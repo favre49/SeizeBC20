@@ -20,6 +20,11 @@ public strictfp class DroneBot extends Globals
 	public static MapLocation closestPos;
 	public static boolean isProtector = false;
 
+	// Helper drone variables.
+	public static boolean finishedHQ1 = false;
+	public static boolean finishedHQ2 = false;
+	public static boolean finishedHQ3 = false;
+
 	// Rush variables.
 	public static int offset = 0;
 
@@ -170,16 +175,30 @@ public strictfp class DroneBot extends Globals
 				System.out.println("I should be going for the miner!!");
 				if (!rc.isCurrentlyHoldingUnit())
 				{
-					RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, 5, team);
-					for (int i = 0; i < nearbyBots.length; i++)
+					// Sense for nearby HQ.
+					RobotInfo[] nearbyOpps = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
+					for (int i = 0; i < nearbyOpps.length; i++)
 					{
-						if (nearbyBots[i].type == RobotType.MINER)
+						if (nearbyOpps[i].type == RobotType.HQ)
 						{
-							if (rc.canPickUpUnit(nearbyBots[i].ID))
-								rc.pickUpUnit(nearbyBots[i].ID);
-							else
+							foundHQ = true;
+							break;
+						}
+					}
+
+					if (!foundHQ)
+					{
+						RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, 5, team);
+						for (int i = 0; i < nearbyBots.length; i++)
+						{
+							if (nearbyBots[i].type == RobotType.MINER)
 							{
-								navigate(nearbyBots[i].location);
+								if (rc.canPickUpUnit(nearbyBots[i].ID))
+									rc.pickUpUnit(nearbyBots[i].ID);
+								else
+								{
+									navigate(nearbyBots[i].location);
+								}
 							}
 						}
 					}
@@ -192,19 +211,36 @@ public strictfp class DroneBot extends Globals
 						MapLocation HQPos2 = new MapLocation(mapWidth-baseLoc.x-1, mapHeight-baseLoc.y-1);
 						MapLocation HQPos3 = new MapLocation(baseLoc.x, mapHeight-baseLoc.y-1);
 
-						int min = currentPos.distanceSquaredTo(HQPos1);
-						closestPos = HQPos1;
+						int min = Integer.MAX_VALUE;
+						if (!finishedHQ1 && min > currentPos.distanceSquaredTo(HQPos2))
+						{
+							min = currentPos.distanceSquaredTo(HQPos1);
+							closestPos = HQPos1;
+						}
 
-						if (min > currentPos.distanceSquaredTo(HQPos2))
+						if (!finishedHQ2 && min > currentPos.distanceSquaredTo(HQPos2))
 						{
 							min  = currentPos.distanceSquaredTo(HQPos2);
 							closestPos = HQPos2;
 						}
 
-						if (min > currentPos.distanceSquaredTo(HQPos3))
+						if (!finishedHQ3 && min > currentPos.distanceSquaredTo(HQPos3))
 						{
 							min  = currentPos.distanceSquaredTo(HQPos3);
 							closestPos = HQPos3;
+						}
+
+						if (closestPos.equals(HQPos1))
+						{
+							finishedHQ1 = true;
+						}
+						else if (closestPos.equals(HQPos2))
+						{
+							finishedHQ2 = true;
+						}
+						else if (closestPos.equals(HQPos3))
+						{
+							finishedHQ3 = true;
 						}
 					}
 					else // Go where you should.
