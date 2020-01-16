@@ -49,10 +49,21 @@ public strictfp class LandscaperBot extends Globals
 
     //if a design school is built away from the base then we automatically build A base, I think if we use mother
     //design school locations for determing which beahvior the miner will exhibit, it will be best.
-    static void buildSubBase() throws GameActionException
+    /*static void buildSubBase() throws GameActionException
     {
-    	
-    }
+    	if(detectedDesignSchoolLoc == null){
+    		RobotInfo nearbyUnits[] = rc.senseNearbyRobots(2);
+	    	for(int i = 0; i < nearbyUnits.length; i++)
+	    	{
+	    		if(nearbyUnits[i].getType() == RobotType.DESIGN_SCHOOL && currentPos.distanceSquaredTo(nearbyUnits[i].getLocation()) <= 2)
+	    		{
+	    			detectedDesignSchoolLoc = nearbyUnits[i].getLocation();
+	    		}
+	    	}
+    	}
+
+    	if(detectedDesignSchoolLoc.distanceSquaredTo(baseLoc) >)
+    }*/
 
 
     static void fortifyBase3() throws GameActionException
@@ -105,27 +116,42 @@ public strictfp class LandscaperBot extends Globals
 	    RobotInfo nearbyRobots[] = rc.senseNearbyRobots(baseLoc, 2, team);
 		    if(rc.canSenseRadiusSquared(8) && nearbyRobots.length < 8)
 		    {
-		    	System.out.println("Formation not ready Yet");
-		    	int highestElevation = 1000;
-		    	Direction highestElevationdirection = Direction.CENTER;
-		    	for(int i = 0; i < 8; i++){
-		    		if(currentPos.add(directions[i]).distanceSquaredTo(baseLoc) > 2){
-		    			if(rc.senseElevation(currentPos.add(directions[i])) < highestElevation && rc.canDigDirt(directions[i])){
-		    				highestElevation = rc.senseElevation(currentPos.add(directions[i]));
-		    				highestElevationdirection = directions[i];
-		    			}
+		    	if(rc.getDirtCarrying() == 0)
+		    	{
+			    	System.out.println("Formation not ready Yet");
+			    	int highestElevation = 1000;
+			    	Direction highestElevationdirection = Direction.CENTER;
+			    	for(int i = 0; i < 8; i++){
+			    		if(currentPos.add(directions[i]).distanceSquaredTo(baseLoc) > 2){
+			    			if(rc.senseElevation(currentPos.add(directions[i])) < highestElevation && rc.canDigDirt(directions[i])){
+			    				highestElevation = rc.senseElevation(currentPos.add(directions[i]));
+			    				highestElevationdirection = directions[i];
+			    			}
+			    		}
+			    		else{
+			    			if(rc.senseElevation(currentPos.add(directions[i]))-3 < highestElevation && rc.canDigDirt(directions[i]) && !rc.isLocationOccupied(currentPos.add(directions[i]))){
+			    				highestElevation = rc.senseElevation(currentPos.add(directions[i])) - 3;
+			    				highestElevationdirection = directions[i];
+			    			}
+			    		}
+			    	}
+		    		if(rc.canDigDirt(currentPos.directionTo(baseLoc))){
+		    			highestElevationdirection = currentPos.directionTo(baseLoc);
 		    		}
-		    		else{
-		    			if(rc.senseElevation(currentPos.add(directions[i]))-3 < highestElevation && rc.canDigDirt(directions[i]) && !rc.isLocationOccupied(currentPos.add(directions[i]))){
-		    				highestElevation = rc.senseElevation(currentPos.add(directions[i])) - 3;
-		    				highestElevationdirection = directions[i];
-		    			}
-		    		}
-		    	}
-	    		if(rc.canDigDirt(currentPos.directionTo(baseLoc))){
-	    			highestElevationdirection = currentPos.directionTo(baseLoc);
-	    		}
-		    	rc.digDirt(highestElevationdirection);
+			    	rc.digDirt(highestElevationdirection);
+			    }
+			    else{
+			    	RobotInfo nearbyEnemyBuildings[] = rc.senseNearbyRobots(2, team.opponent());
+			    	if(nearbyEnemyBuildings != null){
+			    		for(int i = 0; i < nearbyEnemyBuildings.length; i++){
+			    			if(nearbyEnemyBuildings[i].getType() == RobotType.DESIGN_SCHOOL || nearbyEnemyBuildings[i].getType() == RobotType.NET_GUN)
+			    				rc.depositDirt(currentPos.directionTo(nearbyEnemyBuildings[i].getLocation()));
+			    		}
+			    	}
+
+
+			    	
+			    }
 		    }
 		    else{
 		    	System.out.println("Formation Ready");
