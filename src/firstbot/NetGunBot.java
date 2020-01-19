@@ -16,12 +16,8 @@ public strictfp class NetGunBot extends Globals
 		RobotInfo nearbyUnits[] = rc.senseNearbyRobots();
 		if(nearbyUnits != null)
 		{
-			//shoot nearest drone
-			RobotInfo nearbyEnemyUnits[] = null;
-			if(rc.getTeam() == Team.A)
-				nearbyEnemyUnits = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), Team.B);
-			else
-				nearbyEnemyUnits = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), Team.A);
+			//shoot nearest drone carrying something or else shoot the nearest bot
+			RobotInfo nearbyEnemyUnits[] = rc.senseNearbyRobots(-1, team.opponent());
 
 			if(nearbyUnits != null)
 			{

@@ -14,6 +14,7 @@ public strictfp class DroneBot extends Globals
 	//aryaman
 	public static boolean carryingTeammate = false;
 	public static RobotType carryingRobotType;
+	public static boolean huntMiner = false;
 
 	//rahul
 	public static boolean carryingCow = false;
@@ -74,7 +75,9 @@ public strictfp class DroneBot extends Globals
 			}
 		}
 
-		if(opponentHQLoc == null)
+		guardHQ();
+
+		/*if(opponentHQLoc == null)
 		{
 			switch((myID + offset) % 3)
 			{
@@ -104,7 +107,7 @@ public strictfp class DroneBot extends Globals
 		else if(foundLandscaper)
 			getLandscaper();
 		else if(foundCow)
-			getCow();
+			getCow();*/
 	}
 
 
@@ -258,43 +261,43 @@ public strictfp class DroneBot extends Globals
 		{	
 			if(currentPos.distanceSquaredTo(baseLoc) > 8)
 			{
-				RobotInfo nearbyBots = rc.senseNearbyRobots(-1, team.opponent());
+				RobotInfo nearbyBots[] = rc.senseNearbyRobots(-1, team.opponent());
 				if(nearbyBots != null){
 					for(int i = 0; i < nearbyBots.length; i++)
 						if(nearbyBots[i].getType() == RobotType.MINER && nearbyBots[i].getLocation().distanceSquaredTo(baseLoc) < 32)
-							//function to get to the miner in sight and then pick it up
+							getUnitFromGuard(nearbyBots[i]);
 				}
 				navigate(baseLoc);
 			}
 			else if(currentPos.distanceSquaredTo(baseLoc) > 2)
 			{
-				RobotInfo nearbyBots = rc.senseNearbyRobots(-1, team.opponent());
+				RobotInfo nearbyBots[] = rc.senseNearbyRobots(-1, team.opponent());
 				if(nearbyBots != null){
 					for(int i = 0; i < nearbyBots.length; i++)
 					{
 						if(nearbyBots[i].getType() == RobotType.MINER)
-							//function to get to the miner
-						else if(nearbyBots[i].getLocation().distanceSquaredTo(baseLoc) <= 18 && nearbyBots[i].getType() == Direction.LANDSCAPER)
-							navigate(nearbyBots[i].getLocation().add(nearbyBots[i].getLocation()directionTo(baseLoc)))
+							getUnitFromGuard(nearbyBots[i]);
+						else if(nearbyBots[i].getLocation().distanceSquaredTo(baseLoc) <= 18 && nearbyBots[i].getType() == RobotType.LANDSCAPER)
+							navigate(nearbyBots[i].getLocation().add(nearbyBots[i].getLocation().directionTo(baseLoc)));
 					}
-
+					System.out.println("I am making the DRONE WALL");
 				}
 			}
 			else
 			{
 				for(int i = 0; i < 8; i++)
 				{
-					RobotInfo nearbyBots = rc.senseNearbyRobots(2, team.opponent());
-					if(rc.canMove(directions[i]) && baseLoc.distanceSquaredTo(currentPos.add(directions[i])))
-						rc.move(directions[i])
+					RobotInfo nearbyBots[] = rc.senseNearbyRobots(2, team.opponent());
+					if(rc.canMove(directions[i]) && baseLoc.distanceSquaredTo(currentPos.add(directions[i])) > 2)
+						rc.move(directions[i]);
 					else if(nearbyBots != null)
 					{
-						for(int i = 0; i < nearbyBots.length; i++)
-							if(rc.canPickUpUnit(nearbyBots[i].getID()))
+						for(int j = 0; j < nearbyBots.length; j++)
+							if(rc.canPickUpUnit(nearbyBots[j].getID()))
 							{
 								carryingOpponent = true;
-								carryingRobotType = nearbyBots.getType();
-								rc.pickUpUnit(nearbyBots[i].getID());
+								carryingRobotType = nearbyBots[j].getType();
+								rc.pickUpUnit(nearbyBots[j].getID());
 							}
 					}
 				}
@@ -429,6 +432,21 @@ public strictfp class DroneBot extends Globals
 		if (!found) // We lost it.
 			isExploring = true;
 		navigate(exploreDest);
+	}
+
+
+	//Find and pick up a Miner
+	private static void getUnitFromGuard(RobotInfo	target) throws GameActionException
+	{
+		if(currentPos.distanceSquaredTo(target.getLocation()) > 2)
+			navigate(target.getLocation());
+		else
+			if(rc.canPickUpUnit(target.getID()))
+			{
+				carryingOpponent = true;
+				rc.pickUpUnit(target.getID());
+			}
+		
 	}
 
 
