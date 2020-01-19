@@ -123,21 +123,20 @@ public class Globals
         if (rc.senseSoup(currentPos)>0)
             return currentPos;
 
-        int r = (int)Math.sqrt(sensorRadiusSquared);
-        for (int x = -r; x <= r; x++)
+        
+        MapLocation[] nearbySoup = rc.senseNearbySoup(currentPos, sensorRadiusSquared);
+        MapLocation minLoc = null;
+        int minDist = Integer.MAX_VALUE;
+        for (int i = 0; i < nearbySoup.length; i++)
         {
-            int maxY = (int)Math.sqrt(r*r-x*x);
-            for (int y = -maxY; y <= maxY; y++)
+            if (currentPos.distanceSquaredTo(nearbySoup[i]) < minDist)
             {
-                MapLocation checkingPos = currentPos.translate(x,y);
-                if (inBounds(checkingPos) && !rc.senseFlooding(checkingPos))
-                {
-                    if (rc.senseSoup(checkingPos) > 0)
-                        return checkingPos;
-                }
+                minDist = currentPos.distanceSquaredTo(nearbySoup[i]);
+                minLoc = nearbySoup[i];
             }
         }
-        return null;
+
+        return minLoc;
     }
 
     public static boolean isEnemyBuildingAtLocation(MapLocation jaja) throws GameActionException

@@ -38,6 +38,95 @@ public strictfp class LandscaperBot extends Globals
                 }
             }
 		}
+		
+		// Are we being attacked???
+		goToLoc = null;
+		int numAttacking = 0;
+		int numDefending = 0;
+		if (rc.canSenseLocation(baseLoc))
+		{
+			wallElevation = rc.senseElevation(baseLoc) + 3;
+			RobotInfo[] nearbyOpps = rc.senseNearbyRobots(baseLoc, -1, opponent);
+			if (nearbyOpps.length != 0)
+			{
+				for (int i = 0; i < nearbyOpps.length; i++)
+				{
+					if (nearbyOpps[i].type == RobotType.LANDSCAPER && nearbyOpps[i].location.distanceSquaredTo(baseLoc) <= 2)
+					{
+						underAttack = true;
+						numAttacking++;
+					}
+					else if (goToLoc == null && nearbyOpps[i].type.isBuilding())
+					{
+						goToLoc = nearbyOpps[i].location;
+					}
+				}
+			}
+
+			RobotInfo[] nearbyTeammates = rc.senseNearbyRobots(baseLoc,2,team);
+			for (int i = 0; i < nearbyTeammates.length; i++)
+			{
+				if (nearbyTeammates[i].type == RobotType.LANDSCAPER)
+				{
+					numDefending++;	
+				}
+			}
+			if (numDefending >= numAttacking)
+				underAttack = false;
+		}
+
+		// We are! go defend.
+		if (goToLoc != null || underAttack)
+		{
+			if (underAttack)
+			{
+				if (currentPos.distanceSquaredTo(baseLoc) <= 2)
+				{
+					Direction tryDir = currentPos.directionTo(baseLoc);
+					if (rc.canDigDirt(tryDir))
+					{
+						rc.digDirt(tryDir);
+					}
+
+					if (rc.getDirtCarrying() == 25)
+					{
+						for (int i = 0; i < 8; i++)
+						{
+							if (directions[i]!=tryDir && rc.canDepositDirt(tryDir))
+							{
+								rc.depositDirt(tryDir);
+							}
+						}
+					}
+				}
+				else
+					navigate(baseLoc);
+			}
+
+			if(goToLoc != null)
+			{
+				if (currentPos.distanceSquaredTo(goToLoc) <= 2)
+				{
+					Direction tryDir = currentPos.directionTo(goToLoc);
+					if (rc.getDirtCarrying() > 0)
+					{
+						rc.depositDirt(tryDir);
+					}
+					else
+					{
+						for (int i = 0; i < 8; i++)
+						{
+							if (directions[i] != tryDir && rc.canDigDirt(directions[i]))
+							{
+								rc.digDirt(directions[i]);
+							}
+						}
+					}
+				}
+				else
+					navigate(goToLoc);
+			}
+		}
 
 		/*if(currentPos.distanceSquaredTo(baseLoc) <= 8)
 		{
