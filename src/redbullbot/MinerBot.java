@@ -82,12 +82,12 @@ public strictfp class MinerBot extends Globals
 		}
 
 		// CHeck if you are the bomber.
-		// if (roundNum <= 5)
-		// {
-		// 	RobotInfo hq = rc.senseRobotAtLocation(currentPos.add(Direction.SOUTH));
-		// 	if (hq != null && hq.type == RobotType.HQ)
-		// 		isBomber = true;
-		// }
+		if (roundNum <= 5)
+		{
+			RobotInfo hq = rc.senseRobotAtLocation(currentPos.add(Direction.SOUTH));
+			if (hq != null && hq.type == RobotType.HQ)
+				isBomber = true;
+		}
 
 		if (roundNum > 50 && roundNum < 700 && firstTurn)
 		{
