@@ -275,12 +275,12 @@ public strictfp class Communications extends Globals
 
 	public static int[] encode(int[] data)
 	{
-		return encodeHamming(data);
+		return encodeHash(data);
 	}
 
 	public static int[] decode(Transaction messageTransaction) throws GameActionException
 	{
-		return decodeHamming(messageTransaction);
+		return decodeHash(messageTransaction);
 	}
 
 	public static boolean sendComs(int[] data, int bidamount/*message, bid amount*/) throws GameActionException
