@@ -12,6 +12,7 @@ import battlecode.common.*;
 
 public strictfp class MinerBot extends Globals
 {
+	//declarations
     // Hardcoded constants I use.
     private static int NEAR_SOUP = 5;
     private static int REFINERY_DISTANCE = 6;
@@ -35,6 +36,18 @@ public strictfp class MinerBot extends Globals
 	private static boolean shouldBuildDS = false;
 	private static boolean shouldBuildFC = false;
 
+	private static boolean isExploring = false;
+	private static MapLocation exploreDest;
+	private static int stepSize = 10; // Picking a hardcoded step size for now.
+	private static int maxTurns = 10; // If you don't reach your destination in 10 turns, take lite.
+	private static int currentNumberOfTurns = 0;
+	private static int exploredTurns = 0;
+	//! Constants I'm using for this function.
+	public static int closestDist = Integer.MAX_VALUE;
+	public static int turnsWithoutGettingCloser = 0;
+
+
+    // public static void run(RobotController rc) throws GameActionException
     public static void run(RobotController rc) throws GameActionException
     {
         // System.out.println("HELLO");
@@ -373,7 +386,7 @@ public strictfp class MinerBot extends Globals
 		}
     }
 
-
+    //****NAVIGATION****//
     /******* NAVIGATION *************/
 
     // Bug nav related stuff
@@ -509,13 +522,9 @@ public strictfp class MinerBot extends Globals
 
 	/******* END NAVIGATION *******/
 
-	private static boolean isExploring = false;
-	private static MapLocation exploreDest;
-	private static int stepSize = 10; // Picking a hardcoded step size for now.
-	private static int maxTurns = 10; // If you don't reach your destination in 10 turns, take lite.
-	private static int currentNumberOfTurns = 0;
-	private static int exploredTurns = 0;
 
+
+	// private static void explore() throws GameActionException
 	private static void explore() throws GameActionException
 	{
 		if(exploreDest == null)
@@ -564,6 +573,7 @@ public strictfp class MinerBot extends Globals
 	}
 
 	// Picks a new destination for exploration.
+	// private static void pickNewExploreDest() throws GameActionException 
 	private static void pickNewExploreDest() throws GameActionException 
 	{
 		// Check if do while is a bad way to do this.
@@ -583,8 +593,11 @@ public strictfp class MinerBot extends Globals
 		exploredTurns = 0;
 	}
 
+	
+
 	/** Functions for building buildings. Separated in case we need different behavior for some reason. **/
-	private static MapLocation buildRefinery(Direction dir) throws GameActionException
+	// private static MapLocation buildRefinery(Direction dir) throws GameActionException
+private static MapLocation buildRefinery(Direction dir) throws GameActionException
 	{
 		rc.buildRobot(RobotType.REFINERY, dir);
 		refineryLocation = currentPos.add(dir);
@@ -592,34 +605,37 @@ public strictfp class MinerBot extends Globals
 		return currentPos.add(dir);
 	}
 
-	private static void buildDesignSchool(Direction dir) throws GameActionException
+	// private static void buildDesignSchool(Direction dir) throws GameActionException
+private static void buildDesignSchool(Direction dir) throws GameActionException
 	{
 		builtDesignSchool = true;
 		rc.buildRobot(RobotType.DESIGN_SCHOOL, dir);
 	}
 
+
+	// private static void buildNetGun(Direction dir) throws GameActionException
 	private static void buildNetGun(Direction dir) throws GameActionException
 	{
 		buildNetGun = true;
 		rc.buildRobot(RobotType.NET_GUN, dir);
 	}
 
+	// private static void buildFulfilmentCenter(Direction dir) throws GameActionException
 	private static void buildFulfilmentCenter(Direction dir) throws GameActionException
 	{
 		builtFulfilmentCenter = true;
 		rc.buildRobot(RobotType.FULFILLMENT_CENTER, dir);
 	}
 
+	// private static void buildVaporator(Direction dir) throws GameActionException
 	private static void buildVaporator(Direction dir) throws GameActionException
 	{
 		numVapes++;
 		rc.buildRobot(RobotType.VAPORATOR, dir);
 	}
 
-	//! Constants I'm using for this function.
-	public static int closestDist = Integer.MAX_VALUE;
-	public static int turnsWithoutGettingCloser = 0;
 
+	// private static void findHQ() throws GameActionException
 	private static void findHQ() throws GameActionException
 	{
 		switch(offset)
