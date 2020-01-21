@@ -1,4 +1,4 @@
-package redbullbot;
+package redbullbot_seeding;
 import battlecode.common.*;
 
 public class FastMath
