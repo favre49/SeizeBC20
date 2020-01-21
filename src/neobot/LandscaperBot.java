@@ -15,6 +15,7 @@ public strictfp class LandscaperBot extends Globals
 	static Direction[] latticeExpandDirs = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.CENTER};
 	static Direction[] latticeDigDirs = {Direction.NORTHEAST, Direction.SOUTHEAST, Direction.SOUTHWEST, Direction.NORTHWEST};
 	static MapLocation nextPos;
+	static MapLocation waterLoc ;
 
 	static boolean shouldWall = true;
 	static int wallIdx = 0;
@@ -44,6 +45,22 @@ public strictfp class LandscaperBot extends Globals
                     }
                 }
             }
+		}
+
+		if (roundNum%broadCastFrequency == 1 && opponentHQLoc == null)
+		{
+			int commsArr[][]=Communications.getComms(roundNum-1);
+			// Set this up to be a switch case?
+			for(int i = 0; i < commsArr.length; i++)
+			{
+				ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][0]);
+				switch(currLocation.rt)
+				{
+					case COW: continue;
+
+					case HQ: opponentHQLoc = currLocation.loc;
+				}
+			}
 		}
 
 		// Are we being attacked???
@@ -80,6 +97,12 @@ public strictfp class LandscaperBot extends Globals
 			}
 			if (numDefending >= numAttacking)
 				underAttack = false;
+		}
+		
+		if (roundNum > 1000 && roundNum % 100 == 0)
+		{
+			System.out.println(roundNum + " " + wallElevation);
+			wallElevation++;
 		}
 
 		System.out.println("Are we under attack?" + underAttack);
@@ -137,10 +160,41 @@ public strictfp class LandscaperBot extends Globals
 			}
 		}
 
-		// Dig the lattice!
+		// Fill in water near the base.
+		if (baseLoc.distanceSquaredTo(currentPos) <= 8)
+		{
+			// First check if there is any water that could ruin our day.
+			if (waterLoc == null)
+				waterLoc = findWaterAroundBase();
+
+			// If yes, fill!
+			if (waterLoc != null)
+			{
+				if (currentPos.distanceSquaredTo(waterLoc) > 2)
+				{
+					navigate(waterLoc);
+				}
+				else
+				{
+					Direction fillDir = currentPos.directionTo(waterLoc);
+					for (int i = 0; i < 8; i++)
+					{
+						Direction digDir = directions[i];
+						MapLocation digPos=  currentPos.add(f)
+					}
+				}
+			}
+			else // If not, just leave the square.
+			{
+
+			}
+		}
+
+
+
+		// Lattice time
 		if (currentPos.x % 2 == baseLoc.x % 2 && currentPos.y % 2 == baseLoc.y % 2)
 		{
-			// Dig lattice formation.
 			for (int i = 0; i < 5; i++)
 			{
 				MapLocation nextCheck = currentPos.add(latticeExpandDirs[i]);
@@ -155,7 +209,10 @@ public strictfp class LandscaperBot extends Globals
 				{
 					if (rc.getDirtCarrying() > 0)
 					{
-						rc.depositDirt(latticeExpandDirs[i]);
+						if (rc.canDepositDirt(latticeExpandDirs[i]))
+							rc.depositDirt(latticeExpandDirs[i]);
+						else
+							return;
 					}
 					else
 					{
@@ -178,189 +235,108 @@ public strictfp class LandscaperBot extends Globals
 					}
 				}
 			}
-
-			nextPos = null;
-			Direction idealDir = latticeExpandDirs[myID%4];
-			for (int i = 0; i < 4; i++)
+		}
+		else if (currentPos.x % 2 == baseLoc.x % 2)
+		{
+			int temp = 0;
+			for (int i = 0; i < 8; i++)
 			{
-				MapLocation possibleNextPos = currentPos.translate(idealDir.dx*2, idealDir.dy*2);
-				idealDir = idealDir.rotateLeft().rotateLeft();
-				if (!rc.onTheMap(possibleNextPos) || possibleNextPos.distanceSquaredTo(baseLoc) <= 5)
+				if (directions[i] == Direction.NORTH || directions[i] == Direction.SOUTH)
 					continue;
 				
-				if (rc.senseElevation(possibleNextPos) < wallElevation)
-				{
-					nextPos = possibleNextPos;
-					break;
-				}
-			}
+				MapLocation nextCheck = currentPos.add(directions[i]);
+				if (!rc.onTheMap(nextCheck))
+					continue;
 
-			if (nextPos == null)
-			{
-				explore();
-			}
-			else
-			{
-				Direction nextDir = currentPos.directionTo(nextPos);
-				RobotInfo blockingBot = rc.senseRobotAtLocation(currentPos.add(nextDir));
-				if (blockingBot != null && blockingBot.type.isBuilding() && blockingBot.team != team) // Building blocking our path. Level it!!!
+				RobotInfo robotOccupying = rc.senseRobotAtLocation(nextCheck);
+				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team)
+					continue;
+				
+				if (rc.senseElevation(nextCheck) < wallElevation && rc.senseElevation(nextCheck) > -100)
 				{
 					if (rc.getDirtCarrying() > 0)
 					{
-						rc.depositDirt(nextDir);
-					}
-					else
-					{
-						if (!rc.onTheMap(currentPos.add(latticeDigDirs[latticeDigDirsIdx])))
-						{
-							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
-							return;
-						}
-
-						if (rc.canDigDirt(latticeDigDirs[latticeDigDirsIdx]))
-						{
-							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
-							rc.digDirt(latticeDigDirs[latticeDigDirsIdx]);
-						}
+						if (rc.canDepositDirt(directions[i]))
+							rc.depositDirt(directions[i]);
 						else
-						{
-							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
 							return;
-						}
-					}
-				}
-
-				if (rc.senseElevation(currentPos.add(nextDir)) < wallElevation && rc.senseElevation(currentPos.add(nextDir)) > -10) // Fill it up.
-				{
-					if (rc.getDirtCarrying() > 0)
-					{
-						rc.depositDirt(nextDir);
 					}
 					else
 					{
-						if (!rc.onTheMap(currentPos.add(latticeDigDirs[latticeDigDirsIdx])))
+						switch(temp)
 						{
-							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
-							return;
-						}
+							case 0:
+							if (rc.canDigDirt(Direction.NORTH))
+							{
+								rc.digDirt(Direction.NORTH);
+								temp = (temp+1)%2;
+								break;
+							}
 
-						if (rc.canDigDirt(latticeDigDirs[latticeDigDirsIdx]))
-						{
-							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
-							rc.digDirt(latticeDigDirs[latticeDigDirsIdx]);
-						}
-						else
-						{
-							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
-							return;
+							case 1:
+							if (rc.canDigDirt(Direction.SOUTH))
+							{
+								rc.digDirt(Direction.SOUTH);
+								temp = (temp+1)%2;
+								break;
+							}
 						}
 					}
 				}
-
-				if (rc.senseElevation(currentPos.add(nextDir)) > wallElevation && rc.senseElevation(currentPos.add(nextDir)) < 100) // Dig it up!
-				{
-					if (rc.getDirtCarrying() == 25)
-					{
-						for (int i = 0; i < 4; i++)
-						{
-							if(rc.canDepositDirt(latticeDigDirs[i]))
-								rc.depositDirt(latticeDigDirs[i]);
-						}
-					}
-					else
-					{
-						if (rc.canDigDirt(nextDir))
-							rc.digDirt(nextDir);
-					}
-				}
-
-				if (blockingBot != null && (!blockingBot.type.isBuilding() || blockingBot.type == RobotType.VAPORATOR))
-				{
-					nextPos = null;
-					explore();
-				}
-
-				if (rc.canMove(nextDir))
-					rc.move(nextDir);
 			}
 		}
-		else
+		else if (currentPos.y % 2 == baseLoc.y % 2)
 		{
-			if (nextPos == null)
+			int temp = 0;
+			for (int i = 0; i < 8; i++)
 			{
-				explore();
-			}
-			else
-			{
-				Direction nextDir = currentPos.directionTo(nextPos);
-				RobotInfo blockingBot = rc.senseRobotAtLocation(currentPos.add(nextDir));
-				if (blockingBot != null && blockingBot.type.isBuilding() && blockingBot.team != team) // Building blocking our path. Level it!!!
+				if (directions[i] == Direction.EAST || directions[i] == Direction.WEST)
+					continue;
+				
+				MapLocation nextCheck = currentPos.add(directions[i]);
+				if (!rc.onTheMap(nextCheck))
+					continue;
+
+				RobotInfo robotOccupying = rc.senseRobotAtLocation(nextCheck);
+				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team)
+					continue;
+				
+				if (rc.senseElevation(nextCheck) < wallElevation && rc.senseElevation(nextCheck) > -100)
 				{
 					if (rc.getDirtCarrying() > 0)
 					{
-						rc.depositDirt(nextDir);
+						if (rc.canDepositDirt(directions[i]))
+							rc.depositDirt(directions[i]);
+						else
+							return;
 					}
 					else
 					{
-						for (int i = 0; i < 4; i++)
+						switch(temp)
 						{
-							if (latticeExpandDirs[i] != nextDir && latticeExpandDirs[i] != nextDir.opposite())
+							case 0:
+							if (rc.canDigDirt(Direction.EAST))
 							{
-								if (rc.canDigDirt(latticeExpandDirs[i]))
-									rc.digDirt(latticeExpandDirs[i]);
+								rc.digDirt(Direction.EAST);
+								temp = (temp+1)%2;
+								break;
+							}
+
+							case 1:
+							if (rc.canDigDirt(Direction.WEST))
+							{
+								rc.digDirt(Direction.WEST);
+								temp = (temp+1)%2;
+								break;
 							}
 						}
+						return;
 					}
 				}
-
-				if (rc.senseElevation(currentPos.add(nextDir)) < wallElevation && rc.senseElevation(currentPos.add(nextDir)) > -10) // Fill it up.
-				{
-					if (rc.getDirtCarrying() > 0)
-					{
-						rc.depositDirt(nextDir);
-					}
-					else
-					{
-						for (int i = 0; i < 4; i++)
-						{
-							if (latticeExpandDirs[i] != nextDir && latticeExpandDirs[i] != nextDir.opposite())
-							{
-								if (rc.canDigDirt(latticeExpandDirs[i]))
-									rc.digDirt(latticeExpandDirs[i]);
-							}
-						}
-					}
-				}
-
-				if (rc.senseElevation(currentPos.add(nextDir)) > wallElevation) // Dig it up!
-				{
-					if (rc.getDirtCarrying() == 25)
-					{
-						for (int i = 0; i < 4; i++)
-						{
-							if(rc.canDepositDirt(latticeDigDirs[i]))
-								rc.depositDirt(latticeDigDirs[i]);
-						}
-					}
-					else
-					{
-						if (rc.canDigDirt(nextDir))
-							rc.digDirt(nextDir);
-					}
-				}
-
-				if (blockingBot != null && (!blockingBot.type.isBuilding() || blockingBot.type == RobotType.VAPORATOR))
-				{
-					nextPos = null;
-					explore();
-				}
-
-				if (rc.canMove(nextDir))
-					rc.move(nextDir);
 			}
 		}
-		
 
+		explore();
 	}
 
    
@@ -503,6 +479,138 @@ public strictfp class LandscaperBot extends Globals
 		}
 	}
 
+	//-------------------------
+	private static MapLocation bugDestNG = new MapLocation(0,0);
+	private static boolean bugTracingNG = false;
+	private static MapLocation bugLastWallNG = null;
+	private static int closestDistWhileBuggingNG = Integer.MAX_VALUE;	
+	private static int bugNumTurnsWithNoWallNG = 0;
+	private static boolean bugWallOnLeftNG = true; // whether the wall is on our left or our right
+	private static boolean[][] bugVisitedLocationsNG;
+
+	public static void navigateCardinal(MapLocation dest) throws GameActionException
+	{
+		if (!dest.equals(bugDestNG))
+		{
+			bugDestNG = dest;
+			bugTracingNG = false;
+		}
+
+		if (dest.equals(currentPos))
+			return;
+
+		Direction nextDir = currentPos.directionTo(dest);
+		// If we can move in the best direction, let's not bother bugging.
+		if(!bugTracingNG && rc.canMove(nextDir) && isCardinal(nextDir))
+		{
+			rc.move(nextDir);
+			return;
+		}
+		else if(!bugTracingNG)
+		{
+			bugTracingNG = true;
+			bugVisitedLocationsNG = new boolean[mapWidth][mapHeight];
+			closestDistWhileBuggingNG = currentPos.distanceSquaredTo(dest);
+			
+			Direction dirToDest = currentPos.directionTo(bugDestNG);
+			Direction leftDir = dirToDest;
+			int leftDistSq = Integer.MAX_VALUE;
+			for(int i = 0; i < 8; ++i)
+			{
+				leftDir = leftDir.rotateLeft();
+				if(rc.canMove(leftDir) && isCardinal(leftDir))
+				{
+					leftDistSq = currentPos.add(leftDir).distanceSquaredTo(bugDestNG);
+					break;
+				}
+			}
+			
+			Direction rightDir = dirToDest;
+			int rightDistSq = Integer.MAX_VALUE;
+			for(int i = 0; i < 8; ++i)
+			{
+				rightDir = rightDir.rotateRight();
+				if(rc.canMove(rightDir) && isCardinal(rightDir))
+				{
+					rightDistSq = currentPos.add(rightDir).distanceSquaredTo(bugDestNG);
+					break;
+				}
+			}
+
+			if(rightDistSq < leftDistSq)
+			{
+				bugWallOnLeftNG = true;
+				bugLastWallNG = currentPos.add(rightDir.rotateLeft());
+			}
+			else
+			{
+				bugWallOnLeftNG = false;
+				bugLastWallNG = currentPos.add(leftDir.rotateRight());
+			}
+		}
+		else
+		{
+			if(currentPos.distanceSquaredTo(bugDestNG) < closestDistWhileBuggingNG)
+			{
+				if(rc.canMove(currentPos.directionTo(bugDestNG)) && isCardinal(currentPos.directionTo(bugDestNG)))
+				{
+					bugTracingNG = false;
+					return;
+				}
+			}
+		}
+		
+		bugTraceMoveCardinal(false);
+
+		if (bugNumTurnsWithNoWallNG >= 2)
+		{
+			bugTracingNG = false;
+		}
+	}
+
+	static void bugTraceMoveCardinal(boolean recursed) throws GameActionException
+	{
+		Direction tryDir = currentPos.directionTo(bugLastWallNG);
+		bugVisitedLocationsNG[currentPos.x % mapWidth][currentPos.y % mapHeight] = true;
+		if (rc.canMove(tryDir) && isCardinal(tryDir))
+			bugNumTurnsWithNoWallNG += 1;
+		else
+			bugNumTurnsWithNoWallNG = 0;
+
+		for (int i = 0; i < 8; ++i)
+		{
+			if (bugWallOnLeftNG)
+			{
+				tryDir = tryDir.rotateRight();
+			}
+			else
+			{
+				tryDir = tryDir.rotateLeft();
+			}
+			MapLocation dirLoc = currentPos.add(tryDir);
+			if (!inBounds(dirLoc) && !recursed)
+			{
+				// If we hit the edge of the map, reverse direction and recurse
+				bugWallOnLeftNG = !bugWallOnLeftNG;
+				bugTraceMoveCardinal(true);
+				return;
+			}
+			if (rc.canMove(tryDir) && isCardinal(tryDir))
+			{
+				rc.move(tryDir);
+				currentPos = rc.getLocation(); // we just moved
+				if (bugVisitedLocationsNG[currentPos.x % mapWidth][currentPos.y % mapHeight]) {
+					bugTracingNG = false;
+				}
+				return;
+			}
+			else
+			{
+				bugLastWallNG = currentPos.add(tryDir);
+			}
+		}
+	}
+
     /******* END NAVIGATION *******/
 
 	public static void buryHQ() throws GameActionException
@@ -556,62 +664,73 @@ public strictfp class LandscaperBot extends Globals
 
 	private static void pickNewExploreDest() throws GameActionException 
 	{
-		if (opponentHQLoc == null)
+		if (opponentHQLoc != null)
 		{
-			// Direction towardsCentre = baseLoc.directionTo(new MapLocation(mapWidth/2, mapHeight/2));
-			// Direction towardsLeft = baseLoc.directionTo(new MapLocation(mapWidth-baseLoc.x, baseLoc.y));
-			// Direction towardsRight = baseLoc.directionTo(new MapLocation(baseLoc.x, mapHeight-baseLoc.y));
+			exploreDest = currentPos.translate(currentPos.directionTo(opponentHQLoc).dx*2, currentPos.directionTo(opponentHQLoc).dy*2);
+		}
 
-			// int idx = FastMath.rand256()%3;
-			// switch(idx)
-			// {
-			// 	case 0:
-			// 	exploreDest = currentPos.translate(towardsCentre.dx*2, towardsCentre.dy*2);
-			// 	break;
-			// 	case 1:
-			// 	exploreDest = currentPos.translate(towardsLeft.dx*2, towardsLeft.dy*2);
-			// 	break;
-			// 	case 2:
-			// 	exploreDest = currentPos.translate(towardsRight.dx*2, towardsRight.dy*2);
-			// 	break;
-			// }
-			// exploredTurns = 0;
+		int idx = FastMath.rand256()%8;
+		switch(idx)
+		{
+			case 0:
+			exploreDest = currentPos.translate(2,0);
+			break;
+			case 1:
+			exploreDest = currentPos.translate(2,-2);
+			break;
+			case 2:
+			exploreDest = currentPos.translate(0,-2);
+			break;
+			case 3:
+			exploreDest = currentPos.translate(-2,-2);
+			break;
+			case 4:
+			exploreDest = currentPos.translate(-2,0);
+			break;
+			case 5:
+			exploreDest = currentPos.translate(-2,2);
+			break;
+			case 6:
+			exploreDest = currentPos.translate(0,2);
+			break;
+			case 7:
+			exploreDest = currentPos.translate(2,2);
+			break;
+		}
 
-			int idx = FastMath.rand256()%8;
-			switch(idx)
+		if (!inBounds(exploreDest))
+		{
+			Direction towardsCentre = baseLoc.directionTo(new MapLocation(mapWidth/2, mapHeight/2));
+			Direction towardsLeft = baseLoc.directionTo(new MapLocation(mapWidth-baseLoc.x, baseLoc.y));
+			Direction towardsRight = baseLoc.directionTo(new MapLocation(baseLoc.x, mapHeight-baseLoc.y));
+
+			int lidx = FastMath.rand256()%3;
+			switch(lidx)
 			{
-				case 0:
-				exploreDest = currentPos.translate(2,0);
-				break;
-				case 1:
-				exploreDest = currentPos.translate(2,-2);
-				break;
-				case 2:
-				exploreDest = currentPos.translate(0,-2);
-				break;
-				case 3:
-				exploreDest = currentPos.translate(-2,-2);
-				break;
-				case 4:
-				exploreDest = currentPos.translate(-2,0);
-				break;
-				case 5:
-				exploreDest = currentPos.translate(-2,2);
-				break;
-				case 6:
-				exploreDest = currentPos.translate(0,2);
-				break;
-				case 7:
-				exploreDest = currentPos.translate(2,2);
-				break;
+					case 0:
+					exploreDest = currentPos.translate(towardsCentre.dx*3, towardsCentre.dy*3);
+					break;
+					case 1:
+					exploreDest = currentPos.translate(towardsLeft.dx*3, towardsLeft.dy*3);
+					break;
+					case 2:
+					exploreDest = currentPos.translate(towardsRight.dx*3, towardsRight.dy*3);
+					break;
 			}
-			exploredTurns = 0;
+		}
+		exploredTurns = 0;
+	}
 
-		}
-		else
+	private static boolean isCardinal(Direction dir)
+	{
+		switch(dir)
 		{
-			exploreDest = opponentHQLoc;
-			exploredTurns = 0;
+			case NORTH:
+			case EAST:
+			case WEST:
+			case SOUTH:
+			return true;
 		}
+		return false;
 	}
 }

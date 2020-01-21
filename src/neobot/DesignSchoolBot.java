@@ -36,7 +36,7 @@ public strictfp class DesignSchoolBot extends Globals
                 }
         }
 
-        if (roundNum - lastRoundActive > 40 && rc.isReady())
+        if (roundNum - lastRoundActive > 40 && rc.isReady() && numLandscapers < 15)
         {
             for (int i = 0; i < 8; i++)
             {

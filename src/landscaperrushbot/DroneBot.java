@@ -52,88 +52,88 @@ public strictfp class DroneBot extends Globals
 
 		if (roundNum > 800)
 		{
-			System.out.println("I got here!!");
+			// System.out.println("I got here!!");
 
-			// Begin drone rush!
-			if (rc.getRobotCount() < 30 && opponentHQLoc == null)
-			{
-				findHQ();
-			}
-			else if (rc.getRobotCount() < 50 && opponentHQLoc == null)
-			{
-				if (currentPos.distanceSquaredTo(baseLoc) <= 2)
-				{
-					if (!rc.isCurrentlyHoldingUnit())
-					{
-						RobotInfo bot = rc.senseRobotAtLocation(baseLoc.add(Direction.SOUTH));
-						if (bot != null && bot.type == RobotType.LANDSCAPER)
-						{
-							if (rc.canPickUpUnit(bot.ID))
-								rc.pickUpUnit(bot.ID);
-						}
-					}
-					else
-					{
-						findHQ();
-					}
-				}
-				else
-				{
-					findHQ();
-				}
-			}
-			else
-			{
-				System.out.println(opponentHQLoc);
-				if (opponentHQLoc == null)
-				{
-					System.out.println("I should be looking for the opponent rn");
-					findHQ();
-				}
-				else
-				{
-					// int nearbyTeamNum = rc.senseNearbyRobots(currentPos,sensorRadiusSquared, team).length;
-					// System.out.println(nearbyTeamNum);
-					if (roundNum > 1500)
-					{
-						// Attack!!!!
-						if (!rc.isCurrentlyHoldingUnit())
-						{
-							RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
-							for (int i = 0; i < nearbyBots.length; i++)
-							{
-								if (nearbyBots[i].type == RobotType.LANDSCAPER || nearbyBots[i].type == RobotType.MINER)
-								{
-									if (currentPos.distanceSquaredTo(nearbyBots[i].location) <= 2)
-									{
-										if (rc.canPickUpUnit(nearbyBots[i].ID))
-											rc.pickUpUnit(nearbyBots[i].ID);
-									}
-									else
-										navigate(nearbyBots[i].location);
-								}
-							}
-						}
-						else
-						{
-							if (currentPos.distanceSquaredTo(opponentHQLoc) < 8)
-							{
-								for (int i = 0; i < 8; i++)
-								{
-									if (!rc.senseFlooding(currentPos.add(directions[i])) && rc.canDropUnit(directions[i]))
-									{
-										rc.dropUnit(directions[i]);
-									}
-								}
-							}
-							else
-							{
-								navigate(opponentHQLoc);
-							}
-						}
-					}
-				}
-			}
+			// // Begin drone rush!
+			// if (rc.getRobotCount() < 30 && opponentHQLoc == null)
+			// {
+			// 	findHQ();
+			// }
+			// else if (rc.getRobotCount() < 50 && opponentHQLoc == null)
+			// {
+			// 	if (currentPos.distanceSquaredTo(baseLoc) <= 2)
+			// 	{
+			// 		if (!rc.isCurrentlyHoldingUnit())
+			// 		{
+			// 			RobotInfo bot = rc.senseRobotAtLocation(baseLoc.add(Direction.SOUTH));
+			// 			if (bot != null && bot.type == RobotType.LANDSCAPER)
+			// 			{
+			// 				if (rc.canPickUpUnit(bot.ID))
+			// 					rc.pickUpUnit(bot.ID);
+			// 			}
+			// 		}
+			// 		else
+			// 		{
+			// 			findHQ();
+			// 		}
+			// 	}
+			// 	else
+			// 	{
+			// 		findHQ();
+			// 	}
+			// }
+			// else
+			// {
+			// 	System.out.println(opponentHQLoc);
+			// 	if (opponentHQLoc == null)
+			// 	{
+			// 		System.out.println("I should be looking for the opponent rn");
+			// 		findHQ();
+			// 	}
+			// 	else
+			// 	{
+			// 		// int nearbyTeamNum = rc.senseNearbyRobots(currentPos,sensorRadiusSquared, team).length;
+			// 		// System.out.println(nearbyTeamNum);
+			// 		if (roundNum > 1500)
+			// 		{
+			// 			// Attack!!!!
+			// 			if (!rc.isCurrentlyHoldingUnit())
+			// 			{
+			// 				RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
+			// 				for (int i = 0; i < nearbyBots.length; i++)
+			// 				{
+			// 					if (nearbyBots[i].type == RobotType.LANDSCAPER || nearbyBots[i].type == RobotType.MINER)
+			// 					{
+			// 						if (currentPos.distanceSquaredTo(nearbyBots[i].location) <= 2)
+			// 						{
+			// 							if (rc.canPickUpUnit(nearbyBots[i].ID))
+			// 								rc.pickUpUnit(nearbyBots[i].ID);
+			// 						}
+			// 						else
+			// 							navigate(nearbyBots[i].location);
+			// 					}
+			// 				}
+			// 			}
+			// 			else
+			// 			{
+			// 				if (currentPos.distanceSquaredTo(opponentHQLoc) < 8)
+			// 				{
+			// 					for (int i = 0; i < 8; i++)
+			// 					{
+			// 						if (!rc.senseFlooding(currentPos.add(directions[i])) && rc.canDropUnit(directions[i]))
+			// 						{
+			// 							rc.dropUnit(directions[i]);
+			// 						}
+			// 					}
+			// 				}
+			// 				else
+			// 				{
+			// 					navigate(opponentHQLoc);
+			// 				}
+			// 			}
+			// 		}
+			// 	}
+			// }
 		}
 		else
 		{

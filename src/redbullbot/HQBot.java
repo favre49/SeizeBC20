@@ -1,4 +1,4 @@
-package neobot;
+package redbullbot;
 import battlecode.common.*;
 
 /**
@@ -10,19 +10,19 @@ import battlecode.common.*;
 public strictfp class HQBot extends Globals
 {
 	public static int minerCount = 0;
-	public static boolean madeBuilder = false;
+
+	public static ObjectLocation[] objectArray = new ObjectLocation[12];
+	public static int objectArraySize = 0;
+
 	public static MapLocation soupLocation;
 	public static MapLocation toBeRefineryLocation;
 	public static MapLocation refineryLocation;
 	public static boolean builtFulfilmentCenter = false; 
-	public static int lastRoundActive = 0;
+	public static boolean builtDesignSchool = false;
+	public static boolean panic = false;
 
     public static void run(RobotController rc) throws GameActionException
     {
-		System.out.println("THe tbrf is " + toBeRefineryLocation);
-		System.out.println("THe sl is " + soupLocation);
-		System.out.println("THe rf is " + refineryLocation);
-
 		if(roundNum == 1){
 			System.out.println("I entered where I am supposed to");
 			// soupLocation = senseNearbySoup();
@@ -44,16 +44,24 @@ public strictfp class HQBot extends Globals
 					case COW: continue;
 
 					case HQ: opponentHQLoc = currLocation.loc;
-					break;
 				}
 			}
 		}
 
-		if (roundNum%broadCastFrequency == 0 && opponentHQLoc!=null)
+		if (roundNum%broadCastFrequency == 0 && opponentHQLoc != null)
 		{
 			int broadCastArr[] = new int[9];
 			broadCastArr[0] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
 			Communications.sendComs(broadCastArr,1);
+		}
+
+		if (minerCount == 0)
+		{
+			if(rc.canBuildRobot(RobotType.MINER, Direction.NORTH))
+			{
+				rc.buildRobot(RobotType.MINER, Direction.NORTH);
+				minerCount++;
+			}
 		}
 
 		soupLocation = senseNearbySoup();
@@ -66,19 +74,16 @@ public strictfp class HQBot extends Globals
 				if(rc.canBuildRobot(RobotType.MINER, tryDir))
 				{
 					rc.buildRobot(RobotType.MINER, tryDir);
-					lastRoundActive = roundNum;
 					minerCount++;
 				}
 				else if(rc.canBuildRobot(RobotType.MINER, tryDir.rotateLeft()))
 				{
 					rc.buildRobot(RobotType.MINER, tryDir.rotateLeft());
-					lastRoundActive = roundNum;	
 					minerCount++;
 				}
 				else if(rc.canBuildRobot(RobotType.MINER, tryDir.rotateRight()))
 				{
 					rc.buildRobot(RobotType.MINER, tryDir.rotateRight());
-					lastRoundActive = roundNum;
 					minerCount++;
 				}
 				else
@@ -87,57 +92,71 @@ public strictfp class HQBot extends Globals
 				}
 			}
 		}
-
-		int nearbyDroneID = senseDrones();
-		if (nearbyDroneID != -1)
-			rc.shootUnit(nearbyDroneID);
-
-		if (minerCount < 4)
-			buildMiner();
-
-		if (roundNum > 200 && minerCount < 8)
+		
+		if (roundNum > 50 && minerCount != 5)
 		{
-			if (roundNum-lastRoundActive > 30)
+			buildMiner();
+		}
+
+		RobotInfo[] assets = rc.senseNearbyRobots(currentPos, 2, team);
+		boolean stillhaveDS = false, stillhaveFC = false;
+		for (int i = 0; i < assets.length; i++)
+		{
+			if (assets[i].type == RobotType.FULFILLMENT_CENTER)
 			{
-				int maxEleIdx = -1;
-				int maxEleHeight = -1;
-				for (int i = 0; i < 8; i++)
-				{
-					if (rc.canBuildRobot(RobotType.MINER, directions[i]) && rc.senseElevation(currentPos.add(directions[i])) > maxEleHeight)
-					{
-						maxEleHeight = rc.senseElevation(currentPos.add(directions[i]));
-						maxEleIdx = i;
-					}
-				}
-				if (maxEleIdx != -1)
-				{
-					buildMiner(directions[maxEleIdx]);
-				}
+				stillhaveFC = true;
+			}
+			else if (assets[i].type == RobotType.DESIGN_SCHOOL)
+			{
+				stillhaveDS = true;
 			}
 		}
+
+		if (!panic)
+		{
+			panic = (!stillhaveFC && builtFulfilmentCenter) || (!stillhaveDS && builtDesignSchool);
+		}
+		builtFulfilmentCenter = stillhaveFC;
+		builtDesignSchool = stillhaveDS;
+		System.out.println(panic);
+
+		if (panic)
+		{
+			int minerNum = 0;
+			RobotInfo[] stuff = rc.senseNearbyRobots(currentPos, 2, team);
+			for (int i = 0; i < stuff.length; i++)
+			{
+				if (stuff[i].type == RobotType.MINER)
+				{
+					minerNum++;
+				}
+			}
+			if (minerNum == 0)
+				buildMiner();
+			else
+				panic=  false;
+		}
+
+
+		int nearbyDroneID = senseDrones();
+		if(nearbyDroneID != -1)
+			rc.shootUnit(nearbyDroneID);
 	}
 
-	static boolean buildMiner() throws GameActionException
+	static Boolean buildMiner() throws GameActionException
 	{
 		for(int i = 0; i < 8; i++)
 		{
 			if(rc.canBuildRobot(RobotType.MINER, directions[i]))
 			{
 				rc.buildRobot(RobotType.MINER, directions[i]);
-				lastRoundActive = roundNum;
 				minerCount++;
+				panic = false;
 				return true;
 			}
 		}
 		//communicate that HQ is boxed in; 
 		return false;
-	}
-
-	static void buildMiner(Direction dir) throws GameActionException
-	{
-		minerCount++;
-		lastRoundActive = roundNum;
-		rc.buildRobot(RobotType.MINER, dir);
 	}
 
 	static int senseDrones() throws GameActionException

@@ -35,6 +35,7 @@ public strictfp class MinerBot extends Globals
     {
         // Seed random number generator.
         FastMath.initRand(rc);
+		System.out.println(soupLocation);
 
 		// CHeck if you are the bomber.
 		if (roundNum <= 5)

@@ -1,5 +1,4 @@
-package neobot;
-
+package redbullbot;
 import battlecode.common.*;
 
 public class Globals
@@ -28,7 +27,7 @@ public class Globals
     // public static ObjectLocation[] objectArray = new ObjectLocation[12];
     // public static int objectArraySize = 0;
 
-    public static final int broadCastFrequency = 30;
+    public static final int broadCastFrequency = 10;
 
     enum ObjectType{
         COW,DELIVERY_DRONE,DESIGN_SCHOOL,FULFILLMENT_CENTER,HQ,LANDSCAPER,MINER,NET_GUN,REFINERY,VAPORATOR,SOUP,WATER,TO_BE_REFINERY, NO_SOUP;
@@ -123,7 +122,6 @@ public class Globals
     {
         if (rc.senseSoup(currentPos)>0)
             return currentPos;
-
         
         MapLocation[] nearbySoup = rc.senseNearbySoup(currentPos, sensorRadiusSquared);
         MapLocation minLoc = null;
@@ -138,6 +136,18 @@ public class Globals
         }
 
         return minLoc;
+    }
+
+    public static boolean isEnemyBuildingAtLocation(MapLocation jaja) throws GameActionException
+    {
+        RobotInfo temp = rc.senseRobotAtLocation(jaja);
+        if(temp != null)    
+        {
+            RobotType t = temp.getType();
+            if(temp.getTeam() != team && (t == RobotType.NET_GUN || t == RobotType.DESIGN_SCHOOL || t == RobotType.VAPORATOR || t == RobotType.FULFILLMENT_CENTER))
+                return true;
+        }
+        return false;        
     }
 
 }

@@ -1,4 +1,4 @@
-package neobot;
+package redbullbot;
 import battlecode.common.*;
 
 /**
@@ -12,6 +12,7 @@ public strictfp class FulfillmentCenterBot extends Globals
 {
 	public static int dronesBuilt = 0;
 	public static int lastRoundActive = 0;
+
 
 	public static void run(RobotController rc) throws GameActionException
 	{
@@ -33,6 +34,7 @@ public strictfp class FulfillmentCenterBot extends Globals
                 }
             }
 		}
+
 
 		RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
 		RobotInfo[] nearbyTeam = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, team);
@@ -56,30 +58,34 @@ public strictfp class FulfillmentCenterBot extends Globals
 
 		if (drno < oppno)
 			buildDrone();
-		
-		if (roundNum > 1200)
+
+
+		int scapeNo = 0;
+		drno = 0;
+		RobotInfo[] nearbyScapers = rc.senseNearbyRobots(baseLoc, 2, team);
+		for (int i = 0; i < nearbyScapers.length; i++)
 		{
-			if (roundNum - lastRoundActive > 30)
-				buildDrone();
+			if (nearbyScapers[i].type == RobotType.LANDSCAPER)
+			{
+				scapeNo++;
+			}
+			else if (nearbyScapers[i].type == RobotType.DELIVERY_DRONE)
+				drno++;
 		}
 
-		if (roundNum > 300)
-		{
-			if (roundNum - lastRoundActive > 30)
-				buildDrone();
-		}
-
+		if (drno < scapeNo && roundNum - lastRoundActive > 20)
+			buildDrone();
 	}
 
 	static Boolean buildDrone() throws GameActionException
 	{
 		for(int i = 0; i < 8; i++)
 		{
-			if(directions[i] != Direction.CENTER && rc.canBuildRobot(RobotType.DELIVERY_DRONE, directions[i]))
+			if(rc.canBuildRobot(RobotType.DELIVERY_DRONE, directions[i]))
 			{
+				rc.buildRobot(RobotType.DELIVERY_DRONE, directions[i]);
 				dronesBuilt++;
 				lastRoundActive = roundNum;
-				rc.buildRobot(RobotType.DELIVERY_DRONE, directions[i]);
 				return true;
 			}
 		}

@@ -59,6 +59,22 @@ public strictfp class MinerBot extends Globals
             }
 		}
 
+		if (roundNum%broadCastFrequency == 1 && opponentHQLoc == null)
+		{
+			int commsArr[][]=Communications.getComms(roundNum-1);
+			// Set this up to be a switch case?
+			for(int i = 0; i < commsArr.length; i++)
+			{
+				ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][0]);
+				switch(currLocation.rt)
+				{
+					case COW: continue;
+
+					case HQ: opponentHQLoc = currLocation.loc;
+				}
+			}
+		}
+
 		RobotInfo[] nearbyOpps= rc.senseNearbyRobots(currentPos, -1, opponent);
 		boolean shouldBuild = false;
 		for (int i = 0; i < nearbyOpps.length; i++)
@@ -69,6 +85,33 @@ public strictfp class MinerBot extends Globals
 				break;
 			}
 		}
+
+		// if (opponentHQLoc != null)
+		// {
+		// 	if (currentPos.distanceSquaredTo(opponentHQLoc) > 20)
+		// 		navigate(opponentHQLoc);
+		// 	else
+		// 	{
+		// 		RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+		// 		for (int i = 0; i < nearbyBots.length; i++)
+		// 		{
+		// 			if (nearbyBots[i].type == RobotType.NET_GUN)
+		// 			{
+		// 				buildNetGun = false;
+		// 				break;
+		// 			}
+		// 		}
+
+		// 		if (buildNetGun)
+		// 		{
+		// 			for (int i = 0; i < 8; i++)
+		// 			{
+		// 				if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]))
+		// 					buildNetGun(directions[i]);
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		if (shouldBuild && !builtFulfilmentCenter)
 		{
@@ -102,7 +145,7 @@ public strictfp class MinerBot extends Globals
 			}
 			else
 			{
-				System.out.println("I am trying to build");
+				System.out.println("I am trying to build" + sensorRadiusSquared);
 				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
 				for (int i = 0; i < nearbyBots.length; i++)
 				{
@@ -127,7 +170,7 @@ public strictfp class MinerBot extends Globals
 
 		if (roundNum > 200 && !builtFulfilmentCenter)
 		{
-			if (baseLoc.distanceSquaredTo(currentPos) > 8)
+			if (baseLoc.distanceSquaredTo(currentPos) > 5)
 			{
 				System.out.println("I am trying to move closer");
 				navigate(baseLoc);
@@ -158,91 +201,51 @@ public strictfp class MinerBot extends Globals
 		}
 
 
-		if (rc.getTeamSoup() > 500 && (roundNum < 300 || rc.senseElevation(currentPos) >= 6))
+		if (rc.getTeamSoup() > 500 && rc.senseElevation(currentPos) >= 4)
 		{
-			int maxEleIdx = -1;
-			int maxEleHeight = -1;
-			for (int i = 0; i < 8; i++)
+			int vapenums = 0;
+			RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
+			for (int i = 0; i < nearbyVapes.length; i++)
 			{
-				if (baseLoc.distanceSquaredTo(currentPos.add(directions[i])) <= 2)
-					continue;
-
-				if (rc.canBuildRobot(RobotType.VAPORATOR, directions[i]) && rc.senseElevation(currentPos.add(directions[i])) > maxEleHeight)
+				if (nearbyVapes[i].type == RobotType.VAPORATOR)
 				{
-					maxEleHeight = rc.senseElevation(currentPos.add(directions[i]));
-					maxEleIdx = i;
+					vapenums++;
 				}
 			}
-			if (maxEleIdx != -1)
+			System.out.println(vapenums);
+			if (vapenums < 3)
 			{
-				buildVaporator(directions[maxEleIdx]);
+				for (int i = 0; i < 8; i++)
+				{
+					MapLocation buildPos = currentPos.add(directions[i]);
+					if (rc.canBuildRobot(RobotType.VAPORATOR, directions[i]) && buildPos.x % 2 == baseLoc.x % 2 && buildPos.y % 2 == baseLoc.y % 2)
+						buildVaporator(directions[i]);
+				}
 			}
 		}
 
-		// Subbase code.
-		// if (currentPos.distanceSquaredTo(baseLoc) > 150 && soupLocation != null && !(builtSubBaseDS && builtSubBaseFC) && roundNum > 400) // we have a subbase
+		// if (rc.getTeamSoup() > 250 && rc.senseElevation(currentPos) >= 4 && !buildNetGun)
 		// {
-		// 	System.out.println("I should be building");
-		// 	if (currentPos.distanceSquaredTo(soupLocation) > 8)
+		// 	int numGuns = 0;
+		// 	RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
+		// 	for (int i = 0; i < nearbyVapes.length; i++)
 		// 	{
-		// 		System.out.println("Tyring to get closer");
-		// 		navigate(soupLocation);
-		// 	}
-		// 	else
-		// 	{
-		// 		if (!builtSubBaseDS)
+		// 		if (nearbyVapes[i].type == RobotType.NET_GUN)
 		// 		{
-		// 			System.out.println("Building design school");
-		// 			RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-		// 			for (int i = 0; i < nearbyBots.length; i++)
-		// 			{
-		// 				if (nearbyBots[i].type == RobotType.DESIGN_SCHOOL)
-		// 				{
-		// 					builtSubBaseDS = true;
-		// 					break;
-		// 				}
-		// 			}
-
-		// 			if (!builtSubBaseDS)
-		// 			{
-		// 				for (int i = 0; i < 8; i++)
-		// 				{
-		// 					if (rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]))
-		// 					{
-		// 						builtSubBaseDS = true;
-		// 						buildDesignSchool(directions[i]);
-		// 					}
-		// 				}
-		// 			}
+		// 			numGuns++;
 		// 		}
-
-		// 		if (!builtSubBaseFC & builtSubBaseDS)
+		// 	}
+		// 	if (numGuns < 1)
+		// 	{
+		// 		for (int i = 0; i < 8; i++)
 		// 		{
-		// 			System.out.println("I am trying to build Fulfillment center");
-		// 			RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-		// 			for (int i = 0; i < nearbyBots.length; i++)
-		// 			{
-		// 				if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
-		// 				{
-		// 					builtSubBaseFC = true;
-		// 					break;
-		// 				}
-		// 			}
-
-		// 			if (!builtSubBaseFC)
-		// 			{
-		// 				for (int i = 0; i < 8; i++)
-		// 				{
-		// 					if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]))
-		// 					{
-		// 						builtSubBaseFC = true;
-		// 						buildFulfilmentCenter(directions[i]);
-		// 					}
-		// 				}
-		// 			}
+		// 			MapLocation buildPos = currentPos.add(directions[i]);
+		// 			if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]) && buildPos.x % 2 == baseLoc.x % 2 && buildPos.y % 2 == baseLoc.y % 2)
+		// 				buildNetGun(directions[i]);
 		// 		}
 		// 	}
 		// }
+
 
 		System.out.println("I accomplished nothing");
 
@@ -253,7 +256,7 @@ public strictfp class MinerBot extends Globals
 		else // We found soup, we must mine it.
 		{
 			// We found soup, but we are too far from the HQ. Let's make a refinery!
-			if (refineryLocation == null && currentPos.distanceSquaredTo(baseLoc) > 35 && rc.getTeamSoup() > 200)
+			if (refineryLocation == null && currentPos.distanceSquaredTo(baseLoc) > 50 && rc.getTeamSoup() > 200)
 			{
 				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
 				for (int i = 0; i < nearbyBots.length; i++)
@@ -531,7 +534,7 @@ public strictfp class MinerBot extends Globals
 			}
 			firsttime=false;
 		}
-		while(!inBounds(exploreDest) ||exploredGrid[exploreDest.x][exploreDest.y]);
+		while(!inBounds(exploreDest) || exploredGrid[exploreDest.x][exploreDest.y]);
 		exploredTurns = 0;
 	}
 

@@ -11,11 +11,20 @@ import battlecode.common.*;
 public strictfp class DesignSchoolBot extends Globals
 {	
     public static int landscapersbuilt = 0;
+    public static boolean attacker = false;
     public static void run(RobotController rc) throws GameActionException
     {   
+        RobotInfo[] nearbyOpps = rc.senseNearbyRobots(currentPos, -1, opponent);
+        for (int i = 0; i < nearbyOpps.length; i++)
+        {
+            if (nearbyOpps[i].type == RobotType.HQ)
+            {
+                attacker = true;
+            }
+        }
+
         if(landscapersbuilt<8)
             buildLandscaper();
-    
     }
 
 

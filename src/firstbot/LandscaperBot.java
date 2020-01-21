@@ -15,8 +15,8 @@ public strictfp class LandscaperBot extends Globals
     public static boolean dumping = false;				
     public static Direction[] path = {Direction.EAST, Direction.SOUTH, Direction.SOUTH, Direction.SOUTH, Direction.WEST, Direction.WEST, Direction.NORTH, Direction.NORTH};
     public static MapLocation detectedDesignSchoolLoc = null;
-    
-
+	public static MapLocation goToLoc;
+	public static boolean underAttack = false;
 
     public static void run(RobotController rc)  throws GameActionException
     {
@@ -45,7 +45,6 @@ public strictfp class LandscaperBot extends Globals
 		int numDefending = 0;
 		if (rc.canSenseLocation(baseLoc))
 		{
-			wallElevation = rc.senseElevation(baseLoc) + 3;
 			RobotInfo[] nearbyOpps = rc.senseNearbyRobots(baseLoc, -1, opponent);
 			if (nearbyOpps.length != 0)
 			{
@@ -73,6 +72,25 @@ public strictfp class LandscaperBot extends Globals
 			}
 			if (numDefending >= numAttacking)
 				underAttack = false;
+		}
+		else
+		{
+			RobotInfo[] nearbyOpps = rc.senseNearbyRobots(currentPos, -1, opponent);
+			if (nearbyOpps.length != 0)
+			{
+				for (int i = 0; i < nearbyOpps.length; i++)
+				{
+					if (nearbyOpps[i].type == RobotType.LANDSCAPER && nearbyOpps[i].location.distanceSquaredTo(baseLoc) <= 2)
+					{
+						underAttack = true;
+						numAttacking++;
+					}
+					else if (goToLoc == null && nearbyOpps[i].type.isBuilding())
+					{
+						goToLoc = nearbyOpps[i].location;
+					}
+				}
+			}
 		}
 
 		// We are! go defend.

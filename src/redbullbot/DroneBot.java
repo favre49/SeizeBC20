@@ -1,4 +1,4 @@
-package neobot;
+package redbullbot;
 import battlecode.common.*;
 
 /**
@@ -20,13 +20,15 @@ public strictfp class DroneBot extends Globals
 	public static int stepSize = 10;
 	public static int carryingTeammate = -1; // -1 if it isn't carrying anything, 0 if it is carrying opp, 1 if it is.
 	public static int offset = 0;
-	public static int shouldCarryTeammate = -1;
+	public static boolean shouldCarryTeammate = true;
+	public static boolean rush = false;
+	public static int scapersReqd = -1;
+	public static int teammatesCarried = 0;
 	public static int numTurns = 0;
 
 	public static void run(RobotController rc) throws GameActionException
 	{
 		FastMath.initRand(rc);
-		numTurns++;
 
 		if (baseLoc == null)
 		{
@@ -45,8 +47,9 @@ public strictfp class DroneBot extends Globals
                 }
             }
 		}
+		numTurns++;
 
-		if ((roundNum%broadCastFrequency == 1 || numTurns == 1) && opponentHQLoc == null)
+		if ((roundNum%broadCastFrequency == 1||numTurns == 1) && opponentHQLoc == null)
 		{
 			int commsArr[][]=Communications.getComms(roundNum-1);
 			// Set this up to be a switch case?
@@ -58,6 +61,7 @@ public strictfp class DroneBot extends Globals
 					case COW: continue;
 
 					case HQ: opponentHQLoc = currLocation.loc;
+					netGunLocations[netGunLocationsIdx++] = opponentHQLoc;
 				}
 			}
 		}
@@ -68,7 +72,7 @@ public strictfp class DroneBot extends Globals
 			switch(nearbyOpps[i].type)
 			{
 				case HQ:
-				case NET_GUN: System.out.println("Saw NETGUN");
+				case NET_GUN:
 
 				boolean exists = nearbyOpps[i].location.equals(netGunLocations[0]) || 
 								 nearbyOpps[i].location.equals(netGunLocations[1]) || 
@@ -88,20 +92,76 @@ public strictfp class DroneBot extends Globals
 				netGunLocationsIdx = 0;
 		}
 
-		System.out.println("Carrying teammate status " + carryingTeammate);
+		if (scapersReqd == -1) // How many scapers do we need?
+		{
+			scapersReqd = 16;
+			int xOffset = Math.min(mapWidth - baseLoc.x, baseLoc.x);
+			int yOffset = Math.min(mapHeight - baseLoc.y, baseLoc.y);
+
+			switch(xOffset)
+			{
+				case 0: scapersReqd -= 7;
+				case 1: scapersReqd -= 5;
+			}
+			
+			switch(yOffset)
+			{
+				case 0: scapersReqd -= 7;
+				case 1: scapersReqd -= 5;
+			}
+			if (yOffset <= 1 && xOffset <= 1)
+			{
+				scapersReqd += 1;
+			}
+
+			scapersReqd--;
+		}
+
+		System.out.println(scapersReqd);
+
+		// Let's get rid of the real dangers.
+		if (!rush)
+		{
+			pickUpOpponents();
+		}
 
 		if (carryingTeammate == 0)
 		{
 			dropInWater();
-			return;
 		}
-		else if (carryingTeammate == 1)
+		else if (carryingTeammate == 1 && rc.isReady() && !rush)
 		{
+			for (int i = 0; i < 8; i++)
+			{
+				if (inBounds(currentPos.add(directions[i])) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) >= 4 && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8 && !rc.senseFlooding(currentPos.add(directions[i])))
+				{
+					if (rc.canDropUnit(directions[i]))
+					{
+						carryingTeammate = -1;
+						teammatesCarried++;
+						if (teammatesCarried > 4)
+							rush = true;
+						rc.dropUnit(directions[i]);
+					}
+				}
+			}
+
+			// I can't place it anywhere. Let's look for the next place.
+			navigate(baseLoc.add(currentPos.directionTo(baseLoc)));
+		}
+		else if (carryingTeammate == 2)
+		{
+			if (roundNum > 750)
+			{
+				dropInWater();
+			}
+
 			if (soupLocation == null)
 			{
+				System.out.println("Looking for a spot");
 				explore();
 			}
-			else
+			else if (soupLocation != null && rc.isReady())
 			{
 				if (currentPos.distanceSquaredTo(soupLocation) <= 2)
 				{
@@ -111,6 +171,7 @@ public strictfp class DroneBot extends Globals
 						if (!rc.senseFlooding(currentPos.add(tryDir)) && rc.canDropUnit(tryDir))
 						{
 							carryingTeammate = -1;
+							shouldCarryTeammate = false;
 							rc.dropUnit(currentPos.directionTo(soupLocation));
 						}
 						else
@@ -121,77 +182,94 @@ public strictfp class DroneBot extends Globals
 				{
 					navigateAroundNetGuns(soupLocation);
 				}
+				rush = true;
 			}
 		}
 
-		if (opponentHQLoc!= null)
-		{
-			if (shouldCarryTeammate == -1)
-			{
-				shouldCarryTeammate = FastMath.rand256()%2;
-			}
-			
-			if (shouldCarryTeammate == 0 || rc.isCurrentlyHoldingUnit())
-				navigateAroundNetGuns(opponentHQLoc);
-			else if (shouldCarryTeammate == 1)
-			{
-				RobotInfo[] pickableOpps = rc.senseNearbyRobots(currentPos, -1, team);
-				int pickUpID = -1;
-				MapLocation pickUpLoc = null;
-				for (int i = 0; i < pickableOpps.length; i++)
-				{
-					if (pickableOpps[i].type == RobotType.LANDSCAPER && !inNetGunRange(pickableOpps[i].location))
-					{
-						pickUpID = pickableOpps[i].ID;
-						pickUpLoc = pickableOpps[i].location;
-					}
-				}
+		// if (currentPos.distanceSquaredTo(baseLoc) >=4 && currentPos.distanceSquaredTo(baseLoc) <= 8)
+		// {
+		// 	rush = true;
+		// }
 
-				if (pickUpID != -1)
+		RobotInfo[] scapersToPick = rc.senseNearbyRobots(baseLoc, 8, team);
+		int scapersInPlace = 0;
+		int pickUpID = -1;
+		MapLocation pickUpLoc = null;
+		for (int i = 0; i < scapersToPick.length; i++)
+		{
+			if (scapersToPick[i].type == RobotType.LANDSCAPER)
+			{
+				if (scapersToPick[i].location.distanceSquaredTo(baseLoc) <= 2)
 				{
-					if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
-					{
-						if (rc.canPickUpUnit(pickUpID))
-						{
-							carryingTeammate = 2;
-							rc.pickUpUnit(pickUpID);
-						}
-						else
-							return;
-					}
-					else
-					{
-						navigateAroundNetGuns(pickUpLoc);
-					}
+					pickUpID = scapersToPick[i].ID;
+					pickUpLoc = scapersToPick[i].location;
 				}
 				else
-					explore();
+				{
+					scapersInPlace++;
+				}
+			}
+
+			if (scapersToPick[i].type == RobotType.MINER && roundNum < 700)
+			{
+				pickUpMiners();
 			}
 		}
 		
-		if (opponentHQLoc != null && currentPos.distanceSquaredTo(opponentHQLoc) < 35)
+		if (scapersInPlace == scapersReqd) // Rush time!!!
+			rush = true;
+
+		if (rush)
 		{
-			RobotInfo[] pickableOpps = rc.senseNearbyRobots(currentPos, -1, opponent);
-			int pickUpID = -1;
-			MapLocation pickUpLoc = null;
-			for (int i = 0; i < pickableOpps.length; i++)
+			if (opponentHQLoc == null)
 			{
-				if (pickableOpps[i].type == RobotType.LANDSCAPER && !inNetGunRange(pickableOpps[i].location))
-				{
-					pickUpID = pickableOpps[i].ID;
-					pickUpLoc = pickableOpps[i].location;
-				}
+				findHQ();
 			}
+			else
+			{
+				if (scapersInPlace == scapersReqd && FastMath.rand256()%2 == 0)
+				{
+					if (pickUpID != -1)
+					{
+						if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
+						{
+							System.out.println("Trying to pick up" + pickUpID);
+							System.out.println(rc.isCurrentlyHoldingUnit());
+							if (rc.canPickUpUnit(pickUpID))
+							{
+								carryingTeammate = 1;
+								rc.pickUpUnit(pickUpID);
+							}
+							else
+								return;
+						}
+						else
+						{
+							navigate(pickUpLoc);
+						}
+					}
+				}
 
-			System.out.println("I think i can pick up" + pickUpLoc);
-
+				if (roundNum > 1000)
+				{
+					if (!rc.isCurrentlyHoldingUnit())
+						pickUpOpponents();
+					navigate(opponentHQLoc);
+				}
+				navigateAroundNetGuns(opponentHQLoc);
+			}
+		}
+		else
+		{
 			if (pickUpID != -1)
 			{
 				if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
 				{
+					System.out.println("Trying to pick up" + pickUpID);
+					System.out.println(rc.isCurrentlyHoldingUnit());
 					if (rc.canPickUpUnit(pickUpID))
 					{
-						carryingTeammate = 0;
+						carryingTeammate = 1;
 						rc.pickUpUnit(pickUpID);
 					}
 					else
@@ -199,33 +277,11 @@ public strictfp class DroneBot extends Globals
 				}
 				else
 				{
-					navigateAroundNetGuns(pickUpLoc);
+					navigate(pickUpLoc);
 				}
 			}
-
-			if (roundNum > 1000)
-			{
-				if (!rc.isCurrentlyHoldingUnit())
-					pickUpOpponents();
-				navigate(opponentHQLoc);
-			}
-			navigateAroundNetGuns(opponentHQLoc);
-			return;
 		}
 
-		if (currentPos.distanceSquaredTo(baseLoc) <= 50)
-		{
-			pickUpOpponents();
-			pickUpCows();
-		}
-		// Let's get rid of the real dangers.
-
-		if (opponentHQLoc == null)
-		{
-			findHQ();
-		}
-
-		explore();
 	}
 
 
@@ -505,7 +561,7 @@ public strictfp class DroneBot extends Globals
 
 	public static void dropInWater() throws GameActionException
 	{
-		System.out.println("Looking to drop my opponent" + exploreDest);
+		System.out.println("Looking to drop my opponent");
 		int r = (int)Math.sqrt(sensorRadiusSquared);
 
 		if (exploreDest == null)
@@ -520,7 +576,7 @@ public strictfp class DroneBot extends Globals
 				for (int y = -maxY; y <= maxY; y++)
 				{
 					MapLocation checkingPos = currentPos.translate(x,y);
-					if (inBounds(checkingPos) && rc.senseFlooding(checkingPos) && !checkingPos.equals(currentPos))
+					if (inBounds(checkingPos) && rc.senseFlooding(checkingPos))
 					{
 						exploreDest = checkingPos;
 						foundWater = true;
@@ -547,6 +603,7 @@ public strictfp class DroneBot extends Globals
 
 	private static void explore() throws GameActionException
 	{
+		System.out.println("Exploring" + exploreDest);
 		if(exploreDest == null)
 		{
 			exploreDest = currentPos;
@@ -677,7 +734,7 @@ public strictfp class DroneBot extends Globals
 			{
 				if (currentPos.distanceSquaredTo(minerLoc) <= 2 && rc.canPickUpUnit(minerID))
 				{
-					carryingTeammate = 1;
+					carryingTeammate = 2;
 					rc.pickUpUnit(minerID);
 				}
 				else
@@ -690,6 +747,7 @@ public strictfp class DroneBot extends Globals
 
 	private static void findHQ() throws GameActionException
 	{
+		System.out.println("Finding HQ");
 		switch(offset)
 		{
 			case 0: exploreDest = new MapLocation(mapWidth-baseLoc.x-1, baseLoc.y);
@@ -702,8 +760,14 @@ public strictfp class DroneBot extends Globals
 			break;
 		}
 
-		if (exploreDest.equals(baseLoc))
+		System.out.println(currentPos.distanceSquaredTo(exploreDest));
+		System.out.println(sensorRadiusSquared);
+
+		if (baseLoc.equals(exploreDest))
+		{
 			offset++;
+			return;
+		}
 
 		if (rc.canSenseLocation(exploreDest))
 		{

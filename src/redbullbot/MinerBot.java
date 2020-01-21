@@ -1,4 +1,4 @@
-package firstbot;
+package redbullbot;
 import battlecode.common.*;
 
 /**  
@@ -16,23 +16,24 @@ public strictfp class MinerBot extends Globals
     private static int NEAR_SOUP = 5;
     private static int REFINERY_DISTANCE = 6;
 
-     private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
+    private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
     private static MapLocation refineryLocation;
     private static MapLocation toBeRefineryLocation;
     private static MapLocation soupLocation;
 	private static boolean buildNetGun = false;
 	private static boolean builtDesignSchool = false;
 	private static boolean builtFulfilmentCenter = false;
-	private static boolean builtSubBaseDS = false;
-	private static boolean builtSubBaseFC = false;
 	private static int numVapes = 0;
 	private static boolean firstTurn  = true;
 	private static boolean isBomber = false;
+	private static boolean isBuilder = false;
 	private static boolean HQBlocked = false;
 
 	private static int offset = 0;
-	private MapLocation subBaseLoc;
-
+	private static MapLocation idealDSLoc;
+	private static MapLocation idealFCLoc;
+	private static boolean shouldBuildDS = false;
+	private static boolean shouldBuildFC = false;
 
     public static void run(RobotController rc) throws GameActionException
     {
@@ -65,6 +66,7 @@ public strictfp class MinerBot extends Globals
 
         if (roundNum%broadCastFrequency == 1 && opponentHQLoc == null)
 		{
+			System.out.println(roundNum);
 			int commsArr[][]=Communications.getComms(roundNum-1);
 			// Set this up to be a switch case?
 			for(int i = 0; i < commsArr.length; i++)
@@ -80,15 +82,34 @@ public strictfp class MinerBot extends Globals
 		}
 
 		// CHeck if you are the bomber.
-		if (roundNum <= 5)
+		// if (roundNum <= 5)
+		// {
+		// 	RobotInfo hq = rc.senseRobotAtLocation(currentPos.add(Direction.SOUTH));
+		// 	if (hq != null && hq.type == RobotType.HQ)
+		// 		isBomber = true;
+		// }
+
+		if (roundNum > 50 && roundNum < 700 && firstTurn)
 		{
-			RobotInfo hq = rc.senseRobotAtLocation(currentPos.add(Direction.SOUTH));
-			if (hq != null && hq.type == RobotType.HQ)
-				isBomber = true;
+			firstTurn = false;
+			System.out.println(currentPos.isAdjacentTo(baseLoc));
+			if (currentPos.isAdjacentTo(baseLoc))
+				isBuilder = true;
 		}
+		else
+		{
+			firstTurn = false;
+		}
+
+		System.out.println("SP" + soupLocation);
+		System.out.println("RF" + refineryLocation);
+		System.out.println("TBRF" + toBeRefineryLocation);
 
 		if (isBomber)
 		{
+			System.out.println("I am bomber");
+			System.out.println(baseLoc);
+			System.out.println(opponentHQLoc);
 			if (opponentHQLoc == null)
 			{
 				System.out.println("Finding the HQ");
@@ -106,6 +127,16 @@ public strictfp class MinerBot extends Globals
 					else if (!builtDesignSchool && rc.canBuildRobot(RobotType.DESIGN_SCHOOL,dir.rotateRight()))
 					{
 						buildDesignSchool(dir.rotateRight());
+					}
+					else if (!builtDesignSchool)
+					{
+						for (int i = 0; i < 8; i++)
+						{
+							if (rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]))
+							{
+								buildDesignSchool(directions[i]);
+							}
+						}
 					}
 					else if (!buildNetGun && builtDesignSchool)
 					{
@@ -126,106 +157,144 @@ public strictfp class MinerBot extends Globals
 			return;
 		}
 
-        RobotInfo[] nearbyOpps= rc.senseNearbyRobots(currentPos, -1, opponent);
-		boolean shouldBuild = false;
-		for (int i = 0; i < nearbyOpps.length; i++)
+		if (isBuilder)
 		{
-			if (!nearbyOpps[i].type.isBuilding())
+			System.out.println("I am the builder!!!");
+			
+			Direction tryDir = Direction.NORTHWEST;
+			for (int i = 0; i < 8; i++)
 			{
-				shouldBuild = true;
+				idealDSLoc = baseLoc.add(tryDir);
+				if (!(rc.onTheMap(idealDSLoc) && !rc.senseFlooding(idealDSLoc) && Math.abs(rc.senseElevation(currentPos) - rc.senseElevation(idealDSLoc)) < 4 && !rc.isLocationOccupied(idealDSLoc)))
+				{
+					tryDir = tryDir.rotateLeft();
+					continue;
+				}
 				break;
 			}
-		}
 
-		if (shouldBuild && !builtFulfilmentCenter)
-		{
-			RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-			for (int i = 0; i < nearbyBots.length; i++)
+			Direction FCDir = tryDir.opposite();
+			for (int i = 0; i < 8; i++)
 			{
-				if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
+				idealFCLoc = baseLoc.add(FCDir);
+				if (idealFCLoc.isAdjacentTo(idealDSLoc))
+					continue;
+				if (!(rc.onTheMap(idealFCLoc) && !rc.senseFlooding(idealFCLoc) && Math.abs(rc.senseElevation(currentPos) - rc.senseElevation(idealFCLoc)) < 4 && !rc.isLocationOccupied(idealFCLoc)))
 				{
-					shouldBuild = false;
-					builtFulfilmentCenter = true;
-					break;
+					FCDir = FCDir.rotateLeft();
+					continue;
+				}
+				break;
+			}
+
+			System.out.println(idealDSLoc + " " + idealFCLoc);
+			
+			if (shouldBuildDS || (!builtDesignSchool && roundNum > 150))
+			{
+				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+				for (int i = 0; i < nearbyBots.length; i++)
+				{
+					if (nearbyBots[i].type == RobotType.DESIGN_SCHOOL)
+					{
+						shouldBuildDS = false;
+						builtDesignSchool = true;
+						break;
+					}
+				}
+
+				if (shouldBuildDS || !builtDesignSchool)
+				{
+					if (currentPos.distanceSquaredTo(idealDSLoc) <= 2)
+					{
+						if(rc.canBuildRobot(RobotType.DESIGN_SCHOOL, currentPos.directionTo(idealDSLoc)))
+							buildDesignSchool(currentPos.directionTo(idealDSLoc));
+						else
+							return;
+					}
+					else
+					{
+						navigate(idealDSLoc);
+					}
 				}
 			}
 
-			if (shouldBuild)
+			if (shouldBuildFC || (!builtFulfilmentCenter && roundNum > 180))
 			{
-				for (int i = 0; i < 8; i++)
+				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+				for (int i = 0; i < nearbyBots.length; i++)
 				{
-					if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]))
-						buildFulfilmentCenter(directions[i]);
+					if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
+					{
+						shouldBuildFC = false;
+						builtFulfilmentCenter = true;
+						break;
+					}
+				}
+
+				if (shouldBuildFC || !builtFulfilmentCenter)
+				{
+					if (currentPos.distanceSquaredTo(idealFCLoc) <= 2)
+					{
+						if(rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, currentPos.directionTo(idealFCLoc)))
+							buildFulfilmentCenter(currentPos.directionTo(idealFCLoc));
+						else
+							return;
+					}
+					else
+					{
+						navigate(idealFCLoc);
+					}
 				}
 			}
-		}
 
-		if (roundNum > 150 && !builtDesignSchool && roundNum < 220)
-		{
-			System.out.println("I am trying to build");
-			RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-			for (int i = 0; i < nearbyBots.length; i++)
+
+			if (!buildNetGun && roundNum > 200)
 			{
-				if (nearbyBots[i].type == RobotType.DESIGN_SCHOOL)
+				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+				for (int i = 0; i < nearbyBots.length; i++)
 				{
-					builtDesignSchool = true;
-					break;
+					if (nearbyBots[i].type == RobotType.NET_GUN)
+					{
+						buildNetGun = true;
+						break;
+					}
 				}
-			}
 
-			if (baseLoc.distanceSquaredTo(currentPos) > 8)
-			{
-				navigate(baseLoc);
-			}
-			else
-			{
-
-				if (!builtDesignSchool)
+				if (!buildNetGun)
 				{
 					for (int i = 0; i < 8; i++)
 					{
-						if (rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) > 2)
-							buildDesignSchool(directions[i]);
+						MapLocation idealNGLoc = currentPos.add(directions[i]);
+						if (baseLoc.distanceSquaredTo(idealNGLoc) <= 2)
+						{
+							if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]))
+							{
+								buildNetGun(directions[i]);
+							}
+						}
 					}
-					navigate(baseLoc);
 				}
 			}
+
+			isBuilder = !(builtFulfilmentCenter && builtDesignSchool && buildNetGun);
+			return;
 		}
 
-		if (roundNum > 150 && !builtFulfilmentCenter && roundNum < 220)
+		// Check if we are out building up the base
+		if (rc.canSenseLocation(baseLoc))
 		{
-			System.out.println("I am trying to build");
-			RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-			for (int i = 0; i < nearbyBots.length; i++)
+			RobotInfo[] checkingBots = rc.senseNearbyRobots(baseLoc, 2, team);
+			for (int i = 0; i < checkingBots.length; i++)
 			{
-				if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
+				if (checkingBots[i].type == RobotType.FULFILLMENT_CENTER || checkingBots[i].type == RobotType.DESIGN_SCHOOL)
 				{
-					builtFulfilmentCenter = true;
-					break;
-				}
-			}
-
-			if (baseLoc.distanceSquaredTo(currentPos) > 8)
-			{
-				System.out.println("I am trying to move closer");
-				navigate(baseLoc);
-			}
-			else
-			{
-
-				if (!builtFulfilmentCenter)
-				{
-					for (int i = 0; i < 8; i++)
-					{
-						if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) > 2)
-							buildFulfilmentCenter(directions[i]);
-					}
-					navigate(baseLoc);
+					soupLocation = null;
+					HQBlocked = true;
 				}
 			}
 		}
-		HQBlocked = builtDesignSchool;
-		System.out.println(HQBlocked);
+
+		System.out.println("I am carrying " + rc.getSoupCarrying());
 
         if (soupLocation == null)
 		{
@@ -234,7 +303,7 @@ public strictfp class MinerBot extends Globals
 		else // We found soup, we must mine it.
 		{
 			// We found soup, but we are too far from the HQ. Let's make a refinery!
-			if (refineryLocation == null && (currentPos.distanceSquaredTo(baseLoc) > 35 || HQBlocked) && rc.getTeamSoup() > 200)
+			if (refineryLocation == null && currentPos.distanceSquaredTo(baseLoc) > 35 && rc.getTeamSoup() > 200)
 			{
 				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
 				for (int i = 0; i < nearbyBots.length; i++)
@@ -252,8 +321,7 @@ public strictfp class MinerBot extends Globals
 					{
 						for (int i = 0; i < 8; i++)
 						{
-							if (rc.canBuildRobot(RobotType.REFINERY, directions[i]))
-								buildRefinery(directions[i]);
+							buildRefinery(directions[i]);
 						}
 					}
 				}
@@ -548,6 +616,10 @@ public strictfp class MinerBot extends Globals
 		rc.buildRobot(RobotType.VAPORATOR, dir);
 	}
 
+	//! Constants I'm using for this function.
+	public static int closestDist = Integer.MAX_VALUE;
+	public static int turnsWithoutGettingCloser = 0;
+
 	private static void findHQ() throws GameActionException
 	{
 		switch(offset)
@@ -561,21 +633,52 @@ public strictfp class MinerBot extends Globals
 			case 2: exploreDest = new MapLocation(baseLoc.x, mapHeight-baseLoc.y-1);
 			break;
 		}
+		
+		if (exploreDest.equals(baseLoc))
+		{
+			offset++;
+			return;
+		}
 
 		if (rc.canSenseLocation(exploreDest))
 		{
 			System.out.println(exploreDest);
 			RobotInfo bot = rc.senseRobotAtLocation(exploreDest);
 			if (bot != null && bot.type == RobotType.HQ)
+			{
 				opponentHQLoc = bot.location;
+				int initialArr[] = new int[9];
+				initialArr[0] = Communications.getCommsNum(ObjectType.HQ,opponentHQLoc);
+				System.out.print(Communications.sendComs(initialArr,1));
+			}
 			else
 			{
+				closestDist = Integer.MAX_VALUE;
 				offset++;
 			}
 		}
 		else
 		{
-			navigate(exploreDest);
+			if (rc.isReady())
+			{
+				// If i'm taking too long I must be stuck. Stop and use drones.
+				if (currentPos.distanceSquaredTo(exploreDest) < closestDist)
+				{
+					closestDist = currentPos.distanceSquaredTo(exploreDest);
+					turnsWithoutGettingCloser = 0;
+				}
+				else
+					turnsWithoutGettingCloser++;
+				
+				if (turnsWithoutGettingCloser >= 20)
+				{
+					isBomber = false;
+				}
+				else
+				{
+					navigate(exploreDest);
+				}
+			}
 		}
 	}
 }
