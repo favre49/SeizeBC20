@@ -110,7 +110,7 @@ public strictfp class Communications extends Globals
 		}
 
 		int[] message = new int[7];
-		message[0] |= (35 << 24);
+		message[0] |= (38 << 24);
 		
 		for(int i = 0; i < 216; i++)
 		{
@@ -167,7 +167,7 @@ public strictfp class Communications extends Globals
 
 		// System.out.println(message[0]);
 
-		if(((message[0]>>24) & 255) != 35)
+		if(((message[0]>>24) & 255) != 38)
 		{
 			System.out.println("NOT OUR MESSAGE");
 			return decoded;
@@ -195,14 +195,92 @@ public strictfp class Communications extends Globals
 		return hammingChecked;
 	}
 
+	static int getHashSimple(int[] data, int n)
+	{
+		int hash = 0;
+		for(int i = 0; i < n; ++i)
+		{
+			hash += 31 * data[i];
+		}
+		return hash;
+	}
+
+	static int getHash2(int[] data, int n)
+	{
+		int hash = 0;
+		for (int i = 0; i < n; ++i)
+		{
+			hash += data[i];
+			hash += (hash << 10);
+			hash ^= (hash >> 6);
+		}
+		hash += (hash << 3);
+		hash ^= (hash >> 11);
+		hash += (hash << 15);
+		
+		return hash;
+	}
+
+	static int getHash(int[] data, int n)
+	{
+		return getHash2(data, n);
+	}
+
+	public static int[] encodeHash(int[] data)
+	{
+		int[] message = new int[7];
+		for(int i = 0; i < 6; ++i)
+		{
+			message[i] = data[i];
+		}
+
+		message[0] |= (data[6] << 14) & 0xFFFC0000; //14 bits
+		message[1] |= (data[6] << 28) & 0xF0000000;	//4 bits
+
+		message[2] |= (data[7] << 14) & 0xFFFC0000; //10 bits
+		message[3] |= (data[7] << 28) & 0xF0000000; //4 bits
+
+		message[4] |= (data[8] << 14) & 0xFFFC0000; //10 bits
+		message[5] |= (data[8] << 28) & 0xF0000000; //4 bits
+
+		message[6] |= getHash(message, 6);
+
+		return message;
+	}
+
+	public static int[] decodeHash(Transaction messageTransaction) throws GameActionException
+	{
+		int[] decoded = new int[9];
+
+		int[] message = messageTransaction.getMessage();
+
+		if (message.length != 7 || message[6] != getHash(message,6))
+		{
+			System.out.println("NOT OUR MESSAGE");
+			return decoded;
+		}
+
+		//TODO
+		for(int i = 0; i < 7; ++i)
+		{
+			decoded[i] = message[i] & 0x0003FFFF;
+		}
+
+		decoded[6] = ((message[0] >> 14) & 0x0003FFF0) | (message[1] >> 28);
+		decoded[7] = ((message[2] >> 14) & 0x0003FFF0) | (message[3] >> 28);
+		decoded[8] = ((message[4] >> 14) & 0x0003FFF0) | (message[5] >> 28);
+
+		return decoded;
+	}
+
 	public static int[] encode(int[] data)
 	{
-		return encodeHamming(data);
+		return encodeHash(data);
 	}
 
 	public static int[] decode(Transaction messageTransaction) throws GameActionException
 	{
-		return decodeHamming(messageTransaction);
+		return decodeHash(messageTransaction);
 	}
 
 	public static boolean sendComs(int[] data, int bidamount/*message, bid amount*/) throws GameActionException
