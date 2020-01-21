@@ -160,35 +160,35 @@ public strictfp class LandscaperBot extends Globals
 			}
 		}
 
-		// Fill in water near the base.
-		if (baseLoc.distanceSquaredTo(currentPos) <= 8)
-		{
-			// First check if there is any water that could ruin our day.
-			if (waterLoc == null)
-				waterLoc = findWaterAroundBase();
+		// // Fill in water near the base.
+		// if (baseLoc.distanceSquaredTo(currentPos) <= 8)
+		// {
+		// 	// First check if there is any water that could ruin our day.
+		// 	if (waterLoc == null)
+		// 		waterLoc = findWaterAroundBase();
 
-			// If yes, fill!
-			if (waterLoc != null)
-			{
-				if (currentPos.distanceSquaredTo(waterLoc) > 2)
-				{
-					navigate(waterLoc);
-				}
-				else
-				{
-					Direction fillDir = currentPos.directionTo(waterLoc);
-					for (int i = 0; i < 8; i++)
-					{
-						Direction digDir = directions[i];
-						MapLocation digPos=  currentPos.add(f)
-					}
-				}
-			}
-			else // If not, just leave the square.
-			{
+		// 	// If yes, fill!
+		// 	if (waterLoc != null)
+		// 	{
+		// 		if (currentPos.distanceSquaredTo(waterLoc) > 2)
+		// 		{
+		// 			navigate(waterLoc);
+		// 		}
+		// 		else
+		// 		{
+		// 			Direction fillDir = currentPos.directionTo(waterLoc);
+		// 			for (int i = 0; i < 8; i++)
+		// 			{
+		// 				Direction digDir = directions[i];
+		// 				MapLocation digPos=  currentPos.add(digDir);
+		// 			}
+		// 		}
+		// 	}
+		// 	else // If not, just leave the square.
+		// 	{
 
-			}
-		}
+		// 	}
+		// }
 
 
 
