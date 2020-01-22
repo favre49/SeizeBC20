@@ -114,7 +114,7 @@ public strictfp class HQBot extends Globals
 		if (minerCount < 4)
 			buildMiner();
 
-		if (roundNum > 200 && minerCount < 15)
+		if (roundNum > 200 && minerCount < 10)
 		{
 			if (roundNum-lastRoundActive > 30)
 			{
@@ -133,6 +133,11 @@ public strictfp class HQBot extends Globals
 					buildMiner(directions[maxEleIdx]);
 				}
 			}
+		}
+		
+		if (roundNum > 500 && minerCount < 11)
+		{
+			buildMiner();
 		}
 	}
 

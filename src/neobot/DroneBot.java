@@ -115,9 +115,9 @@ public strictfp class DroneBot extends Globals
 		}
 
 		// crunch.
-		if (roundNum > 1300 && opponentHQLoc != null)
+		if (roundNum > 1000 && opponentHQLoc != null)
 		{
-			if (roundNum > 1550) //Better indicator?
+			if (roundNum > 1350) //Better indicator?
 			{
 				if (!rc.isCurrentlyHoldingUnit())
 					pickUpOpponents();
@@ -159,7 +159,7 @@ public strictfp class DroneBot extends Globals
 					}
 				}
 				else
-					navigateAroundNetGuns(opponentHQLoc);
+					return; // Wait for a new landscaper to take there.
 			}
 			else
 			{
@@ -184,7 +184,7 @@ public strictfp class DroneBot extends Globals
 			MapLocation pickUpLoc = null;
 			for (int i = 0; i < helpScapers.length; i++)
 			{
-				if (helpScapers[i].type == RobotType.LANDSCAPER || helpScapers[i].type == RobotType.MINER)
+				if (helpScapers[i].type == RobotType.LANDSCAPER)
 				{
 					pickUpID = helpScapers[i].ID;
 					pickUpLoc = helpScapers[i].location;
@@ -214,7 +214,16 @@ public strictfp class DroneBot extends Globals
 			}
 
 			if (drno > 0 || !rc.canSenseLocation(baseLoc))
-				findHQ();
+			{
+				if (roundNum > 300)
+				{
+					findHQ();
+				}
+				else
+				{
+					explore();
+				}
+			}
 		}
 		else
 		{
@@ -224,7 +233,7 @@ public strictfp class DroneBot extends Globals
 			MapLocation pickUpLoc = null;
 			for (int i = 0; i < helpScapers.length; i++)
 			{
-				if (helpScapers[i].type == RobotType.LANDSCAPER || helpScapers[i].type == RobotType.MINER)
+				if (helpScapers[i].type == RobotType.LANDSCAPER )
 				{
 					pickUpID = helpScapers[i].ID;
 					pickUpLoc = helpScapers[i].location;
