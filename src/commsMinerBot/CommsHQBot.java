@@ -1,4 +1,4 @@
-package redbullbot;
+package commsMinerBot;
 import battlecode.common.*;
 
 /**
@@ -7,7 +7,7 @@ import battlecode.common.*;
  * Produces: Miners
  * Has a built in gun and refinery.
  */
-public strictfp class HQBot extends Globals
+public strictfp class CommsHQBot extends Globals
 {
 	// declarations
 	public static int minerCount = 0;
@@ -22,9 +22,25 @@ public strictfp class HQBot extends Globals
 	public static boolean builtDesignSchool = false;
 	public static boolean panic = false;
 
+
+	private static MapLocation[] soupQueue = new MapLocation[9];
+	private static int soupLocationPointer=0;
+
+	private static MapLocation[] refineryList = new MapLocation[9];
+	private static int refineryLocationPointer=0;
+
+	private static int lastTurnTo9Soup=0;
+	private static int lastTurnTo9Ref=0;
+
+
+	private static int VALIDSOUPCUTOFF = 30;
+	private static int NINELIMIT = 50;
+
+
     // public static void run(RobotController rc) throws GameActionException
     public static void run(RobotController rc) throws GameActionException
     {
+
 		if(roundNum == 1){
 			System.out.println("I entered where I am supposed to");
 			// soupLocation = senseNearbySoup();
@@ -37,24 +53,123 @@ public strictfp class HQBot extends Globals
 		else if (roundNum > 2)
 		{
 			int commsArr[][]=Communications.getComms(roundNum-1);
+
+			if(soupLocationPointer==9 && roundNum-lastTurnTo9Soup>NINELIMIT){
+				soupLocationPointer=0;
+			}
+
+			if(refineryLocationPointer==9 && roundNum-lastTurnTo9Ref>NINELIMIT){
+				refineryLocationPointer=0;
+			}
+
 			// Set this up to be a switch case?
 			for(int i = 0; i < commsArr.length; i++)
 			{
 				ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][0]);
 				switch(currLocation.rt)
 				{
-					case COW: continue;
+					case COW: 
+						continue;
+					case HQ: 
+						opponentHQLoc = currLocation.loc;
+						break;
+					case SOUP:
+						//check
+						System.out.println("SOUPSOUP");
+						System.out.println(currLocation.loc.x + " " + currLocation.loc.y);
 
-					case HQ: opponentHQLoc = currLocation.loc;
+						boolean works=true;
+						for(int j=0;j<soupLocationPointer;j++){
+							if(currLocation.loc.distanceSquaredTo(soupQueue[j])<=VALIDSOUPCUTOFF){
+								works=false;
+								break;
+							}
+						}
+
+						if(works && soupLocationPointer<9){
+							soupQueue[soupLocationPointer++]=currLocation.loc;
+							if(soupLocationPointer==9){
+								lastTurnTo9Soup=roundNum;
+							}
+						}
+						break;
+					case REFINERY:
+						boolean works2=true;
+						for(int j=0;j<refineryLocationPointer;j++){
+							if(currLocation.loc.equals(refineryList[j])){
+								works2=false;
+								break;
+							}
+						}
+
+
+						if(works2 && refineryLocationPointer<9){
+							if(refineryLocationPointer==9){
+								lastTurnTo9Ref=roundNum;
+							}
+							refineryList[refineryLocationPointer++]=currLocation.loc;
+						}
+						break;
+
+
+					case NO_SOUP:
+						System.out.println("NOSOUPNOSOUP");
+						System.out.println(currLocation.loc.x + " " + currLocation.loc.y);
+
+						int j=0;
+						while(true){
+							j=0;
+							while(j<soupLocationPointer && (currLocation.loc.distanceSquaredTo(soupQueue[j]) > VALIDSOUPCUTOFF)){
+								j++;
+							}
+							if(j!=soupLocationPointer){
+								soupQueue[j]=soupQueue[soupLocationPointer-1];
+								soupLocationPointer--;
+							}
+							else{
+								break;
+							}
+						}
+						break;
 				}
 			}
 		}
 
-		if (roundNum%broadCastFrequency == 0 && opponentHQLoc != null)
+		if (roundNum%broadCastFrequency == 0)
 		{
-			int broadCastArr[] = new int[9];
-			broadCastArr[0] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
+
+			//reorder soupQueue
+			int closestSoupInd=-1;
+			int mindist=Integer.MAX_VALUE;
+			for(int i=0;i<soupLocationPointer;i++){
+				if(currentPos.distanceSquaredTo(soupQueue[i])<mindist){
+					mindist=currentPos.distanceSquaredTo(soupQueue[i]);
+					closestSoupInd=i;
+				}
+			}
+
+			if(closestSoupInd>-1){
+				MapLocation temp = soupQueue[0];
+				soupQueue[0]=soupQueue[closestSoupInd];
+				soupQueue[closestSoupInd]=temp;
+			}
+
+			System.out.println("soupQueueSize"+soupLocationPointer);
+			int[] broadCastArr = new int[9];
+			for(int i=0;i<Math.min(9,soupLocationPointer);i++){
+				System.out.println(soupQueue[i].x+","+soupQueue[i].y);
+				broadCastArr[i]=Communications.getCommsNum(ObjectType.SOUP,soupQueue[i]);
+			}
 			Communications.sendComs(broadCastArr,1);
+
+			System.out.println("refineryListSize"+refineryLocationPointer);
+			broadCastArr = new int[9];
+			for(int i=0;i<Math.min(9,refineryLocationPointer);i++){
+				System.out.println(refineryList[i].x+","+refineryList[i].y);
+				broadCastArr[i]=Communications.getCommsNum(ObjectType.REFINERY,refineryList[i]);
+			}
+			Communications.sendComs(broadCastArr,1);
+
 		}
 
 		if (minerCount == 0)
@@ -70,7 +185,7 @@ public strictfp class HQBot extends Globals
 
 		if (soupLocation != null)
 		{
-			if (minerCount < 4)
+			if (minerCount < 5)
 			{
 				Direction tryDir = currentPos.directionTo(soupLocation);
 				if(rc.canBuildRobot(RobotType.MINER, tryDir))

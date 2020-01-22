@@ -1,4 +1,4 @@
-package redbullbot;
+package redbullbot_seeding;
 import battlecode.common.*;
 
 /**
@@ -10,11 +10,10 @@ import battlecode.common.*;
  */
 public strictfp class FulfillmentCenterBot extends Globals
 {
-//initialization
 	public static int dronesBuilt = 0;
 	public static int lastRoundActive = 0;
 
-//public static void run(RobotController rc) throws GameActionException
+
 	public static void run(RobotController rc) throws GameActionException
 	{
 		if (baseLoc == null)
@@ -77,7 +76,7 @@ public strictfp class FulfillmentCenterBot extends Globals
 		if (drno < scapeNo && roundNum - lastRoundActive > 20)
 			buildDrone();
 	}
-//static Boolean buildDrone() throws GameActionException
+
 	static Boolean buildDrone() throws GameActionException
 	{
 		for(int i = 0; i < 8; i++)
@@ -93,5 +92,4 @@ public strictfp class FulfillmentCenterBot extends Globals
 		//communicate that HQ is boxed in; 
 		return false;
 	}
-
 }

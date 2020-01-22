@@ -1,4 +1,4 @@
-package redbullbot;
+package redbullbot_seeding;
 import battlecode.common.*;
 
 /**
@@ -9,13 +9,10 @@ import battlecode.common.*;
  * Produces: Landscapers
  */
 public strictfp class DesignSchoolBot extends Globals
-{
-//initializations
+{	
     public static int landscapersbuilt = 0;
     public static boolean attacker = false;
     public static int lastRoundActive = 0;
-
-//public static void run(RobotController rc)
     public static void run(RobotController rc) throws GameActionException
     {   
         if (baseLoc == null)
@@ -114,7 +111,8 @@ public strictfp class DesignSchoolBot extends Globals
             }
         }
     }
-//static Boolean buildLandscaper()
+
+
     static Boolean buildLandscaper() throws GameActionException
     {
     	for(int i = 0; i < 8; i++)
@@ -131,5 +129,4 @@ public strictfp class DesignSchoolBot extends Globals
     	//communicate that HQ is boxed in; 
     	return false;
     }
-
 }

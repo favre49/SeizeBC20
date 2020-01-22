@@ -1,4 +1,4 @@
-package redbullbot;
+package redbullbot_seeding;
 import battlecode.common.*;
 
 /**
@@ -11,7 +11,6 @@ import battlecode.common.*;
  */
 public strictfp class NetGunBot extends Globals
 {
-	// public static void run(RobotController rc) throws GameActionException
 	public static void run(RobotController rc) throws GameActionException
 	{
 		RobotInfo nearbyUnits[] = rc.senseNearbyRobots(currentPos, 15, opponent);
@@ -33,5 +32,4 @@ public strictfp class NetGunBot extends Globals
 			rc.shootUnit(minID);
 		}
 	}
-
 }

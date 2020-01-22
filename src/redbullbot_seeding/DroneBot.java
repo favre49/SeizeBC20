@@ -1,4 +1,4 @@
-package redbullbot;
+package redbullbot_seeding;
 import battlecode.common.*;
 
 /**
@@ -11,7 +11,6 @@ import battlecode.common.*;
  */
 public strictfp class DroneBot extends Globals
 {
-//initialization
 	public static boolean foundWater = false;
 	public static boolean foundHQ = false;
 	public static MapLocation exploreDest;
@@ -26,7 +25,7 @@ public strictfp class DroneBot extends Globals
 	public static int scapersReqd = -1;
 	public static int teammatesCarried = 0;
 	public static int numTurns = 0;
-// public static void run(RobotController rc)
+
 	public static void run(RobotController rc) throws GameActionException
 	{
 		FastMath.initRand(rc);
@@ -284,7 +283,8 @@ public strictfp class DroneBot extends Globals
 		}
 
 	}
-//bug navigation code
+
+
 	/******* NAVIGATION *************/
 
 	// Bug nav related stuff
@@ -557,7 +557,8 @@ public strictfp class DroneBot extends Globals
 	}
 
 	/******* END NAVIGATION *******/
-//public static void dropInWater()
+
+
 	public static void dropInWater() throws GameActionException
 	{
 		System.out.println("Looking to drop my opponent");
@@ -599,7 +600,7 @@ public strictfp class DroneBot extends Globals
 				navigateAroundNetGuns(exploreDest);
 		}
 	}
-//private static void explore()
+
 	private static void explore() throws GameActionException
 	{
 		System.out.println("Exploring" + exploreDest);
@@ -631,7 +632,6 @@ public strictfp class DroneBot extends Globals
 		}
 	}
 
-//private static void pickNewExploreDest()
 	private static void pickNewExploreDest() throws GameActionException 
 	{
 		// Check if do while is a bad way to do this.
@@ -650,7 +650,6 @@ public strictfp class DroneBot extends Globals
 		while(!inBounds(exploreDest));
 	}
 
-//private static void pickUpOpponents()
 	private static void pickUpOpponents() throws GameActionException
 	{
 		RobotInfo[] nearbyopps = rc.senseNearbyRobots(currentPos,sensorRadiusSquared,opponent);
@@ -697,7 +696,7 @@ public strictfp class DroneBot extends Globals
 			}
 		}
 	}
-//private static void pickUpCows()
+
 	private static void pickUpCows() throws GameActionException
 	{
 		// Get rid of those damn cows.
@@ -715,7 +714,7 @@ public strictfp class DroneBot extends Globals
 			}
 		}
 	}
-//private static void pickUpMiners()
+
 	private static void pickUpMiners() throws GameActionException
 	{
 		RobotInfo[] nearbyTeammates = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, team);
@@ -746,7 +745,6 @@ public strictfp class DroneBot extends Globals
 		}
 	}
 
-//private static void findHQ()
 	private static void findHQ() throws GameActionException
 	{
 		System.out.println("Finding HQ");
@@ -792,7 +790,7 @@ public strictfp class DroneBot extends Globals
 			navigateAroundNetGuns(exploreDest);
 		}
 	}
-//private static boolean inNetGunRange(MapLocation loc)
+
 	// Takes up bytecode, maybe put it inside navigateion instead.
 	private static boolean inNetGunRange(MapLocation loc) throws GameActionException
 	{

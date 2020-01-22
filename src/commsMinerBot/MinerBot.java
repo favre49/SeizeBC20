@@ -1,4 +1,4 @@
-package redbullbot;
+package commsMinerBot;
 import battlecode.common.*;
 
 /**  
@@ -98,21 +98,19 @@ public strictfp class MinerBot extends Globals
 		if (roundNum <= 5)
 		{
 			RobotInfo hq = rc.senseRobotAtLocation(currentPos.add(Direction.SOUTH));
-			if (hq != null && hq.type == RobotType.HQ)
+			if (hq != null && hq.type == RobotType.HQ){
 				isBomber = true;
+				isBuilder = false;
+			}
 		}
 
-		if (roundNum > 50 && roundNum < 700 && firstTurn)
+		if (roundNum > 40 && roundNum < 700 && firstTurn)
 		{
-			firstTurn = false;
 			System.out.println(currentPos.isAdjacentTo(baseLoc));
 			if (currentPos.isAdjacentTo(baseLoc))
 				isBuilder = true;
 		}
-		else
-		{
-			firstTurn = false;
-		}
+		firstTurn = false;
 
 		System.out.println("SP" + soupLocation);
 		System.out.println("RF" + refineryLocation);
@@ -202,7 +200,7 @@ public strictfp class MinerBot extends Globals
 
 			System.out.println(idealDSLoc + " " + idealFCLoc);
 			
-			if (shouldBuildDS || (!builtDesignSchool && roundNum > 150))
+			if (shouldBuildDS || (!builtDesignSchool))
 			{
 				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
 				for (int i = 0; i < nearbyBots.length; i++)
@@ -230,6 +228,45 @@ public strictfp class MinerBot extends Globals
 					}
 				}
 			}
+
+
+    		RobotInfo[] nearbyoppLS = rc.senseNearbyRobots(baseLoc, -1, opponent);
+    		RobotInfo[] nearbyteamLS = rc.senseNearbyRobots(baseLoc, -1, team);
+
+
+    		if(builtDesignSchool && currentPos.distanceSquaredTo(baseLoc)<=2){
+	            int oppno = 0;
+	            for (int i = 0; i < nearbyoppLS .length; i++)
+	            {
+	                if (nearbyoppLS [i].type == RobotType.LANDSCAPER)
+	                    oppno++;
+	            }
+
+	            int drno = 0;
+	            for (int i = 0; i < nearbyteamLS.length; i++)
+	            {
+	                if (nearbyteamLS[i].type == RobotType.LANDSCAPER)
+	                    drno++;
+	            }
+
+	            if(oppno>drno){
+	            	//we're blocking our own defense, move out of the way
+					Direction otherWay = currentPos.directionTo(baseLoc).opposite();
+					for(int i = 0; i < 8; ++i) {
+						if(rc.canMove(otherWay) 
+							&& !rc.senseFlooding(currentPos.add(otherWay)) && baseLoc.distanceSquaredTo(currentPos.add(otherWay))>2);
+						{
+							rc.move(otherWay);
+						}
+						otherWay = otherWay.rotateLeft();
+					}
+
+	            }
+
+	        }
+
+			// if(builtDesignSchool && oppno>drno)
+
 
 			if (shouldBuildFC || (!builtFulfilmentCenter && roundNum > 180))
 			{
@@ -294,18 +331,18 @@ public strictfp class MinerBot extends Globals
 		}
 
 		// Check if we are out building up the base
-		if (rc.canSenseLocation(baseLoc))
-		{
-			RobotInfo[] checkingBots = rc.senseNearbyRobots(baseLoc, 2, team);
-			for (int i = 0; i < checkingBots.length; i++)
-			{
-				if (checkingBots[i].type == RobotType.FULFILLMENT_CENTER || checkingBots[i].type == RobotType.DESIGN_SCHOOL)
-				{
-					soupLocation = null;
-					HQBlocked = true;
-				}
-			}
-		}
+		// if (rc.canSenseLocation(baseLoc))
+		// {
+		// 	RobotInfo[] checkingBots = rc.senseNearbyRobots(baseLoc, 2, team);
+		// 	for (int i = 0; i < checkingBots.length; i++)
+		// 	{
+		// 		if (checkingBots[i].type == RobotType.FULFILLMENT_CENTER || checkingBots[i].type == RobotType.DESIGN_SCHOOL)
+		// 		{
+		// 			soupLocation = null;
+		// 			HQBlocked = true;
+		// 		}
+		// 	}
+		// }
 
 		System.out.println("I am carrying " + rc.getSoupCarrying());
 
@@ -315,9 +352,12 @@ public strictfp class MinerBot extends Globals
 		}
 		else // We found soup, we must mine it.
 		{
+			System.out.println("HI");
 			// We found soup, but we are too far from the HQ. Let's make a refinery!
-			if (refineryLocation == null && currentPos.distanceSquaredTo(baseLoc) > 35 && rc.getTeamSoup() > 200)
+			if ((refineryLocation == null || currentPos.distanceSquaredTo(baseLoc) > 35) && rc.getTeamSoup() > 200)
 			{
+				System.out.println("HI1");
+
 				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
 				for (int i = 0; i < nearbyBots.length; i++)
 				{
@@ -341,6 +381,8 @@ public strictfp class MinerBot extends Globals
 			}
 			if (rc.getSoupCarrying() >= 100)
 			{
+				System.out.println("HI2");
+
 				if (refineryLocation == null)
 				{
 					if (currentPos.distanceSquaredTo(baseLoc) <= 2)
@@ -358,8 +400,14 @@ public strictfp class MinerBot extends Globals
 			}
 			else
 			{
-				if (currentPos.distanceSquaredTo(soupLocation) < NEAR_SOUP)
+				System.out.println("HI3");
+				System.out.println(currentPos.x);
+				System.out.println(currentPos.y);
+				System.out.println(soupLocation.x);
+				System.out.println(soupLocation.y);
+				if (rc.canSenseLocation(soupLocation))
 				{
+
 					MapLocation loc = senseNearbySoup();
 					if (loc == null)  // No soup nearby? Must be no soup left!!
 					{

@@ -1,4 +1,4 @@
-package redbullbot;
+package redbullbot_seeding;
 import battlecode.common.*;
 
 /**
@@ -9,7 +9,6 @@ import battlecode.common.*;
  */
 public strictfp class HQBot extends Globals
 {
-	// declarations
 	public static int minerCount = 0;
 
 	public static ObjectLocation[] objectArray = new ObjectLocation[12];
@@ -22,7 +21,6 @@ public strictfp class HQBot extends Globals
 	public static boolean builtDesignSchool = false;
 	public static boolean panic = false;
 
-    // public static void run(RobotController rc) throws GameActionException
     public static void run(RobotController rc) throws GameActionException
     {
 		if(roundNum == 1){
@@ -144,7 +142,7 @@ public strictfp class HQBot extends Globals
 		if(nearbyDroneID != -1)
 			rc.shootUnit(nearbyDroneID);
 	}
-	// static Boolean buildMiner() throws GameActionException
+
 	static Boolean buildMiner() throws GameActionException
 	{
 		for(int i = 0; i < 8; i++)
@@ -161,7 +159,6 @@ public strictfp class HQBot extends Globals
 		return false;
 	}
 
-	// static int senseDrones() throws GameActionException
 	static int senseDrones() throws GameActionException
 	{
 		RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
@@ -174,5 +171,4 @@ public strictfp class HQBot extends Globals
 		}
 		return -1;
 	}
-
 }

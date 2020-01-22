@@ -1,9 +1,9 @@
-package redbullbot;
+package redbullbot_seeding;
 import battlecode.common.*;
 
 public class Globals
 {
-//declarations
+
     public static short x[] = {0, 1, 1, 1, 0, -1, -1, -1};
     public static short y[] = {1, 1, 0, -1, -1, -1, 0, 1};
     public static Direction[] directions = {Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST, Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST};
@@ -35,15 +35,7 @@ public class Globals
 
     public static ObjectType myObjectType;
 
-    public static int baseID;
-    public static MapLocation baseLoc;
-
-    public static int opponentHQID;
-    public static MapLocation opponentHQLoc;
-
-//public static void updateObjectType()
-    public static void updateObjectType()
-    {
+    public static void updateObjectType(){
         switch(myType){
             case COW:
                 myObjectType=ObjectType.COW;
@@ -82,7 +74,15 @@ public class Globals
 
     }
 
-//public static void init(RobotController givenrc) throws GameActionException
+    // public static RobotLocation aRobotLocation;
+
+    public static int baseID;
+    public static MapLocation baseLoc;
+
+    public static int opponentHQID;
+    public static MapLocation opponentHQLoc;
+    //TODO add base location and base id
+
     public static void init(RobotController givenrc) throws GameActionException
     {
         rc = givenrc;
@@ -104,20 +104,19 @@ public class Globals
         mapHeight = rc.getMapHeight();
         updateObjectType();
     }
-//public static void update()
+
     public static void update()
     {
         currentPos = rc.getLocation();
         roundNum = rc.getRoundNum();
         sensorRadiusSquared = rc.getCurrentSensorRadiusSquared();
     }
-//public static boolean inBounds(MapLocation loc)
+
     public static boolean inBounds(MapLocation loc)
     {
         return loc.x >= 0 && loc.y >= 0 && loc.x < mapWidth && loc.y < mapHeight; 
     }
 
-//public static MapLocation senseNearbySoup() throws GameActionException
     // Sees in sensor location for nearby soup. Takes up like 200 bytecodes.
     public static MapLocation senseNearbySoup() throws GameActionException
     {
@@ -138,7 +137,7 @@ public class Globals
 
         return minLoc;
     }
-//public static boolean isEnemyBuildingAtLocation(MapLocation jaja) throws GameActionException
+
     public static boolean isEnemyBuildingAtLocation(MapLocation jaja) throws GameActionException
     {
         RobotInfo temp = rc.senseRobotAtLocation(jaja);
@@ -150,4 +149,5 @@ public class Globals
         }
         return false;        
     }
+
 }

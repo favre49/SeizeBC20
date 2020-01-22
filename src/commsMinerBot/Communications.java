@@ -1,4 +1,4 @@
-package neobot;
+package commsMinerBot;
 import battlecode.common.*;
 
 public strictfp class Communications extends Globals
@@ -303,10 +303,10 @@ public strictfp class Communications extends Globals
 		Transaction[] theBlock = rc.getBlock(roundno);
 		int[][] interpreted = new int[theBlock.length][9];
 
-		System.out.println("Pre decoding" + Clock.getBytecodeNum());
+		// System.out.println("Pre decoding" + Clock.getBytecodeNum());
 		for(int i = 0; i < theBlock.length; i++)
 			interpreted[i] = decode(theBlock[i]);
-		System.out.println("Post decoding" + Clock.getBytecodeNum());
+		// System.out.println("Post decoding" + Clock.getBytecodeNum());
 
 		return interpreted;
 	}

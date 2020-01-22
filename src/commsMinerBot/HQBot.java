@@ -1,4 +1,4 @@
-package redbullbot;
+package commsMinerBot;
 import battlecode.common.*;
 
 /**
@@ -70,7 +70,7 @@ public strictfp class HQBot extends Globals
 
 		if (soupLocation != null)
 		{
-			if (minerCount < 4)
+			if (minerCount < 5)
 			{
 				Direction tryDir = currentPos.directionTo(soupLocation);
 				if(rc.canBuildRobot(RobotType.MINER, tryDir))

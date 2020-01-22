@@ -1,4 +1,4 @@
-package redbullbot;
+package commsMinerBot;
 import battlecode.common.*;
 
 /**
@@ -168,19 +168,16 @@ public strictfp class LandscaperBot extends Globals
 		if (rc.canSenseLocation(baseLoc))
 		{
 			RobotInfo[] nearbyOpps = rc.senseNearbyRobots(baseLoc, -1, opponent);
-			if (nearbyOpps.length != 0)
+			for (int i = 0; i < nearbyOpps.length; i++)
 			{
-				for (int i = 0; i < nearbyOpps.length; i++)
+				if (nearbyOpps[i].type == RobotType.LANDSCAPER && nearbyOpps[i].location.distanceSquaredTo(baseLoc) <= 2)
 				{
-					if (nearbyOpps[i].type == RobotType.LANDSCAPER && nearbyOpps[i].location.distanceSquaredTo(baseLoc) <= 2)
-					{
-						underAttack = true;
-						numAttacking++;
-					}
-					else if (goToLoc == null && nearbyOpps[i].type.isBuilding())
-					{
-						goToLoc = nearbyOpps[i].location;
-					}
+					underAttack = true;
+					numAttacking++;
+				}
+				else if (goToLoc == null && nearbyOpps[i].type.isBuilding())
+				{
+					goToLoc = nearbyOpps[i].location;
 				}
 			}
 

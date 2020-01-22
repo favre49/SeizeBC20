@@ -1,4 +1,4 @@
-package redbullbot;
+package commsMinerBot;
 import battlecode.common.*;
 
 /**
@@ -74,17 +74,14 @@ public strictfp class DesignSchoolBot extends Globals
         }
         else
         {
-    		RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
-    		RobotInfo[] nearbyTeam = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, team);
+    		RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, -1, opponent);
+    		RobotInfo[] nearbyTeam = rc.senseNearbyRobots(currentPos, -1, team);
 
             int oppno = 0;
-            if(nearbyBots.length != 0)
+            for (int i = 0; i < nearbyBots.length; i++)
             {
-                for (int i = 0; i < nearbyBots.length; i++)
-                {
-                    if (nearbyBots[i].type.isBuilding() || nearbyBots[i].type == RobotType.LANDSCAPER)
-                        oppno++;
-                }
+                if (nearbyBots[i].type.isBuilding() || nearbyBots[i].type == RobotType.LANDSCAPER)
+                    oppno++;
             }
 
             int drno = 0;
@@ -94,7 +91,7 @@ public strictfp class DesignSchoolBot extends Globals
                     drno++;
             }
 
-            if (drno < oppno)
+            if (drno <= oppno)
                 buildLandscaper();
 
             int scapeNo = 0;

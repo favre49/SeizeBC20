@@ -1,4 +1,4 @@
-package redbullbot;
+package redbullbot_seeding;
 import battlecode.common.*;
 
 /**
@@ -11,7 +11,6 @@ import battlecode.common.*;
  */
 public strictfp class LandscaperBot extends Globals
 {			
-	// declarations
 	public static MapLocation goToLoc;
 	public static boolean underAttack = false;
 	public static boolean dugged = false;
@@ -22,7 +21,6 @@ public strictfp class LandscaperBot extends Globals
 	public static int wallIdx = 0;
 	public static int numTurns = 0;
 
-    // public static void run(RobotController rc)  throws GameActionException
     public static void run(RobotController rc)  throws GameActionException
     {
 		if (baseLoc == null)
@@ -413,7 +411,7 @@ public strictfp class LandscaperBot extends Globals
 		}
     }
 
-    /******* NAVIGATION *************/
+
     /******* NAVIGATION *************/
 
     // Bug nav related stuff
