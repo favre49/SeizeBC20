@@ -37,6 +37,7 @@ public strictfp class MinerBot extends Globals
 	private static int MAXTURNS=10;
 	private static int STEPSIZE=5;
 	private static int MAPDIVISION=8;
+	private static int LOCATIONCOUNTCUTOFF=10;
 
 	private static MapLocation[] nearbySoup;
 	private static MapLocation soupTarget;
@@ -70,11 +71,13 @@ public strictfp class MinerBot extends Globals
 
 	private static boolean[][] alreadyExplored = new boolean[mapWidth/MAPDIVISION + 2][mapHeight/MAPDIVISION + 2];
 
+	private static MapLocation lastTarget = new MapLocation(0,0);
+	private static int lastTargetCount = 0;
+
 
     public static void run(RobotController rc) throws GameActionException
     {
         // Seed random number generator.
-        FastMath.initRand(rc);
 		System.out.println("soup location" + soupLocation);
 
 		// If we don't have the base location, let's find out.
@@ -101,6 +104,7 @@ public strictfp class MinerBot extends Globals
 
 		if (roundNum%broadCastFrequency == 1)
 		{
+	        FastMath.initRand(rc);
 			int commsArr[][]=Communications.getComms(roundNum-1);
 			// Set this up to be a switch case?
 			for(int i = 0; i < commsArr.length; i++)
@@ -326,13 +330,13 @@ public strictfp class MinerBot extends Globals
 
     	updateSQ();//should also remove all NOTGOINGTOs from SQ
 
-    	// System.out.println("MYSQSIZE is " + soupQueuePointer);
-    	// for(int i=0;i<soupQueuePointer;i++){
-    	// 	System.out.println("MY SQ: " + i +" "+ soupQueue[i].x + " " + soupQueue[i].y);
-    	// }
+    	System.out.println("MYSQSIZE is " + soupQueuePointer);
+    	for(int i=0;i<soupQueuePointer;i++){
+    		System.out.println("MY SQ: " + i +" "+ soupQueue[i].x + " " + soupQueue[i].y);
+    	}
 
 
-    	if(getValidLocalSoup() && rc.getTeamSoup()>50){
+    	if(getValidLocalSoup()){
     		pushToSQ();
     		return;
     	}
@@ -366,14 +370,25 @@ public strictfp class MinerBot extends Globals
 				}
 
 				if(!miningMode){
+					System.out.println("REACHED HERE");
 					if(currentPos.distanceSquaredTo(soupQueue[0]) <= CLOSESOUPCUTOFF){
 						reachedQ0=true;
 						if(rc.senseNearbySoup(soupQueue[0],-1).length>0){
 							miningMode=true;
 							mineSoup();
 						}
+						else{
+							return;
+						}
 					}
 					else{
+						if(lastTarget.equals(soupQueue[0]) && lastTargetCount>=LOCATIONCOUNTCUTOFF){
+							reachedQ0=false;
+							notGoingTo=lastTarget;
+							declareNoSoup(soupQueue[0]);
+							// return;
+						}
+						System.out.println("REACHED HERE 2 " + lastTarget.x + " " + lastTarget.y+  " " +lastTargetCount);				
 						newPath(soupQueue[0]);
 					}
 				}
@@ -393,7 +408,6 @@ public strictfp class MinerBot extends Globals
     private static void mineSoup() throws GameActionException{
     	System.out.println("IN MINING");
     	if(soupTarget != null && rc.canSenseLocation(soupTarget) && rc.senseSoup(soupTarget)>0){
-
     	}
     	else{
     		soupTarget=getClosestNearbySoup();
@@ -410,15 +424,38 @@ public strictfp class MinerBot extends Globals
     }
 
     private static MapLocation getClosestNearbySoup(){
-		int closestSoupInd=0;
+		int closestSoupInd=-1;
+		int secondclosestSoupInd=-1;
 		int mindist=Integer.MAX_VALUE;
+		int secondmindist=Integer.MAX_VALUE;
 		for(int i=0;i<nearbySoup.length;i++){
-			if(currentPos.distanceSquaredTo(nearbySoup[i])<mindist){
+			if(currentPos.distanceSquaredTo(nearbySoup[i])<=mindist){
+				secondmindist=mindist;
+				secondclosestSoupInd=closestSoupInd;
 				mindist=currentPos.distanceSquaredTo(nearbySoup[i]);
 				closestSoupInd=i;
 			}
+			else if (currentPos.distanceSquaredTo(nearbySoup[i])<secondmindist){
+				secondmindist=currentPos.distanceSquaredTo(nearbySoup[i]);
+				secondclosestSoupInd=i;				
+			}
 		}
-		return nearbySoup[closestSoupInd];
+		if(nearbySoup[closestSoupInd]!=notGoingTo){
+			if(closestSoupInd!=-1){
+				return nearbySoup[closestSoupInd];
+			}
+			else{
+				return new MapLocation(-1,-1);
+			}
+		}
+		else{
+			if(secondclosestSoupInd!=-1){
+				return nearbySoup[secondclosestSoupInd];			
+			}
+			else{
+				return new MapLocation(-1,-1);				
+			}
+		}
     }
 
     private static void doRefine() throws GameActionException{
@@ -632,6 +669,16 @@ public strictfp class MinerBot extends Globals
     }
 
     private static void newPath(MapLocation x) throws GameActionException{
+
+    	if(lastTarget.equals(x)){
+    		lastTargetCount++;
+    	}
+    	else{
+    		lastTarget=x;
+    		lastTargetCount=0;
+    	}
+
+
     	inPath=true;
     	pathTurns=0;
     	currentTarget=x;
