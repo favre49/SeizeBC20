@@ -45,14 +45,33 @@ public strictfp class HQBot extends Globals
 
 					case HQ: opponentHQLoc = currLocation.loc;
 					break;
+
+					case SOUP:
+					if (soupLocation == null)
+					{
+						soupLocation = currLocation.loc;
+					}
+					break;
+
+					case NO_SOUP:
+					soupLocation = null;
+					break;
 				}
 			}
 		}
 
-		if (roundNum%broadCastFrequency == 0 && opponentHQLoc!=null)
+		if (roundNum%broadCastFrequency == 0)
 		{
 			int broadCastArr[] = new int[9];
-			broadCastArr[0] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
+			int idx = 0;
+			if (opponentHQLoc != null)
+			{
+				broadCastArr[idx++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
+			}
+			if (soupLocation != null)
+			{
+				broadCastArr[idx++] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
+			}
 			Communications.sendComs(broadCastArr,1);
 		}
 
@@ -95,7 +114,7 @@ public strictfp class HQBot extends Globals
 		if (minerCount < 4)
 			buildMiner();
 
-		if (roundNum > 200 && minerCount < 8)
+		if (roundNum > 200 && minerCount < 15)
 		{
 			if (roundNum-lastRoundActive > 30)
 			{

@@ -1,4 +1,4 @@
-package redbullbot;
+package neobot;
 import battlecode.common.*;
 
 public strictfp class Communications extends Globals
@@ -110,7 +110,7 @@ public strictfp class Communications extends Globals
 		}
 
 		int[] message = new int[7];
-		message[0] |= (38 << 24);
+		message[0] |= (32 << 24);
 		
 		for(int i = 0; i < 216; i++)
 		{
@@ -167,7 +167,7 @@ public strictfp class Communications extends Globals
 
 		// System.out.println(message[0]);
 
-		if(((message[0]>>24) & 255) != 38)
+		if(((message[0]>>24) & 255) != 32)
 		{
 			System.out.println("NOT OUR MESSAGE");
 			return decoded;
