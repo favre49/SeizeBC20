@@ -80,111 +80,6 @@ public strictfp class LandscaperBot extends Globals
 		}
 		if (turnsTrapped > 20 && (opponentHQLoc == null))
 			rc.disintegrate();
-
-
-		// Late game drone rush shit.
-		if (opponentHQLoc!= null && currentPos.distanceSquaredTo(opponentHQLoc) < 35 && roundNum > 1000)
-		{
-			System.out.println("Attacking HQ");
-			if (currentPos.distanceSquaredTo(opponentHQLoc) <= 2)
-			{
-				System.out.println("Burying HQ");
-				Direction tryDir = currentPos.directionTo(opponentHQLoc);
-				if (rc.getDirtCarrying() > 0)
-				{
-					if (rc.canDepositDirt(tryDir))
-					{
-						rc.depositDirt(tryDir);
-					}
-				}
-				else
-				{
-					Direction digDir = tryDir.opposite(); 
-					if (rc.canDigDirt(digDir))
-						rc.digDirt(digDir);
-					else if (rc.canDigDirt(digDir.rotateRight()))
-						rc.digDirt(digDir.rotateRight());
-					else if (rc.canDigDirt(digDir.rotateLeft()))
-						rc.digDirt(digDir.rotateLeft());
-				}
-			}
-
-
-			if (rc.canMove(currentPos.directionTo(opponentHQLoc)))
-				rc.move(currentPos.directionTo(opponentHQLoc));
-
-			RobotInfo[] botsToKill = rc.senseNearbyRobots(currentPos, 2, opponent);
-			for (int i = 0; i < botsToKill.length; i++)
-			{
-				if (botsToKill[i].type.isBuilding())
-				{
-					System.out.println("Burying " + botsToKill[i].location);
-					Direction tryDir = currentPos.directionTo(botsToKill[i].location);
-					if (rc.getDirtCarrying() > 0)
-					{
-						if (rc.canDepositDirt(tryDir))
-						{
-							rc.depositDirt(tryDir);
-						}
-					}
-					else
-					{
-						Direction digDir = tryDir.opposite(); 
-						if (rc.canDigDirt(digDir))
-							rc.digDirt(digDir);
-						else if (rc.canDigDirt(digDir.rotateRight()))
-							rc.digDirt(digDir.rotateRight());
-						else if (rc.canDigDirt(digDir.rotateLeft()))
-							rc.digDirt(digDir.rotateLeft());
-						else 
-							return;
-					}
-					return;
-				}
-			}
-
-			if (rc.senseElevation(currentPos) > rc.senseElevation(currentPos.add(currentPos.directionTo(opponentHQLoc))))
-			{
-				System.out.println("Delevating");
-				if (rc.getDirtCarrying() == 25)
-				{
-					if (rc.canDepositDirt(currentPos.directionTo(opponentHQLoc).opposite()))
-						rc.depositDirt(currentPos.directionTo(opponentHQLoc).opposite());
-				}
-				else
-				{
-					if (rc.canDigDirt(Direction.CENTER))
-					{
-						rc.digDirt(Direction.CENTER);
-					}
-				}
-			}
-
-			if (rc.senseElevation(currentPos) < rc.senseElevation(currentPos.add(currentPos.directionTo(opponentHQLoc))))
-			{
-				System.out.println("elevating");
-				Direction tryDir = currentPos.directionTo(opponentHQLoc);
-				if (rc.getDirtCarrying() > 0)
-				{
-					if (rc.canDepositDirt(tryDir))
-					{
-						rc.depositDirt(tryDir);
-					}
-				}
-				else
-				{
-					Direction digDir = tryDir.opposite(); 
-					if (rc.canDigDirt(digDir))
-						rc.digDirt(digDir);
-					else if (rc.canDigDirt(digDir.rotateRight()))
-						rc.digDirt(digDir.rotateRight());
-					else if (rc.canDigDirt(digDir.rotateLeft()))
-						rc.digDirt(digDir.rotateLeft());
-				}
-			}
-
-			return;
-		}
 		
 
 		// Are we being attacked???
@@ -248,12 +143,12 @@ public strictfp class LandscaperBot extends Globals
 			}
 		}
 		
-		if (roundNum > 1000)
+		/*if (roundNum > 1000)
 		{
 			System.out.println(roundNum + " " + wallElevation);
 			wallElevation = baseElevation + (roundNum-1000)/100 + 3;
 		}
-
+*/
 		System.out.println("Are we under attack?" + underAttack);
 		System.out.println("We need to kill" + goToLoc);
 		// We are!!! Defend!!
@@ -379,16 +274,41 @@ public strictfp class LandscaperBot extends Globals
 			return;
 		}
 
-		if (currentPos.distanceSquaredTo(baseLoc) <= 8)
+
+		if(currentPos.distanceSquaredTo(baseLoc)<=8)
+			navigate(currentPos.add(latticeExpandDirs[rc.getID()%4]));
+		
+		/*
+		Direction currentDirectionFromTheBase = baseLoc.directionTo(currentPos);
+		currentDirectionFromTheBase = currentDirectionFromTheBase.rotateLeft().rotateLeft();
+		while(currentDirectionFromTheBase == Direction.NORTHWEST || currentDirectionFromTheBase == Direction.NORTHEAST || currentDirectionFromTheBase == Direction.SOUTHWEST || currentDirectionFromTheBase == Direction.SOUTHEAST)
 		{
-			int idx = FastMath.rand256()%4;
-			navigate(baseLoc.add(latticeExpandDirs[idx]).add(latticeExpandDirs[idx]));
-			return;
+			currentDirectionFromTheBase = currentDirectionFromTheBase.rotateLeft();
 		}
+
+		System.out.println(rc.getRoundNum());
+		System.out.println(currentDirectionFromTheBase);
+		System.out.println(currentPos);
+		System.out.println(rc.getLocation());
+		System.out.println(currentPos.add(currentDirectionFromTheBase));
+		System.out.println(rc.senseElevation(currentPos.add(currentDirectionFromTheBase)));
+		System.out.println(wallElevation);	
+		if(currentPos.add(currentDirectionFromTheBase).add(currentDirectionFromTheBase).distanceSquaredTo(baseLoc) <= 18 && rc.senseElevation(currentPos.add(currentDirectionFromTheBase).add(currentDirectionFromTheBase)) < wallElevation && rc.senseElevation(currentPos.add(currentDirectionFromTheBase)) >= wallElevation && rc.senseElevation(currentPos) >= wallElevation)
+		{
+			System.out.println("asdfasdfasdfasdf");
+			navigate(currentPos.add(currentDirectionFromTheBase));
+		}
+		else if(currentPos.add(currentDirectionFromTheBase).add(currentDirectionFromTheBase.rotateLeft().rotateLeft()).distanceSquaredTo(baseLoc) > 8 && rc.senseElevation(currentPos.add(currentDirectionFromTheBase).add(currentDirectionFromTheBase.rotateLeft().rotateLeft())) < wallElevation)
+		{
+			System.out.println("sdfgsdfgsdfgsdfg");
+			navigate(currentPos.add(currentDirectionFromTheBase).add(currentDirectionFromTheBase.rotateLeft().rotateLeft()));
+		}*/
+
+		
 
 
 		// Lattice time
-		if (currentPos.x % 2 == (baseLoc.x+1) % 2 && currentPos.y % 2 == (baseLoc.y+1) % 2)
+		if (currentPos.x % 2 == (baseLoc.x) % 2 && currentPos.y % 2 == (baseLoc.y) % 2)
 		{
 			System.out.println("In lattice pos!");
 			// If the places you dig from are waterlogged, fill them in!
@@ -403,14 +323,12 @@ public strictfp class LandscaperBot extends Globals
 					continue;
 
 				RobotInfo robotOccupying = rc.senseRobotAtLocation(nextCheck);
-				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team && robotOccupying.type.isBuilding())
+				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team)
 					continue;
 
-				System.out.println("I got this far" + directions[i]);
 
 				if (rc.senseElevation(nextCheck) < wallElevation && rc.senseElevation(nextCheck) > -100)
 				{
-					System.out.println("I entered here too " + directions[i]);
 					if (rc.getDirtCarrying() == 25)
 					{
 						if (rc.canDepositDirt(latticeExpandDirs[i]))
@@ -458,14 +376,11 @@ public strictfp class LandscaperBot extends Globals
 					continue;
 
 				RobotInfo robotOccupying = rc.senseRobotAtLocation(nextCheck);
-				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team && robotOccupying.type.isBuilding())
+				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team)
 					continue;
-
-				System.out.println("I got this far2" + directions[i]);
 				
 				if (rc.senseElevation(nextCheck) < wallElevation && rc.senseElevation(nextCheck) > -100)
 				{
-					System.out.println("I entered here too " + directions[i]);
 					if (rc.getDirtCarrying() == 25)
 					{
 						if (rc.canDepositDirt(directions[i]))
@@ -515,14 +430,11 @@ public strictfp class LandscaperBot extends Globals
 					continue;
 
 				RobotInfo robotOccupying = rc.senseRobotAtLocation(nextCheck);
-				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team && robotOccupying.type.isBuilding())
+				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team)
 					continue;
-
-				System.out.println("I got this far3" + directions[i]);
 				
 				if (rc.senseElevation(nextCheck) < wallElevation && rc.senseElevation(nextCheck) > -100)
 				{
-					System.out.println("I entered here too " + directions[i]);
 					if (rc.getDirtCarrying() ==25)
 					{
 						if (rc.canDepositDirt(directions[i]))
@@ -560,6 +472,13 @@ public strictfp class LandscaperBot extends Globals
 			}
 		}
 
+		for(int i = 0; i < directions.length; i++)
+			if(inBounds(currentPos.add(directions[i])) && rc.senseFlooding(currentPos.add(directions[i])) && rc.canSenseLocation(currentPos.add(directions[i])) && rc.senseElevation(currentPos.add(directions[i])) < wallElevation && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 18)
+			{
+				System.out.println("avocado");
+				navigate(currentPos.add(directions[i]));
+			}	
+		
 		// Choose the next place to move to.
 		explore();
 	}
@@ -807,46 +726,22 @@ public strictfp class LandscaperBot extends Globals
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 
-		searchPos = baseLoc.translate(2,-2);
+		searchPos = baseLoc.translate(0,-1);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 		
-		searchPos = baseLoc.translate(-2,-2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-				return searchPos;
-		
-		searchPos = baseLoc.translate(2,-1);
+		searchPos = baseLoc.translate(0,1);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,-1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-				return searchPos;
-		
-		searchPos = baseLoc.translate(2,0);
+
+		searchPos = baseLoc.translate(0,-2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,0);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-				return searchPos;
-		
-		searchPos = baseLoc.translate(2,1);
+
+		searchPos = baseLoc.translate(0,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(2,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
+
 		searchPos = baseLoc.translate(1,-2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
@@ -888,20 +783,44 @@ public strictfp class LandscaperBot extends Globals
 		searchPos = baseLoc.translate(-1,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-
-		searchPos = baseLoc.translate(0,-1);
+		
+		searchPos = baseLoc.translate(2,-2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 		
-		searchPos = baseLoc.translate(0,1);
+		searchPos = baseLoc.translate(-2,-2);
+		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+				return searchPos;
+		
+		searchPos = baseLoc.translate(2,-1);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		
+		searchPos = baseLoc.translate(-2,-1);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		
+		searchPos = baseLoc.translate(2,0);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		
+		searchPos = baseLoc.translate(-2,0);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		
+		searchPos = baseLoc.translate(2,1);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		
+		searchPos = baseLoc.translate(-2,1);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-
-		searchPos = baseLoc.translate(0,-2);
+		
+		searchPos = baseLoc.translate(2,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-
-		searchPos = baseLoc.translate(0,2);
+		
+		searchPos = baseLoc.translate(-2,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 
