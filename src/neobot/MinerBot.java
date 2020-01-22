@@ -30,6 +30,47 @@ public strictfp class MinerBot extends Globals
 	private static int wallElevation = 6;
 	private static int buildTurn = 0;
 
+	private static int HELDSOUPCUTOFF=50;
+	private static int CLOSESOUPCUTOFF=2;
+	private static int VALIDSOUPCUTOFF = 30;
+	private static int RFCUTOFF=70;
+	private static int MAXTURNS=10;
+	private static int STEPSIZE=5;
+	private static int MAPDIVISION=8;
+
+	private static MapLocation[] nearbySoup;
+	private static MapLocation soupTarget;
+
+	private static MapLocation[] soupQueue = new MapLocation[9];
+	private static int soupQueuePointer=0;
+
+	private static MapLocation[] validLocalSoup;
+	private static int validLocalSoupPointer=0;
+
+	private static MapLocation[] refineryList = new MapLocation[9];
+	private static int refineryListPointer=1;
+
+	private static MapLocation closestRefinery;
+	private static MapLocation localClosestRefinery;
+	private static boolean seenLocalRefinery=false;
+
+	// private static int broadCastFrequency=1;
+	private static MapLocation notGoingTo = null;
+
+	private static boolean inPath=false;
+	private static int pathTurns=0;
+	private static MapLocation currentTarget=null;
+	
+	private static boolean firstTimeSQ=true;
+	private static boolean firstTimeRL=true;
+
+	private static boolean miningMode=false;
+
+	private static boolean reachedQ0 = false;
+
+	private static boolean[][] alreadyExplored = new boolean[mapWidth/MAPDIVISION + 2][mapHeight/MAPDIVISION + 2];
+
+
     public static void run(RobotController rc) throws GameActionException
     {
         // Seed random number generator.
@@ -55,6 +96,7 @@ public strictfp class MinerBot extends Globals
 						break;
                 }
             }
+			refineryList[0]=baseLoc;
 		}
 
 		if (roundNum%broadCastFrequency == 1)
@@ -282,91 +324,364 @@ public strictfp class MinerBot extends Globals
 			}
 		}
 
-		if (soupLocation == null)
-		{
-			explore();
+    	updateSQ();//should also remove all NOTGOINGTOs from SQ
+
+    	// System.out.println("MYSQSIZE is " + soupQueuePointer);
+    	// for(int i=0;i<soupQueuePointer;i++){
+    	// 	System.out.println("MY SQ: " + i +" "+ soupQueue[i].x + " " + soupQueue[i].y);
+    	// }
+
+
+    	if(getValidLocalSoup() && rc.getTeamSoup()>50){
+    		pushToSQ();
+    		return;
+    	}
+
+    	if(inPath){
+    		pathTo();
+    	}
+
+		if(rc.getSoupCarrying()==RobotType.MINER.soupLimit){
+			doRefine();
+
 		}
-		else // We found soup, we must mine it.
-		{
-			// We found soup, but we are too far from the HQ. Let's make a refinery!
-			if (refineryLocation == null && currentPos.distanceSquaredTo(baseLoc) > 50 && rc.getTeamSoup() > 200)
-			{
-				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-				for (int i = 0; i < nearbyBots.length; i++)
-				{
-					if (nearbyBots[i].type == RobotType.REFINERY)
-					{
-						refineryLocation = nearbyBots[i].location;
-						toBeRefineryLocation = null;
-					}
+		else{
+
+			if(soupQueuePointer==0){
+
+				if(rc.getSoupCarrying()>=HELDSOUPCUTOFF){
+					doRefine();
+				}
+				else{
+					currentTarget=currentPos;
+					pickNewExploreDest2();
+					newPath(currentTarget);
+				}
+			}
+			else{
+				if(reachedQ0 && rc.senseNearbySoup(soupQueue[0],-1).length==0 /*|| !rc.canSenseLocation(soupQueue[0])*/ || (rc.canSenseLocation(soupQueue[0]) && rc.senseFlooding(soupQueue[0]))){
+					System.out.println("NOSOUPNOSOUP");
+					reachedQ0=false;
+					declareNoSoup(soupQueue[0]);
 				}
 
-				if (refineryLocation == null && toBeRefineryLocation != null)
-				{
-					if (currentPos.distanceSquaredTo(toBeRefineryLocation) <= 2)
-					{
-						for (int i = 0; i < 8; i++)
-						{
-							if (rc.canBuildRobot(RobotType.REFINERY, directions[i]))
-								buildRefinery(directions[i]);
+				if(!miningMode){
+					if(currentPos.distanceSquaredTo(soupQueue[0]) <= CLOSESOUPCUTOFF){
+						reachedQ0=true;
+						if(rc.senseNearbySoup(soupQueue[0],-1).length>0){
+							miningMode=true;
+							mineSoup();
 						}
 					}
+					else{
+						newPath(soupQueue[0]);
+					}
+				}
+				else{
+					if(rc.senseNearbySoup(currentPos,-1).length>0){
+						mineSoup();
+						miningMode=true;
+					}
+					else{
+						miningMode=false;
+					}
 				}
 			}
-			if (rc.getSoupCarrying() >= 100)
-			{
-				if (refineryLocation == null)
-				{
-					if (currentPos.distanceSquaredTo(baseLoc) <= 2)
-						rc.depositSoup(currentPos.directionTo(baseLoc), rc.getSoupCarrying());
-					else
-						navigate(baseLoc);
-				}
-				else
-				{
-					if (currentPos.distanceSquaredTo(refineryLocation) <= 2)
-						rc.depositSoup(currentPos.directionTo(refineryLocation), rc.getSoupCarrying());
-					else
-						navigate(refineryLocation);
-				} 
-			}
-			else
-			{
-				if (currentPos.distanceSquaredTo(soupLocation) < NEAR_SOUP)
-				{
-					MapLocation loc = senseNearbySoup();
-					if (loc == null)  // No soup nearby? Must be no soup left!!
-					{
-						soupLocation = null;
-						refineryLocation = null;
-						isExploring = true;
+		}		
+    }
 
-						int broadCastArr[] = new int[9];
-						broadCastArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP, new MapLocation(0,0));
-						Communications.sendComs(broadCastArr,1);
-					}
-					else if(currentPos.distanceSquaredTo(loc) <= 2)
-					{
-						soupLocation = loc;
-						if (rc.isReady())
-							rc.mineSoup(currentPos.directionTo(loc));
-						else
-							return;
-					}
-					else
-					{
-						soupLocation = loc;
-						navigate(soupLocation);
-					}
-				}
-				else
-				{
-					navigate(soupLocation);
+    private static void mineSoup() throws GameActionException{
+    	System.out.println("IN MINING");
+    	if(soupTarget != null && rc.canSenseLocation(soupTarget) && rc.senseSoup(soupTarget)>0){
+
+    	}
+    	else{
+    		soupTarget=getClosestNearbySoup();
+    	}
+
+    	if(currentPos.distanceSquaredTo(soupTarget)<=2){
+    		System.out.println("HOLDING:" + rc.getSoupCarrying());
+    		rc.mineSoup(currentPos.directionTo(soupTarget));
+    	}
+    	else{
+    		newPath(soupTarget);
+    	}
+
+    }
+
+    private static MapLocation getClosestNearbySoup(){
+		int closestSoupInd=0;
+		int mindist=Integer.MAX_VALUE;
+		for(int i=0;i<nearbySoup.length;i++){
+			if(currentPos.distanceSquaredTo(nearbySoup[i])<mindist){
+				mindist=currentPos.distanceSquaredTo(nearbySoup[i]);
+				closestSoupInd=i;
+			}
+		}
+		return nearbySoup[closestSoupInd];
+    }
+
+    private static void doRefine() throws GameActionException{
+		// if(seenLocalRefinery && !(rc.canSenseLocation(localClosestRefinery))){
+		// 	seenLocalRefinery=false;
+		// }
+
+		updateRL();
+		int refineryDist = getClosestRefinery();
+
+		// if(!seenLocalRefinery){
+		// System.out.println(roundNum);
+		// System.out.println(Clock.getBytecodeNum());
+		checkLocalRefinery();
+		// System.out.println(roundNum);
+		// System.out.println(Clock.getBytecodeNum());
+
+		// }
+
+		if(seenLocalRefinery && localClosestRefinery.distanceSquaredTo(currentPos)<refineryDist){
+			refineryDist=localClosestRefinery.distanceSquaredTo(currentPos);
+			closestRefinery=localClosestRefinery;
+		}
+
+		if(refineryDist<=RFCUTOFF || rc.getTeamSoup()<200){
+			if(refineryDist<=2){
+				rc.depositSoup(currentPos.directionTo(closestRefinery), rc.getSoupCarrying());
+			}
+			else{
+				newPath(closestRefinery);
+			}
+		}
+		else{
+			for (int i = 0; i < 8; i++)
+			{
+				if (rc.canBuildRobot(RobotType.REFINERY, directions[i]) && rc.getTeamSoup()>=201){
+					announceRefinery(directions[i]);
+					buildRefinery(directions[i]);
 				}
 			}
 		}
-		
+	}
+
+	private static void checkLocalRefinery(){
+		RobotInfo[] nearbyRef=rc.senseNearbyRobots(-1);
+		int nearDist = Integer.MAX_VALUE;
+		for(int i=0;i<nearbyRef.length;i++){
+			if(nearbyRef[i].type == RobotType.REFINERY){
+				seenLocalRefinery=true;
+				if(currentPos.distanceSquaredTo(nearbyRef[i].location)<nearDist){
+					localClosestRefinery=nearbyRef[i].location;
+					nearDist=currentPos.distanceSquaredTo(nearbyRef[i].location);
+				}
+			}
+		}
+	}
+
+	private static void declareNoSoup(MapLocation zz) throws GameActionException{
+		System.out.println("SENDING NO SOUP: " + zz.x + " " + zz.y);
+		int broadCastArr[] = new int[9];
+		broadCastArr[0] = Communications.getCommsNum(ObjectType.NO_SOUP, zz);
+		Communications.sendComs(broadCastArr,1);
+	}
+
+
+	private static void announceRefinery(Direction x) throws GameActionException{
+		MapLocation newRefineryLocation=currentPos.add(x);
+
+		seenLocalRefinery=true;
+		localClosestRefinery=newRefineryLocation;
+
+		int broadCastArr[] = new int[9];
+		broadCastArr[0] = Communications.getCommsNum(ObjectType.REFINERY, newRefineryLocation);
+		Communications.sendComs(broadCastArr,1);
+	}
+
+
+	private static int getClosestRefinery() throws GameActionException{
+        MapLocation minLoc = null;
+        int minDist = Integer.MAX_VALUE;
+
+        for (int i = 0; i < refineryListPointer; i++)
+        {
+        	System.out.println("HIHIHI");
+        	System.out.println("HIHIHIHIH: " + refineryList[i].x + refineryList[i].y);
+            if (currentPos.distanceSquaredTo(refineryList[i]) < minDist)
+            {
+                minDist = currentPos.distanceSquaredTo(refineryList[i]);
+                minLoc = refineryList[i];
+            }
+        }
+        closestRefinery=minLoc;
+        // System.out.println(minDist);
+
+        return minDist;
+	}
+
+    private static void getBaseLoc() throws GameActionException{
+		int[][] commsarr=Communications.getComms(1);
+        outerloop:
+        for(int i=0;i<commsarr.length;i++){
+            for (int j = 0; j < commsarr[i].length; j++)
+            {
+                ObjectLocation objectHQLocation = Communications.getLocationFromInt(commsarr[i][j]); 
+                if(objectHQLocation.rt==ObjectType.HQ)
+                {
+                    baseLoc = new MapLocation(objectHQLocation.loc.x,objectHQLocation.loc.y);
+                    break outerloop;
+                }
+				else if (objectHQLocation.rt == ObjectType.COW)
+					break;
+            }
+        }    	
     }
+
+
+    private static void updateSQ() throws GameActionException{
+    	// soupQueuePointer=0;
+		if (roundNum%broadCastFrequency == 1 || firstTimeSQ)
+		{
+			int toQuery = roundNum-(roundNum%broadCastFrequency);
+			if(toQuery==roundNum)toQuery-=broadCastFrequency;
+			if(toQuery<0)return;
+			int commsArr[][]=Communications.getComms(toQuery);
+			firstTimeSQ=false;
+			soupQueuePointer=0;
+			for(int i = 0; i < commsArr.length; i++)
+			{
+				innerloop:
+				for (int j = 0; j < commsArr[i].length; j++)
+                {
+					ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+					switch(currLocation.rt)
+					{
+						case COW: 
+							break innerloop;
+
+						case SOUP:
+							if(currLocation.loc!=notGoingTo && soupQueuePointer<9)
+								soupQueue[soupQueuePointer++]=currLocation.loc;
+						break;
+					}
+                }
+			}
+		}    	
+    }
+
+    private static void updateRL() throws GameActionException{
+    	// refineryListPointer=1;
+		if (roundNum%broadCastFrequency == 1 || firstTimeRL)
+		{
+			int toQuery = roundNum-(roundNum%broadCastFrequency);
+			if(toQuery==roundNum)toQuery-=broadCastFrequency;
+			if(toQuery<0)return;
+
+			firstTimeRL=false;
+			refineryListPointer=1;
+			int commsArr[][]=Communications.getComms(toQuery);
+			for(int i = 0; i < commsArr.length; i++)
+			{
+				innerloop:
+				for (int j = 0; j < commsArr[i].length; j++)
+                {
+					ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+					switch(currLocation.rt)
+					{
+						case COW: 
+							break innerloop;
+
+						case REFINERY:
+							if(currLocation.loc!=notGoingTo && refineryListPointer<9)
+								refineryList[refineryListPointer++]=currLocation.loc;
+						break;
+					}
+                }
+			}
+		}    	
+    }
+
+
+    private static boolean getValidLocalSoup() throws GameActionException{
+    	nearbySoup=rc.senseNearbySoup(currentPos,-1);
+    	validLocalSoup = new MapLocation[nearbySoup.length];
+    	validLocalSoupPointer=0;
+    	for(int i=0;i<nearbySoup.length;i++){
+    		if(rc.senseFlooding(nearbySoup[i])){
+    			continue;
+    		}
+    		boolean works=true;
+    		for(int j=0;j<soupQueuePointer;j++){
+    			if(nearbySoup[i].distanceSquaredTo(soupQueue[j])<=VALIDSOUPCUTOFF){
+    				works=false;
+    				break;
+    			}
+    		}
+
+    		if(works){
+    			validLocalSoup[validLocalSoupPointer++]=nearbySoup[i];
+    			break;
+    		}
+    	}
+    	return (validLocalSoupPointer>0);
+    }
+
+    public static void pushToSQ() throws GameActionException{
+		int broadCastArr[] = new int[9];
+		for(int i=0;i<Math.min(9,validLocalSoupPointer);i++){
+			broadCastArr[i] = Communications.getCommsNum(ObjectType.SOUP, validLocalSoup[i]);
+		}
+		Communications.sendComs(broadCastArr,1);
+    }
+
+    private static void newPath(MapLocation x) throws GameActionException{
+    	inPath=true;
+    	pathTurns=0;
+    	currentTarget=x;
+    	pathTo();
+    }
+
+	private static void pathTo() throws GameActionException
+	{
+		// System.out.println("X:" + currentTarget.x);
+		// System.out.println("Y:" + currentTarget.y);
+		// System.out.println("pathTurns" + pathTurns);
+
+		if(currentTarget == null)
+		{
+			currentTarget = currentPos;
+			pickNewExploreDest2();
+		}
+
+		if(pathTurns >= MAXTURNS || rc.canSenseLocation(currentTarget) && rc.senseFlooding(currentTarget)||(currentPos.distanceSquaredTo(currentTarget)<=2))
+		{
+			alreadyExplored[currentPos.x/MAPDIVISION][currentPos.y/MAPDIVISION]=true;
+			inPath=false;
+			pathTurns = 0;
+			currentTarget = currentPos;
+		}
+						
+		pathTurns++;
+		navigate(currentTarget);
+	}
+
+	private static void pickNewExploreDest2() throws GameActionException 
+	{
+		// Check if do while is a bad way to do this.
+		boolean firsttime = true;
+		do
+		{
+			Direction dir = directions[FastMath.rand256()%8];
+			currentTarget = currentTarget.translate(dir.dx*STEPSIZE, dir.dy*STEPSIZE);
+			if(!firsttime && !inBounds(currentTarget))
+			{
+				//this is the quick fix.
+				currentTarget = currentTarget.translate(-1*dir.dx*STEPSIZE, -1*dir.dy*STEPSIZE);                
+			}
+			firsttime=false;
+		}
+		while((!inBounds(currentTarget)) || alreadyExplored[currentTarget.x/MAPDIVISION][currentTarget.y/MAPDIVISION]);
+
+		pathTurns = 0;
+	}
+
 
 
     /******* NAVIGATION *************/

@@ -28,7 +28,7 @@ public class Globals
     // public static ObjectLocation[] objectArray = new ObjectLocation[12];
     // public static int objectArraySize = 0;
 
-    public static final int broadCastFrequency = 10;
+    public static final int broadCastFrequency = 5;
 
     enum ObjectType{
         COW,DELIVERY_DRONE,DESIGN_SCHOOL,FULFILLMENT_CENTER,HQ,LANDSCAPER,MINER,NET_GUN,REFINERY,VAPORATOR,SOUP,WATER,TO_BE_REFINERY, NO_SOUP;
