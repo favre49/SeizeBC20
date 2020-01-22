@@ -7,7 +7,7 @@ public class Globals
 
     public static short x[] = {0, 1, 1, 1, 0, -1, -1, -1};
     public static short y[] = {1, 1, 0, -1, -1, -1, 0, 1};
-    public static Direction[] directions = {Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST, Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST};
+    public static Direction[] directions = {Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST, Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, Direction.CENTER};
     //Direction path[] = {DIrection.EAST, Direction.EAST, Direction.SOUTH, Direction.SOUTH, Direction.WEST, Direction.WEST, Direction.NORTH, Direction.NORTH};
     
     public static int mapWidth;
@@ -28,7 +28,7 @@ public class Globals
     // public static ObjectLocation[] objectArray = new ObjectLocation[12];
     // public static int objectArraySize = 0;
 
-    public static final int broadCastFrequency = 30;
+    public static final int broadCastFrequency = 10;
 
     enum ObjectType{
         COW,DELIVERY_DRONE,DESIGN_SCHOOL,FULFILLMENT_CENTER,HQ,LANDSCAPER,MINER,NET_GUN,REFINERY,VAPORATOR,SOUP,WATER,TO_BE_REFINERY, NO_SOUP;

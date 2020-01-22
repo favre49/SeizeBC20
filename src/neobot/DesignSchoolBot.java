@@ -36,7 +36,20 @@ public strictfp class DesignSchoolBot extends Globals
                 }
         }
 
-        if (roundNum - lastRoundActive > 40 && rc.isReady() && numLandscapers < 15)
+        if (roundNum > 800 && roundNum - lastRoundActive > 30 && rc.isReady())
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                int idx = (scaperIdx+i)%8;
+                 if (rc.canBuildRobot(RobotType.LANDSCAPER, directions[idx]))
+                 {
+                    scaperIdx = (idx+1)%8;
+                    buildLandscaper(directions[idx]);
+                 }
+            }
+        }
+
+        if (roundNum - lastRoundActive > 40 && rc.isReady())
         {
             for (int i = 0; i < 8; i++)
             {
