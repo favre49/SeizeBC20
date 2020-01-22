@@ -13,7 +13,7 @@ import battlecode.common.*;
 public strictfp class MinerBot extends Globals
 {
     // Hardcoded constants I use.
-    private static int NEAR_SOUP = 5;
+    private static int NEAR_SOUP = 2;
     private static int REFINERY_DISTANCE = 6;
 
 	private static boolean sensedOnFirstRound = false;
@@ -28,12 +28,13 @@ public strictfp class MinerBot extends Globals
 	private static int numVapes = 0;
 	private static int baseElevation = 3;
 	private static int wallElevation = 6;
-	private static boolean buildTurn = false;
+	private static int buildTurn = 0;
 
     public static void run(RobotController rc) throws GameActionException
     {
         // Seed random number generator.
         FastMath.initRand(rc);
+		System.out.println("soup location" + soupLocation);
 
 		// If we don't have the base location, let's find out.
 		if (baseLoc == null)
@@ -141,23 +142,31 @@ public strictfp class MinerBot extends Globals
 
 		if (shouldBuild && !builtFulfilmentCenter)
 		{
-			RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-			for (int i = 0; i < nearbyBots.length; i++)
+			if (baseLoc.distanceSquaredTo(currentPos) > 5)
 			{
-				if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
-				{
-					shouldBuild = false;
-					builtFulfilmentCenter = true;
-					break;
-				}
+				navigate(baseLoc);
 			}
-
-			if (shouldBuild)
+			else
 			{
-				for (int i = 0; i < 8; i++)
+				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+				for (int i = 0; i < nearbyBots.length; i++)
 				{
-					if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]))
-						buildFulfilmentCenter(directions[i]);
+					if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
+					{
+						shouldBuild = false;
+						builtFulfilmentCenter = true;
+						break;
+					}
+				}
+
+				if (!builtFulfilmentCenter)
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8)
+							buildFulfilmentCenter(directions[i]);
+					}
+					navigate(baseLoc);
 				}
 			}
 		}
@@ -223,7 +232,7 @@ public strictfp class MinerBot extends Globals
 		}
 
 
-		if (rc.getTeamSoup() > 500)
+		if (rc.getTeamSoup() > 500 && (rc.senseElevation(currentPos) >= 8||roundNum < 200))
 		{
 			int vapenums = 0;
 			RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
@@ -241,33 +250,37 @@ public strictfp class MinerBot extends Globals
 					MapLocation buildPos = currentPos.add(directions[i]);
 					if (rc.canBuildRobot(RobotType.VAPORATOR, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
 					{
+						buildTurn++;
 						buildVaporator(directions[i]);
 					}
 				}
 			}
 		}
 
-		// if (rc.getTeamSoup() > 250 && !buildNetGun)
-		// {
-		// 	int numGuns = 0;
-		// 	RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
-		// 	for (int i = 0; i < nearbyVapes.length; i++)
-		// 	{
-		// 		if (nearbyVapes[i].type == RobotType.NET_GUN)
-		// 		{
-		// 			numGuns++;
-		// 		}
-		// 	}
-		// 	if (numGuns < 1)
-		// 	{
-		// 		for (int i = 0; i < 8; i++)
-		// 		{
-		// 			MapLocation buildPos = currentPos.add(directions[i]);
-		// 			if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
-		// 				buildNetGun(directions[i]);
-		// 		}
-		// 	}
-		// }
+		if (rc.getTeamSoup() > 250 && rc.senseElevation(currentPos) >= 8 && roundNum > 500 && buildTurn%4 == 0)
+		{
+			int numGuns = 0;
+			RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
+			for (int i = 0; i < nearbyVapes.length; i++)
+			{
+				if (nearbyVapes[i].type == RobotType.NET_GUN)
+				{
+					numGuns++;
+				}
+			}
+			if (numGuns < 1)
+			{
+				for (int i = 0; i < 8; i++)
+				{
+					MapLocation buildPos = currentPos.add(directions[i]);
+					if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
+					{
+						buildTurn++;
+						buildNetGun(directions[i]);
+					}
+				}
+			}
+		}
 
 		if (soupLocation == null)
 		{
@@ -335,7 +348,10 @@ public strictfp class MinerBot extends Globals
 					else if(currentPos.distanceSquaredTo(loc) <= 2)
 					{
 						soupLocation = loc;
-						rc.mineSoup(currentPos.directionTo(loc));
+						if (rc.isReady())
+							rc.mineSoup(currentPos.directionTo(loc));
+						else
+							return;
 					}
 					else
 					{
@@ -375,6 +391,7 @@ public strictfp class MinerBot extends Globals
 
 		if (dest.equals(currentPos))
 			return;
+
 
 		Direction nextDir = currentPos.directionTo(dest);
 		// If we can move in the best direction, let's not bother bugging.
