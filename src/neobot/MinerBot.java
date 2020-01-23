@@ -74,7 +74,7 @@ private static int HELDSOUPCUTOFF=50;
 
     public static void run(RobotController rc) throws GameActionException
     {
-        // Seed random number generator.
+        FastMath.initRand(rc);
 		System.out.println("soup location" + soupLocation);
 
 		// If we don't have the base location, let's find out.
@@ -96,51 +96,44 @@ private static int HELDSOUPCUTOFF=50;
 						break;
                 }
             }
-			refineryList[0]=baseLoc;
+            refineryList[0]=baseLoc;
 		}
 
-		if (roundNum%broadCastFrequency == 0)
+		if (roundNum%broadCastFrequency == 1)
 		{
-	        FastMath.initRand(rc);
-			// int commsArr[][]=Communications.getComms(roundNum-1);
-			// // Set this up to be a switch case?
-			// for(int i = 0; i < commsArr.length; i++)
-			// {
-			// 	innerloop:
-			// 	for (int j = 0; j < commsArr[i].length; j++)
-   //              {
-			// 		ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
-			// 		switch(currLocation.rt)
-			// 		{
-			// 			case COW: break innerloop;
-
-			// 			case HQ: opponentHQLoc = currLocation.loc;
-			// 			break;
-
-			// 			case SOUP:
-			// 			if (soupLocation == null)
-			// 			{
-			// 				soupLocation = currLocation.loc;
-			// 				toBeRefineryLocation = currLocation.loc;
-			// 				refineryLocation = null;
-			// 			}
-			// 			break;
-			// 		}
-
-   //              }
-			// }
-		}
-
-		RobotInfo[] nearbyOpps= rc.senseNearbyRobots(currentPos, -1, opponent);
-		boolean shouldBuild = false;
-		for (int i = 0; i < nearbyOpps.length; i++)
-		{
-			if (!nearbyOpps[i].type.isBuilding())
+			int commsArr[][]=Communications.getComms(roundNum-1);
+			// Set this up to be a switch case?
+			for(int i = 0; i < commsArr.length; i++)
 			{
-				shouldBuild = true;
-				break;
+				innerloop:
+				for (int j = 0; j < commsArr[i].length; j++)
+                {
+					ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+					switch(currLocation.rt)
+					{
+						case COW: break innerloop;
+
+						case HQ: opponentHQLoc = currLocation.loc;
+						break;
+
+						case SOUP:
+						if (soupLocation == null)
+						{
+							soupLocation = currLocation.loc;
+							toBeRefineryLocation = currLocation.loc;
+							refineryLocation = null;
+						}
+						break;
+
+						case NO_SOUP:
+						soupLocation = null;
+						toBeRefineryLocation = null;
+					}
+
+                }
 			}
 		}
+
 
 		if (rc.canSenseLocation(baseLoc))
 		{
@@ -156,38 +149,55 @@ private static int HELDSOUPCUTOFF=50;
 
 		System.out.println("I am carrying " + rc.getSoupCarrying() + " soup");
 
-		if (opponentHQLoc != null)
-		{
-			if (currentPos.distanceSquaredTo(opponentHQLoc) > 20)
-				navigate(opponentHQLoc);
-			else
-			{
-				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-				for (int i = 0; i < nearbyBots.length; i++)
-				{
-					if (nearbyBots[i].type == RobotType.NET_GUN)
-					{
-						buildNetGun = false;
-						break;
-					}
-				}
+		// if (opponentHQLoc != null)
+		// {
+		// 	if (currentPos.distanceSquaredTo(opponentHQLoc) > 20)
+		// 		navigate(opponentHQLoc);
+		// 	else
+		// 	{
+		// 		RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+		// 		for (int i = 0; i < nearbyBots.length; i++)
+		// 		{
+		// 			if (nearbyBots[i].type == RobotType.NET_GUN)
+		// 			{
+		// 				buildNetGun = false;
+		// 				break;
+		// 			}
+		// 		}
 
-				if (buildNetGun)
+		// 		if (buildNetGun)
+		// 		{
+		// 			for (int i = 0; i < 8; i++)
+		// 			{
+		// 				if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]))
+		// 					buildNetGun(directions[i]);
+		// 			}
+		// 		}
+		// 	}
+		// }
+
+		boolean shouldBuildFC = false;
+		boolean shouldBuildDS = false;
+		if (currentPos.distanceSquaredTo(baseLoc) <= 35)
+		{
+			RobotInfo[] nearbyOpps= rc.senseNearbyRobots(currentPos, -1, opponent);
+			for (int i = 0; i < nearbyOpps.length; i++)
+			{
+				if (!nearbyOpps[i].type.isBuilding())
 				{
-					for (int i = 0; i < 8; i++)
-					{
-						if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]))
-							buildNetGun(directions[i]);
-					}
+					shouldBuildFC = true;
+				}
+				else
+				{
+					shouldBuildDS = true;
 				}
 			}
 		}
 
-		if (shouldBuild && !builtFulfilmentCenter)
+		if (shouldBuildFC && !builtFulfilmentCenter && rc.getTeamSoup()>150)
 		{
 			if (baseLoc.distanceSquaredTo(currentPos) > 5)
 			{
-				// System.out.println("HELLO HELLO");
 				navigate(baseLoc);
 				return;
 			}
@@ -198,7 +208,77 @@ private static int HELDSOUPCUTOFF=50;
 				{
 					if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
 					{
-						shouldBuild = false;
+						shouldBuildFC = false;
+						builtFulfilmentCenter = true;
+						break;
+					}
+				}
+
+				if (!builtFulfilmentCenter)
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8){
+							buildFulfilmentCenter(directions[i]);
+							return;
+						}
+
+					}
+					navigate(baseLoc);
+					return;
+				}
+			}
+		}
+
+		if (shouldBuildDS && !builtDesignSchool && rc.getTeamSoup()>150)
+		{
+			if (baseLoc.distanceSquaredTo(currentPos) > 5)
+			{
+				navigate(baseLoc);
+				return;
+			}
+			else
+			{
+				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+				for (int i = 0; i < nearbyBots.length; i++)
+				{
+					if (nearbyBots[i].type == RobotType.DESIGN_SCHOOL)
+					{
+						shouldBuildDS = false;
+						builtDesignSchool = true;
+						break;
+					}
+				}
+
+				if (!builtDesignSchool)
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						if (rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8){
+							buildDesignSchool(directions[i]);
+							return;
+						}
+					}
+					navigate(baseLoc);
+					return;
+				}
+			}
+		}
+
+		if (roundNum > 100 && !builtFulfilmentCenter && rc.getTeamSoup()>150)
+		{
+			if (baseLoc.distanceSquaredTo(currentPos) > 5)
+			{
+				navigate(baseLoc);
+				return;
+			}
+			else
+			{
+				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+				for (int i = 0; i < nearbyBots.length; i++)
+				{
+					if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
+					{
 						builtFulfilmentCenter = true;
 						break;
 					}
@@ -218,13 +298,12 @@ private static int HELDSOUPCUTOFF=50;
 				}
 			}
 		}
-
-		if (roundNum > 100 && !builtDesignSchool)
+		
+		if (roundNum > 150 && !builtDesignSchool && rc.getTeamSoup()>150)
 		{
 			if (baseLoc.distanceSquaredTo(currentPos) > 8)
 			{
 				navigate(baseLoc);
-				return;
 			}
 			else
 			{
@@ -246,41 +325,6 @@ private static int HELDSOUPCUTOFF=50;
 							buildDesignSchool(directions[i]);
 							return;
 						}
-
-					}
-					navigate(baseLoc);
-					return;
-				}
-			}
-		}
-
-		if (roundNum > 150 && !builtFulfilmentCenter)
-		{
-			if (baseLoc.distanceSquaredTo(currentPos) > 5)
-			{
-				navigate(baseLoc);
-				return;
-			}
-			else
-			{
-				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-				for (int i = 0; i < nearbyBots.length; i++)
-				{
-					if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
-					{
-						builtFulfilmentCenter = true;
-						break;
-					}
-				}
-
-				if (!builtFulfilmentCenter)
-				{
-					for (int i = 0; i < 8; i++)
-					{
-						if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8){
-							buildFulfilmentCenter(directions[i]);
-							return;
-						}
 					}
 					navigate(baseLoc);
 					return;
@@ -289,7 +333,8 @@ private static int HELDSOUPCUTOFF=50;
 		}
 
 
-		if (rc.getTeamSoup() > 500 && (rc.senseElevation(currentPos) >= 8||roundNum < 200))
+
+		if (rc.getTeamSoup() > 500 && (rc.senseElevation(currentPos) >= 8||roundNum < 300))
 		{
 			int vapenums = 0;
 			RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
@@ -315,33 +360,32 @@ private static int HELDSOUPCUTOFF=50;
 			}
 		}
 
-    	System.out.println("READY HERE1? " + rc.isReady());
-		if (rc.getTeamSoup() > 250 && rc.senseElevation(currentPos) >= 8 && roundNum > 500 && buildTurn%4 == 0)
-		{
-			int numGuns = 0;
-			RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
-			for (int i = 0; i < nearbyVapes.length; i++)
-			{
-				if (nearbyVapes[i].type == RobotType.NET_GUN)
-				{
-					numGuns++;
-				}
-			}
-			if (numGuns < 1)
-			{
-				for (int i = 0; i < 8; i++)
-				{
-					MapLocation buildPos = currentPos.add(directions[i]);
-					if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
-					{
-						buildTurn++;
-						buildNetGun(directions[i]);
-						return;
-					}
-				}
-			}
-		}
-    	System.out.println("READY HERE2? " + rc.isReady());
+		// if (rc.getTeamSoup() > 250 && rc.senseElevation(currentPos) >= 8 && roundNum > 500 && buildTurn%4 == 0)
+		// {
+		// 	int numGuns = 0;
+		// 	RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
+		// 	for (int i = 0; i < nearbyVapes.length; i++)
+		// 	{
+		// 		if (nearbyVapes[i].type == RobotType.NET_GUN)
+		// 		{
+		// 			numGuns++;
+		// 		}
+		// 	}
+		// 	if (numGuns < 1)
+		// 	{
+		// 		for (int i = 0; i < 8; i++)
+		// 		{
+		// 			MapLocation buildPos = currentPos.add(directions[i]);
+		// 			if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
+		// 			{
+		// 				buildTurn++;
+		// 				buildNetGun(directions[i]);
+		// 			}
+		// 		}
+		// 	}
+		// }
+
+		System.out.println("REACHING MINER CODE");
 
 		updateSQ();//should also remove all NOTGOINGTOs from SQ
 
@@ -522,7 +566,7 @@ private static void mineSoup() throws GameActionException{
         for (int i = 0; i < refineryListPointer; i++)
         {
         	System.out.println("HIHIHI");
-        	System.out.println("HIHIHIHIH: " + refineryList[i].x + refineryList[i].y);
+        	// System.out.println("HIHIHIHIH: " + refineryList[i].x + refineryList[i].y);
             if (currentPos.distanceSquaredTo(refineryList[i]) < minDist)
             {
                 minDist = currentPos.distanceSquaredTo(refineryList[i]);
