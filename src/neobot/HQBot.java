@@ -26,8 +26,6 @@ public strictfp class HQBot extends Globals
 	private static int lastTurnTo9Soup=0;
 	private static int lastTurnTo9Ref=0;
 
-	private static int VALIDSOUPCUTOFF = 30;
-	private static int NINELIMIT = 50;
 
 
     public static void run(RobotController rc) throws GameActionException

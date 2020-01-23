@@ -13,10 +13,6 @@ import battlecode.common.*;
 public strictfp class MinerBot extends Globals
 {
     // Hardcoded constants I use.
-    private static int NEAR_SOUP = 2;
-    private static int REFINERY_DISTANCE = 6;
-
-	private static boolean sensedOnFirstRound = false;
 
     private static boolean[][] exploredGrid = new boolean[mapWidth][mapHeight];
     private static MapLocation refineryLocation;
@@ -30,14 +26,7 @@ public strictfp class MinerBot extends Globals
 	private static int wallElevation = 6;
 	private static int buildTurn = 0;
 
-
-private static int HELDSOUPCUTOFF=50;
-	private static int CLOSESOUPCUTOFF=2;
-	private static int VALIDSOUPCUTOFF = 30;
-	private static int RFCUTOFF=70;
-	private static int MAXTURNS=10;
-	private static int STEPSIZE=5;
-	private static int MAPDIVISION=4;
+	/*MINING CONSTANTS*/
 
 	private static MapLocation[] nearbySoup;
 	private static MapLocation soupTarget;
@@ -395,7 +384,7 @@ private static int HELDSOUPCUTOFF=50;
     	// }
 
 
-    	if(getValidLocalSoup() && rc.getTeamSoup()>50){
+    	if(getValidLocalSoup() && rc.getTeamSoup()>MINSOUPFORCOMMS){
     		pushToSQ();
     		return;
     	}
@@ -520,6 +509,7 @@ private static void mineSoup() throws GameActionException{
 				if (rc.canBuildRobot(RobotType.REFINERY, directions[i]) && rc.getTeamSoup()>=201){
 					announceRefinery(directions[i]);
 					buildRefinery(directions[i]);
+					return;
 				}
 			}
 		}

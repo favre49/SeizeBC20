@@ -25,6 +25,19 @@ public class Globals
     public static float baseCooldown;
     public static int health;
 
+    //mining constants
+    private static int HELDSOUPCUTOFF=50; //When no soup location is known, how much soup held to explore vs refine
+    private static int CLOSESOUPCUTOFF=2; //How close to be to a soup location to "reach it", probably don't change this
+    private static int VALIDSOUPCUTOFF = 30; //How far a new soup location must be from an old one
+    private static int RFCUTOFF=70; //Go to old refinery or build new one 
+    private static int MAXTURNS=10; //for pathing
+    private static int STEPSIZE=5; //for exploration
+    private static int MAPDIVISION=4; //Exporation , higher number is more explorative, use powers of two
+    private static int MINSOUPFORCOMMS=50;//under this, miners will not send new soup locations
+
+    private static int NINELIMIT = 50;//how many turns an HQ should hold a queue at 9 before flushing it
+
+
     // public static ObjectLocation[] objectArray = new ObjectLocation[12];
     // public static int objectArraySize = 0;
 
