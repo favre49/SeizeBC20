@@ -880,10 +880,97 @@ public strictfp class DroneBot extends Globals
 		searchPos = baseLoc.translate(2,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-		
+
 		searchPos = baseLoc.translate(-2,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
+
+		searchPos = baseLoc.translate(3,-3);
+		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+			return searchPos;
+		searchPos = baseLoc.translate(-3,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,-2);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,-2);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,-1);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,-1);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,0);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,0);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,1);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,1);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,2);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,2);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+
+		searchPos = baseLoc.translate(-3,3);
+		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+			return searchPos;
+		searchPos = baseLoc.translate(-3,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(-2,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-2,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(-1,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-1,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(0,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(0,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(1,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(1,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(2,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(2,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(3,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+
 
 		return null;
 

@@ -49,33 +49,7 @@ public strictfp class DesignSchoolBot extends Globals
             }
         }
 
-        if (roundNum > 1000 && roundNum - lastRoundActive > 10 && rc.isReady())
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                int idx = (scaperIdx+i)%8;
-                if (rc.canBuildRobot(RobotType.LANDSCAPER, directions[idx]))
-                {
-                    scaperIdx = (idx+1)%8;
-                    buildLandscaper(directions[idx]);
-                }
-            }
-        }
-
-        if (roundNum > 800 && roundNum - lastRoundActive > 30 && rc.isReady())
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                int idx = (scaperIdx+i)%8;
-                 if (rc.canBuildRobot(RobotType.LANDSCAPER, directions[idx]))
-                 {
-                    scaperIdx = (idx+1)%8;
-                    buildLandscaper(directions[idx]);
-                 }
-            }
-        }
-
-        if (roundNum - lastRoundActive > 40 && rc.isReady())
+        if (roundNum - lastRoundActive > 20 && rc.isReady() && roundNum < 400)
         {
             for (int i = 0; i < 8; i++)
             {
@@ -99,51 +73,27 @@ public strictfp class DesignSchoolBot extends Globals
 
     private static MapLocation findWaterAroundBase() throws GameActionException
 	{
-		// Search over every viable location.
+				// Search over every viable location.
 		MapLocation searchPos = baseLoc.translate(0,0);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 
-		searchPos = baseLoc.translate(2,-2);
+		searchPos = baseLoc.translate(0,-1);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 		
-		searchPos = baseLoc.translate(-2,-2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-				return searchPos;
-		
-		searchPos = baseLoc.translate(2,-1);
+		searchPos = baseLoc.translate(0,1);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,-1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-				return searchPos;
-		
-		searchPos = baseLoc.translate(2,0);
+
+		searchPos = baseLoc.translate(0,-2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,0);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-				return searchPos;
-		
-		searchPos = baseLoc.translate(2,1);
+
+		searchPos = baseLoc.translate(0,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(2,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
+
 		searchPos = baseLoc.translate(1,-2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
@@ -185,22 +135,133 @@ public strictfp class DesignSchoolBot extends Globals
 		searchPos = baseLoc.translate(-1,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
-
-		searchPos = baseLoc.translate(0,-1);
+		
+		searchPos = baseLoc.translate(2,-2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 		
-		searchPos = baseLoc.translate(0,1);
+		searchPos = baseLoc.translate(-2,-2);
+		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+				return searchPos;
+		
+		searchPos = baseLoc.translate(2,-1);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		
+		searchPos = baseLoc.translate(-2,-1);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		
+		searchPos = baseLoc.translate(2,0);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		
+		searchPos = baseLoc.translate(-2,0);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		
+		searchPos = baseLoc.translate(2,1);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		
+		searchPos = baseLoc.translate(-2,1);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 
-		searchPos = baseLoc.translate(0,-2);
+        searchPos = baseLoc.translate(-2,2);
+		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+			return searchPos;
+		
+		searchPos = baseLoc.translate(2,2);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
 
-		searchPos = baseLoc.translate(0,2);
+		searchPos = baseLoc.translate(3,-3);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
 			return searchPos;
+		searchPos = baseLoc.translate(-3,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,-2);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,-2);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,-1);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,-1);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,0);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,0);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,1);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,1);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,2);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,2);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-3,3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+
+		searchPos = baseLoc.translate(-3,3);
+		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+			return searchPos;
+		searchPos = baseLoc.translate(-3,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(-2,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-2,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(-1,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(-1,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(0,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(0,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(1,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(1,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(2,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(2,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+		searchPos = baseLoc.translate(3,3);
+				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+					return searchPos;
+		searchPos = baseLoc.translate(3,-3);
+						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
+								return searchPos;
+
 
 		return null;
 
