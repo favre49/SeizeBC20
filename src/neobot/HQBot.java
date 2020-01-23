@@ -245,6 +245,32 @@ public strictfp class HQBot extends Globals
 		{
 			buildMiner();
 		}
+
+		// Test if we have the units we want.
+		RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, 8, team);
+		boolean DSexists = false;
+		boolean FCexists = false;
+		boolean madeBuilder = false;
+		for (int i = 0; i < nearbyBots.length; i++)
+		{
+			if (nearbyBots[i].type == RobotType.DESIGN_SCHOOL)
+			{
+				DSexists = true;
+			}
+			else if (nearbyBots[i].type == RobotType.FULFILLMENT_CENTER)
+			{
+				FCexists = true;
+			}
+			else if (nearbyBots[i].type == RobotType.MINER)
+			{
+				madeBuilder = true;
+			}
+		}
+		
+		if ((!DSexists || !FCexists) && !madeBuilder && roundNum > 200)
+		{
+			buildMiner();
+		}
 	}
 
 	static boolean buildMiner() throws GameActionException

@@ -115,58 +115,58 @@ public strictfp class DroneBot extends Globals
 		}
 
 		// // crunch.
-		// if (roundNum > 1000 && opponentHQLoc != null)
-		// {
-		// 	if (roundNum > 1350) //Better indicator?
-		// 	{
-		// 		if (!rc.isCurrentlyHoldingUnit())
-		// 			pickUpOpponents();
-		// 		navigate(opponentHQLoc);
-		// 	}
+		if (roundNum > 1000 && opponentHQLoc != null)
+		{
+			if (roundNum > 1350) //Better indicator?
+			{
+				if (!rc.isCurrentlyHoldingUnit())
+					pickUpOpponents();
+				navigate(opponentHQLoc);
+			}
 
 		// 	System.out.println("I am doing things here");
 
 		// 	// If you can, pick up scapers!
-		// 	if (currentPos.distanceSquaredTo(opponentHQLoc) > 35  && !rc.isCurrentlyHoldingUnit()) // Not already storming HQ
-		// 	{
-		// 		RobotInfo[] nearbyScapers = rc.senseNearbyRobots(currentPos, -1, team);
-		// 		int pickUpID = -1;
-		// 		MapLocation pickUpLoc = null;
-		// 		for (int i = 0; i < nearbyScapers.length; i++)
-		// 		{
-		// 			if (nearbyScapers[i].type == RobotType.LANDSCAPER)
-		// 			{
-		// 				pickUpID = nearbyScapers[i].ID;
-		// 				pickUpLoc = nearbyScapers[i].location;
-		// 				break;
-		// 			}
-		// 		}
+			if (currentPos.distanceSquaredTo(opponentHQLoc) > 35  && !rc.isCurrentlyHoldingUnit()) // Not already storming HQ
+			{
+				RobotInfo[] nearbyScapers = rc.senseNearbyRobots(currentPos, -1, team);
+				int pickUpID = -1;
+				MapLocation pickUpLoc = null;
+				for (int i = 0; i < nearbyScapers.length; i++)
+				{
+					if (nearbyScapers[i].type == RobotType.LANDSCAPER)
+					{
+						pickUpID = nearbyScapers[i].ID;
+						pickUpLoc = nearbyScapers[i].location;
+						break;
+					}
+				}
 
-		// 		if (pickUpID != -1)
-		// 		{
-		// 			if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
-		// 			{
-		// 				if (rc.canPickUpUnit(pickUpID))
-		// 				{
-		// 					rc.pickUpUnit(pickUpID);
-		// 				}
-		// 				else
-		// 					return;
-		// 			}
-		// 			else
-		// 			{
-		// 				navigate(pickUpLoc);
-		// 			}
-		// 		}
-		// 		else
-		// 			return; // Wait for a new landscaper to take there.
-		// 	}
-		// 	else
-		// 	{
-		// 		navigateAroundNetGuns(opponentHQLoc);
-		// 	}
-		// 	return;
-		// }
+				if (pickUpID != -1)
+				{
+					if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
+					{
+						if (rc.canPickUpUnit(pickUpID))
+						{
+							rc.pickUpUnit(pickUpID);
+						}
+						else
+							return;
+					}
+					else
+					{
+						navigate(pickUpLoc);
+					}
+				}
+				else
+					return; // Wait for a new landscaper to take there.
+			}
+			else
+			{
+				navigateAroundNetGuns(opponentHQLoc);
+			}
+			return;
+		}
 
 		if (opponentHQLoc == null)
 		{
@@ -266,7 +266,18 @@ public strictfp class DroneBot extends Globals
 			}
 
 			if (drno > 0 || !rc.canSenseLocation(baseLoc))
-				navigateAroundNetGuns(opponentHQLoc);
+			{
+				if (roundNum < 800)
+				{
+					pickUpOpponents();
+					pickUpCows();
+					explore();
+				}
+				else
+				{
+					navigateAroundNetGuns(opponentHQLoc);
+				}
+			}
 		}
 	}
 
