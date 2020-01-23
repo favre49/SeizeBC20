@@ -666,10 +666,26 @@ public strictfp class LandscaperBot extends Globals
 			if (currentPos.x - baseLoc.x == 3)
 			{
 				line = 0;
+				if (currentPos.y - baseLoc.y == 3)
+				{
+					line = 4;
+				}
+				else if (currentPos.y - baseLoc.y == -3)
+				{
+					line = 5;
+				}
 			}
 			else if (currentPos.x - baseLoc.x == -3)
 			{
 				line = 1;
+				if (currentPos.y - baseLoc.y == 3)
+				{
+					line = 6;
+				}
+				else if (currentPos.y - baseLoc.y == -3)
+				{
+					line = 7;
+				}
 			}
 			else if (currentPos.y - baseLoc.y == 3)
 			{
@@ -681,78 +697,79 @@ public strictfp class LandscaperBot extends Globals
 			}
 
 			int linePath[] = {-3, -2, -1, 0, 1, 2, 3};
+			System.out.println("line = " + line);
 			switch(line)
 			{
 				case 0:
 				//x = 3;
-				/*if (rc.canSenseLocation(baseLoc.translate(3,3)) && rc.senseElevation(baseLoc.translate(3,3)) < wallElevation)
-				{
-					navigate(baseLoc.translate(3,3));
-				}
-				else if (rc.canSenseLocation(baseLoc.translate(3,-3)) && rc.senseElevation(baseLoc.translate(3,-3)) < wallElevation)
-				{
-					navigate(baseLoc.translate(3,-3));
-				}*/
 				for(int i =0; i < 7; i++)
 					if (rc.canSenseLocation(baseLoc.translate(3,linePath[i])) && rc.senseElevation(baseLoc.translate(3,linePath[i])) < wallElevation)
 						navigate(baseLoc.translate(3,linePath[i]));
 				break;
-
 				case 1:
 				//y = 3
-				/*if (rc.canSenseLocation(baseLoc.translate(-3,3)) && rc.senseElevation(baseLoc.translate(-3,3)) < wallElevation)
-				{
-					navigate(baseLoc.translate(-3,3));
-				}
-				else if (rc.canSenseLocation(baseLoc.translate(-3,-3)) && rc.senseElevation(baseLoc.translate(-3,-3)) < wallElevation)
-				{
-					navigate(baseLoc.translate(-3,-3));
-				}
-				*/
 				for(int i =0; i < 7; i++)
 					if (rc.canSenseLocation(baseLoc.translate(linePath[i], 3)) && rc.senseElevation(baseLoc.translate(linePath[i], 3)) < wallElevation)
 						navigate(baseLoc.translate(linePath[i], 3));
 				break;
-
 				case 2:
 				//x = -3;
-				/*
-				if (rc.canSenseLocation(baseLoc.translate(-3,3)) && rc.senseElevation(baseLoc.translate(-3,3)) < wallElevation)
-				{
-					navigate(baseLoc.translate(-3,3));
-				}
-				else if (rc.canSenseLocation(baseLoc.translate(3,3)) && rc.senseElevation(baseLoc.translate(3,3)) < wallElevation)
-				{
-					navigate(baseLoc.translate(3,3));
-				}
-				*/
 				for(int i =0; i < 7; i++)
 					if (rc.canSenseLocation(baseLoc.translate(-3,linePath[i])) && rc.senseElevation(baseLoc.translate(-3,linePath[i])) < wallElevation)
 						navigate(baseLoc.translate(-3,linePath[i]));
 				break;
-
 				case 3:
 				//y = -3;
-				/*if (rc.canSenseLocation(baseLoc.translate(3,-3)) && rc.senseElevation(baseLoc.translate(3,-3)) < wallElevation)
-				{
-					navigate(baseLoc.translate(3,-3));
-				}
-				else if (rc.canSenseLocation(baseLoc.translate(-3,-3)) && rc.senseElevation(baseLoc.translate(-3,-3)) < wallElevation)
-				{
-					navigate(baseLoc.translate(-3,-3));
-				}*/
+				for(int i =0; i < 7; i++)
+					if (rc.canSenseLocation(baseLoc.translate(linePath[i], -3)) && rc.senseElevation(baseLoc.translate(linePath[i], -3)) < wallElevation)
+						navigate(baseLoc.translate(linePath[i], -3));
+				case 4:
+				//x == 3, y = 3
+				for(int i =0; i < 7; i++)
+					if (rc.canSenseLocation(baseLoc.translate(3,linePath[i])) && rc.senseElevation(baseLoc.translate(3,linePath[i])) < wallElevation)
+						navigate(baseLoc.translate(3,linePath[i]));
+				for(int i =0; i < 7; i++)
+					if (rc.canSenseLocation(baseLoc.translate(linePath[i], 3)) && rc.senseElevation(baseLoc.translate(linePath[i], 3)) < wallElevation)
+						navigate(baseLoc.translate(linePath[i], 3));
+				break;
+				case 5:
+				//x = 3
+				//y = -3
+				for(int i =0; i < 7; i++)
+					if (rc.canSenseLocation(baseLoc.translate(3,linePath[i])) && rc.senseElevation(baseLoc.translate(3,linePath[i])) < wallElevation)
+						navigate(baseLoc.translate(3,linePath[i]));
+				for(int i =0; i < 7; i++)
+					if (rc.canSenseLocation(baseLoc.translate(linePath[i], -3)) && rc.senseElevation(baseLoc.translate(linePath[i], -3)) < wallElevation)
+						navigate(baseLoc.translate(linePath[i], -3));
+				break;
+				case 6:
+				//x = -3
+				//y = 3
+				for(int i =0; i < 7; i++)
+					if (rc.canSenseLocation(baseLoc.translate(-3,linePath[i])) && rc.senseElevation(baseLoc.translate(-3,linePath[i])) < wallElevation)
+						navigate(baseLoc.translate(-3,linePath[i]));
+				for(int i =0; i < 7; i++)
+					if (rc.canSenseLocation(baseLoc.translate(linePath[i], 3)) && rc.senseElevation(baseLoc.translate(linePath[i], 3)) < wallElevation)
+						navigate(baseLoc.translate(linePath[i], 3));
+				break;
+				case 7:
+				//x = -3;
+				//y = -23
+				for(int i =0; i < 7; i++)
+					if (rc.canSenseLocation(baseLoc.translate(-3,linePath[i])) && rc.senseElevation(baseLoc.translate(-3,linePath[i])) < wallElevation)
+						navigate(baseLoc.translate(-3,linePath[i]));
 				for(int i =0; i < 7; i++)
 					if (rc.canSenseLocation(baseLoc.translate(linePath[i], -3)) && rc.senseElevation(baseLoc.translate(linePath[i], -3)) < wallElevation)
 						navigate(baseLoc.translate(linePath[i], -3));
 				break;
 			}
-
+/*
 			for(int i = 0; i < 8; i++)
 				if(rc.canSenseLocation(currentPos.add(directions[i])) 
 				&& baseLoc.distanceSquaredTo(currentPos.add(directions[i])) <= 18 
 				&& baseLoc.distanceSquaredTo(currentPos.add(directions[i])) > 8
 				&& rc.senseElevation(currentPos.add(directions[i])) < wallElevation)
-					navigate(currentPos.add(directions[i]));
+					navigate(currentPos.add(directions[i]));*/
 
 		}
 		
