@@ -639,11 +639,11 @@ public strictfp class LandscaperBot extends Globals
 				navigate(goToLoc);
 		}
 
-		// for(int i = 0; i < directions.length; i++)
-		// 	if(inBounds(currentPos.add(directions[i])) && rc.senseFlooding(currentPos.add(directions[i])) && rc.canSenseLocation(currentPos.add(directions[i])) && rc.senseElevation(currentPos.add(directions[i])) < wallElevation && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 18)
-		// 	{
-		// 		navigate(currentPos.add(directions[i]));
-		// 	}	
+		for(int i = 0; i < directions.length; i++)
+			if(inBounds(currentPos.add(directions[i])) && rc.senseFlooding(currentPos.add(directions[i])) && rc.canSenseLocation(currentPos.add(directions[i])) && rc.senseElevation(currentPos.add(directions[i])) < wallElevation && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 18)
+			{
+				navigate(currentPos.add(directions[i]));
+			}	
 		
 		// Choose the next place to move to.
 		System.out.println("I'm ready to go elsewhere now!");
