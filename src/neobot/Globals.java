@@ -34,6 +34,7 @@ public class Globals
     public static final int STEPSIZE=5; //for exploration
     public static final int MAPDIVISION=4; //Exporation , higher number is more explorative, use powers of two
     public static final int MINSOUPFORCOMMS=50;//under this, miners will not send new soup locations
+    public static final int SENDCUTOFF=128;//probability of sending new soup locations, 256 is 1.
 
     public static final int NINELIMIT = 50;//how many turns an HQ should hold a queue at 9 before flushing it
     public static final int broadCastFrequency = 5;//frequency of HQ comms

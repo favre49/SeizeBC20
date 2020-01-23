@@ -384,7 +384,7 @@ public strictfp class MinerBot extends Globals
     	// }
 
 
-    	if(getValidLocalSoup() && rc.getTeamSoup()>MINSOUPFORCOMMS){
+    	if(getValidLocalSoup() && rc.getTeamSoup()>MINSOUPFORCOMMS && soupQueuePointer<9 && FastMath.rand256()<SENDCUTOFF){
     		pushToSQ();
     		return;
     	}

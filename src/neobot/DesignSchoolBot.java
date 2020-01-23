@@ -51,10 +51,13 @@ public strictfp class DesignSchoolBot extends Globals
 		}
 
 		int drno = 0;
+        int vapeno =0;
 		for (int i = 0; i < nearbyTeam.length; i++)
 		{
 			if (nearbyTeam[i].type == RobotType.LANDSCAPER)
 				drno++;
+            if(nearbyTeam[i].type == RobotType.VAPORATOR)
+                vapeno++;
 		}
 
 		if (drno < oppno)
@@ -75,8 +78,7 @@ public strictfp class DesignSchoolBot extends Globals
         }
 
 		// Every 20 turns make a new scaper.
-        if (roundNum - lastRoundActive > 20 && rc.isReady())
-        {
+        if (roundNum - lastRoundActive > 20 && rc.isReady() && (vapeno >= 2 || roundNum >= 300)){
 			System.out.println(scaperIdx);
             for (int i = 0; i < 8; i++)
             {

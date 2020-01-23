@@ -25,6 +25,7 @@ public strictfp class HQBot extends Globals
 
 	private static int lastTurnTo9Soup=0;
 	private static int lastTurnTo9Ref=0;
+	private static int initialSoup;
 
 
 
@@ -42,6 +43,7 @@ public strictfp class HQBot extends Globals
 			// if(soupLocation != null)
 			// 	initialArr[1] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
 			System.out.print(Communications.sendComs(initialArr,1));
+			initialSoup=totalSoupInRange();
 		}
 		else if (roundNum > 2)
 		{
@@ -185,7 +187,7 @@ public strictfp class HQBot extends Globals
 
 		if (soupLocation != null)
 		{
-			if (minerCount < 4)
+			if (minerCount < initialSoup/1000)
 			{
 				Direction tryDir = currentPos.directionTo(soupLocation);
 				if(rc.canBuildRobot(RobotType.MINER, tryDir))
@@ -307,5 +309,15 @@ public strictfp class HQBot extends Globals
 				return nearbyRobots[i].ID;
 		}
 		return -1;
+	}
+
+	static int totalSoupInRange() throws GameActionException
+	{
+		MapLocation[] theSoup = rc.senseNearbySoup();
+		int ans=0;
+		for(int i=0;i<theSoup.length;i++){
+			ans+=rc.senseSoup(theSoup[i]);
+		}
+		return ans;
 	}
 }
