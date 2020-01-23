@@ -150,12 +150,15 @@ public strictfp class HQBot extends Globals
 			}
 
 			System.out.println("soupQueueSize"+soupLocationPointer);
-			int[] broadCastArr = new int[9];
-			for(int i=0;i<Math.min(9,soupLocationPointer);i++){
-				System.out.println(soupQueue[i].x+","+soupQueue[i].y);
-				broadCastArr[i]=Communications.getCommsNum(ObjectType.SOUP,soupQueue[i]);
+			int[] broadCastArr;
+			if(soupLocationPointer>0){
+				broadCastArr = new int[9];
+				for(int i=0;i<Math.min(9,soupLocationPointer);i++){
+					System.out.println(soupQueue[i].x+","+soupQueue[i].y);
+					broadCastArr[i]=Communications.getCommsNum(ObjectType.SOUP,soupQueue[i]);
+				}
+				Communications.sendComs(broadCastArr,1);
 			}
-			Communications.sendComs(broadCastArr,1);
 
 			System.out.println("refineryListSize"+refineryLocationPointer);
 			broadCastArr = new int[9];

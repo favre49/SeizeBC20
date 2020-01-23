@@ -30,14 +30,14 @@ public strictfp class MinerBot extends Globals
 	private static int wallElevation = 6;
 	private static int buildTurn = 0;
 
-	private static int HELDSOUPCUTOFF=50;
+
+private static int HELDSOUPCUTOFF=50;
 	private static int CLOSESOUPCUTOFF=2;
 	private static int VALIDSOUPCUTOFF = 30;
 	private static int RFCUTOFF=70;
 	private static int MAXTURNS=10;
-	private static int STEPSIZE=5;
+	private static int STEPSIZE=6;
 	private static int MAPDIVISION=8;
-	private static int LOCATIONCOUNTCUTOFF=10;
 
 	private static MapLocation[] nearbySoup;
 	private static MapLocation soupTarget;
@@ -71,9 +71,6 @@ public strictfp class MinerBot extends Globals
 
 	private static boolean[][] alreadyExplored = new boolean[mapWidth/MAPDIVISION + 2][mapHeight/MAPDIVISION + 2];
 
-	private static MapLocation lastTarget = new MapLocation(0,0);
-	private static int lastTargetCount = 0;
-
 
     public static void run(RobotController rc) throws GameActionException
     {
@@ -102,36 +99,36 @@ public strictfp class MinerBot extends Globals
 			refineryList[0]=baseLoc;
 		}
 
-		if (roundNum%broadCastFrequency == 1)
+		if (roundNum%broadCastFrequency == 0)
 		{
 	        FastMath.initRand(rc);
-			int commsArr[][]=Communications.getComms(roundNum-1);
-			// Set this up to be a switch case?
-			for(int i = 0; i < commsArr.length; i++)
-			{
-				innerloop:
-				for (int j = 0; j < commsArr[i].length; j++)
-                {
-					ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
-					switch(currLocation.rt)
-					{
-						case COW: break innerloop;
+			// int commsArr[][]=Communications.getComms(roundNum-1);
+			// // Set this up to be a switch case?
+			// for(int i = 0; i < commsArr.length; i++)
+			// {
+			// 	innerloop:
+			// 	for (int j = 0; j < commsArr[i].length; j++)
+   //              {
+			// 		ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][j]);
+			// 		switch(currLocation.rt)
+			// 		{
+			// 			case COW: break innerloop;
 
-						case HQ: opponentHQLoc = currLocation.loc;
-						break;
+			// 			case HQ: opponentHQLoc = currLocation.loc;
+			// 			break;
 
-						case SOUP:
-						if (soupLocation == null)
-						{
-							soupLocation = currLocation.loc;
-							toBeRefineryLocation = currLocation.loc;
-							refineryLocation = null;
-						}
-						break;
-					}
+			// 			case SOUP:
+			// 			if (soupLocation == null)
+			// 			{
+			// 				soupLocation = currLocation.loc;
+			// 				toBeRefineryLocation = currLocation.loc;
+			// 				refineryLocation = null;
+			// 			}
+			// 			break;
+			// 		}
 
-                }
-			}
+   //              }
+			// }
 		}
 
 		RobotInfo[] nearbyOpps= rc.senseNearbyRobots(currentPos, -1, opponent);
@@ -190,7 +187,9 @@ public strictfp class MinerBot extends Globals
 		{
 			if (baseLoc.distanceSquaredTo(currentPos) > 5)
 			{
+				// System.out.println("HELLO HELLO");
 				navigate(baseLoc);
+				return;
 			}
 			else
 			{
@@ -209,10 +208,13 @@ public strictfp class MinerBot extends Globals
 				{
 					for (int i = 0; i < 8; i++)
 					{
-						if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8)
+						if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8){
 							buildFulfilmentCenter(directions[i]);
+							return;
+						}
 					}
 					navigate(baseLoc);
+					return;
 				}
 			}
 		}
@@ -222,6 +224,7 @@ public strictfp class MinerBot extends Globals
 			if (baseLoc.distanceSquaredTo(currentPos) > 8)
 			{
 				navigate(baseLoc);
+				return;
 			}
 			else
 			{
@@ -239,10 +242,14 @@ public strictfp class MinerBot extends Globals
 				{
 					for (int i = 0; i < 8; i++)
 					{
-						if (rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8)
+						if (rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8){
 							buildDesignSchool(directions[i]);
+							return;
+						}
+
 					}
 					navigate(baseLoc);
+					return;
 				}
 			}
 		}
@@ -252,6 +259,7 @@ public strictfp class MinerBot extends Globals
 			if (baseLoc.distanceSquaredTo(currentPos) > 5)
 			{
 				navigate(baseLoc);
+				return;
 			}
 			else
 			{
@@ -269,10 +277,13 @@ public strictfp class MinerBot extends Globals
 				{
 					for (int i = 0; i < 8; i++)
 					{
-						if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8)
+						if (rc.canBuildRobot(RobotType.FULFILLMENT_CENTER, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8){
 							buildFulfilmentCenter(directions[i]);
+							return;
+						}
 					}
 					navigate(baseLoc);
+					return;
 				}
 			}
 		}
@@ -298,11 +309,13 @@ public strictfp class MinerBot extends Globals
 					{
 						buildTurn++;
 						buildVaporator(directions[i]);
+						return;
 					}
 				}
 			}
 		}
 
+    	System.out.println("READY HERE1? " + rc.isReady());
 		if (rc.getTeamSoup() > 250 && rc.senseElevation(currentPos) >= 8 && roundNum > 500 && buildTurn%4 == 0)
 		{
 			int numGuns = 0;
@@ -323,20 +336,22 @@ public strictfp class MinerBot extends Globals
 					{
 						buildTurn++;
 						buildNetGun(directions[i]);
+						return;
 					}
 				}
 			}
 		}
+    	System.out.println("READY HERE2? " + rc.isReady());
 
-    	updateSQ();//should also remove all NOTGOINGTOs from SQ
+updateSQ();//should also remove all NOTGOINGTOs from SQ
 
-    	System.out.println("MYSQSIZE is " + soupQueuePointer);
-    	for(int i=0;i<soupQueuePointer;i++){
-    		System.out.println("MY SQ: " + i +" "+ soupQueue[i].x + " " + soupQueue[i].y);
-    	}
+    	// System.out.println("MYSQSIZE is " + soupQueuePointer);
+    	// for(int i=0;i<soupQueuePointer;i++){
+    	// 	System.out.println("MY SQ: " + i +" "+ soupQueue[i].x + " " + soupQueue[i].y);
+    	// }
 
 
-    	if(getValidLocalSoup()){
+    	if(getValidLocalSoup() && rc.getTeamSoup()>50){
     		pushToSQ();
     		return;
     	}
@@ -370,25 +385,14 @@ public strictfp class MinerBot extends Globals
 				}
 
 				if(!miningMode){
-					System.out.println("REACHED HERE");
 					if(currentPos.distanceSquaredTo(soupQueue[0]) <= CLOSESOUPCUTOFF){
 						reachedQ0=true;
 						if(rc.senseNearbySoup(soupQueue[0],-1).length>0){
 							miningMode=true;
 							mineSoup();
 						}
-						else{
-							return;
-						}
 					}
 					else{
-						if(lastTarget.equals(soupQueue[0]) && lastTargetCount>=LOCATIONCOUNTCUTOFF){
-							reachedQ0=false;
-							notGoingTo=lastTarget;
-							declareNoSoup(soupQueue[0]);
-							// return;
-						}
-						System.out.println("REACHED HERE 2 " + lastTarget.x + " " + lastTarget.y+  " " +lastTargetCount);				
 						newPath(soupQueue[0]);
 					}
 				}
@@ -405,9 +409,10 @@ public strictfp class MinerBot extends Globals
 		}		
     }
 
-    private static void mineSoup() throws GameActionException{
+private static void mineSoup() throws GameActionException{
     	System.out.println("IN MINING");
     	if(soupTarget != null && rc.canSenseLocation(soupTarget) && rc.senseSoup(soupTarget)>0){
+
     	}
     	else{
     		soupTarget=getClosestNearbySoup();
@@ -424,38 +429,15 @@ public strictfp class MinerBot extends Globals
     }
 
     private static MapLocation getClosestNearbySoup(){
-		int closestSoupInd=-1;
-		int secondclosestSoupInd=-1;
+		int closestSoupInd=0;
 		int mindist=Integer.MAX_VALUE;
-		int secondmindist=Integer.MAX_VALUE;
 		for(int i=0;i<nearbySoup.length;i++){
-			if(currentPos.distanceSquaredTo(nearbySoup[i])<=mindist){
-				secondmindist=mindist;
-				secondclosestSoupInd=closestSoupInd;
+			if(currentPos.distanceSquaredTo(nearbySoup[i])<mindist){
 				mindist=currentPos.distanceSquaredTo(nearbySoup[i]);
 				closestSoupInd=i;
 			}
-			else if (currentPos.distanceSquaredTo(nearbySoup[i])<secondmindist){
-				secondmindist=currentPos.distanceSquaredTo(nearbySoup[i]);
-				secondclosestSoupInd=i;				
-			}
 		}
-		if(nearbySoup[closestSoupInd]!=notGoingTo){
-			if(closestSoupInd!=-1){
-				return nearbySoup[closestSoupInd];
-			}
-			else{
-				return new MapLocation(-1,-1);
-			}
-		}
-		else{
-			if(secondclosestSoupInd!=-1){
-				return nearbySoup[secondclosestSoupInd];			
-			}
-			else{
-				return new MapLocation(-1,-1);				
-			}
-		}
+		return nearbySoup[closestSoupInd];
     }
 
     private static void doRefine() throws GameActionException{
@@ -669,16 +651,6 @@ public strictfp class MinerBot extends Globals
     }
 
     private static void newPath(MapLocation x) throws GameActionException{
-
-    	if(lastTarget.equals(x)){
-    		lastTargetCount++;
-    	}
-    	else{
-    		lastTarget=x;
-    		lastTargetCount=0;
-    	}
-
-
     	inPath=true;
     	pathTurns=0;
     	currentTarget=x;
@@ -731,6 +703,7 @@ public strictfp class MinerBot extends Globals
 
 
 
+
     /******* NAVIGATION *************/
 
     // Bug nav related stuff
@@ -753,7 +726,6 @@ public strictfp class MinerBot extends Globals
 
 		if (dest.equals(currentPos))
 			return;
-
 
 		Direction nextDir = currentPos.directionTo(dest);
 		// If we can move in the best direction, let's not bother bugging.
