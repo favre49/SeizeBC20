@@ -36,8 +36,8 @@ private static int HELDSOUPCUTOFF=50;
 	private static int VALIDSOUPCUTOFF = 30;
 	private static int RFCUTOFF=70;
 	private static int MAXTURNS=10;
-	private static int STEPSIZE=6;
-	private static int MAPDIVISION=8;
+	private static int STEPSIZE=5;
+	private static int MAPDIVISION=4;
 
 	private static MapLocation[] nearbySoup;
 	private static MapLocation soupTarget;
@@ -378,7 +378,7 @@ private static int HELDSOUPCUTOFF=50;
 				}
 			}
 			else{
-				if(reachedQ0 && rc.senseNearbySoup(soupQueue[0],-1).length==0 /*|| !rc.canSenseLocation(soupQueue[0])*/ || (rc.canSenseLocation(soupQueue[0]) && rc.senseFlooding(soupQueue[0]))){
+				if(reachedQ0 && rc.senseNearbySoup(soupQueue[0],-1).length==0 /*|| !rc.canSenseLocation(soupQueue[0])*/ || (rc.canSenseLocation(soupQueue[0]) && isCompletelyFlooded(soupQueue[0]))){
 					System.out.println("NOSOUPNOSOUP");
 					reachedQ0=false;
 					declareNoSoup(soupQueue[0]);
@@ -623,7 +623,7 @@ private static void mineSoup() throws GameActionException{
     	validLocalSoup = new MapLocation[nearbySoup.length];
     	validLocalSoupPointer=0;
     	for(int i=0;i<nearbySoup.length;i++){
-    		if(rc.senseFlooding(nearbySoup[i])){
+    		if(isCompletelyFlooded(nearbySoup[i])){
     			continue;
     		}
     		boolean works=true;
@@ -657,6 +657,17 @@ private static void mineSoup() throws GameActionException{
     	pathTo();
     }
 
+    private static boolean isCompletelyFlooded(MapLocation theLocation) throws GameActionException{
+    	if(!rc.senseFlooding(theLocation))return false;
+    	for(int i=0;i<8;i++){
+    		MapLocation newLoc = theLocation.add(directions[i]);
+    		if(rc.canSenseLocation(newLoc) && (!rc.senseFlooding(newLoc))){
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+
 	private static void pathTo() throws GameActionException
 	{
 		// System.out.println("X:" + currentTarget.x);
@@ -669,7 +680,7 @@ private static void mineSoup() throws GameActionException{
 			pickNewExploreDest2();
 		}
 
-		if(pathTurns >= MAXTURNS || rc.canSenseLocation(currentTarget) && rc.senseFlooding(currentTarget)||(currentPos.distanceSquaredTo(currentTarget)<=2))
+		if(pathTurns >= MAXTURNS || rc.canSenseLocation(currentTarget) && isCompletelyFlooded(currentTarget)||(currentPos.distanceSquaredTo(currentTarget)<=2))
 		{
 			alreadyExplored[currentPos.x/MAPDIVISION][currentPos.y/MAPDIVISION]=true;
 			inPath=false;
