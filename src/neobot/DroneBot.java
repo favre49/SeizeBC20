@@ -114,70 +114,17 @@ public strictfp class DroneBot extends Globals
 			navigate(currentPos.add(baseLoc.directionTo(currentPos)));
 		}
 
-		// // crunch.
+		// crunch.
 		if (roundNum > 1000 && opponentHQLoc != null)
 		{
-			if (roundNum > 1350) //Better indicator?
+			if (roundNum > 1550) //Better indicator?
 			{
 				if (!rc.isCurrentlyHoldingUnit())
 					pickUpOpponents();
 				navigate(opponentHQLoc);
 			}
 
-		// 	System.out.println("I am doing things here");
-
-		// 	// If you can, pick up scapers!
-			if (currentPos.distanceSquaredTo(opponentHQLoc) > 35  && !rc.isCurrentlyHoldingUnit()) // Not already storming HQ
-			{
-				RobotInfo[] nearbyScapers = rc.senseNearbyRobots(currentPos, -1, team);
-				int pickUpID = -1;
-				MapLocation pickUpLoc = null;
-				for (int i = 0; i < nearbyScapers.length; i++)
-				{
-					if (nearbyScapers[i].type == RobotType.LANDSCAPER)
-					{
-						pickUpID = nearbyScapers[i].ID;
-						pickUpLoc = nearbyScapers[i].location;
-						break;
-					}
-				}
-
-				if (pickUpID != -1)
-				{
-					if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
-					{
-						if (rc.canPickUpUnit(pickUpID))
-						{
-							rc.pickUpUnit(pickUpID);
-						}
-						else
-							return;
-					}
-					else
-					{
-						navigate(pickUpLoc);
-					}
-				}
-				else
-					return; // Wait for a new landscaper to take there.
-			}
-			else
-			{
-				navigateAroundNetGuns(opponentHQLoc);
-			}
-			return;
-		}
-
-		if (opponentHQLoc == null)
-		{
-			pickUpOpponents();
-			pickUpCows();
-
-			MapLocation waterLoc = findWaterAroundBase();
-
-			if (waterLoc != null)
-				findHQ();
-			else
+			if (currentPos.distanceSquaredTo(baseLoc) < 18)
 			{
 				RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
 				int pickUpID = -1;
@@ -214,71 +161,174 @@ public strictfp class DroneBot extends Globals
 					}
 				}
 
-				if (drno > 0 || !rc.canSenseLocation(baseLoc))
-				{
-					if (roundNum > 300)
-					{
-						findHQ();
-					}
-					else
-					{
-						explore();
-					}
-				}
-			}
-
-		}
-		else
-		{
-			RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
-			int pickUpID = -1;
-			int drno = 0;
-			MapLocation pickUpLoc = null;
-			for (int i = 0; i < helpScapers.length; i++)
-			{
-				if (helpScapers[i].type == RobotType.LANDSCAPER )
-				{
-					pickUpID = helpScapers[i].ID;
-					pickUpLoc = helpScapers[i].location;
-				}
-				else if (helpScapers[i].type == RobotType.DELIVERY_DRONE)
-				{
-					drno++;
-				}
-			}
-
-			if (pickUpID != -1)
-			{
-				if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
-				{
-					if (rc.canPickUpUnit(pickUpID))
-					{
-						carryingTeammate = 1;
-						rc.pickUpUnit(pickUpID);
-					}
-					else
-						return;
-				}
-				else
-				{
-					navigate(pickUpLoc);
-				}
-			}
-
-			if (drno > 0 || !rc.canSenseLocation(baseLoc))
-			{
-				if (roundNum < 800)
-				{
-					pickUpOpponents();
-					pickUpCows();
-					explore();
-				}
-				else
+				if (drno > 0 || rc.isCurrentlyHoldingUnit())
 				{
 					navigateAroundNetGuns(opponentHQLoc);
 				}
 			}
+			else
+				navigateAroundNetGuns(opponentHQLoc);
 		}
+
+		if (opponentHQLoc == null || currentPos.distanceSquaredTo(opponentHQLoc) > 49)
+		{
+			pickUpOpponents();
+			pickUpCows();
+		}
+
+		MapLocation waterLoc = findWaterAroundBase();
+		if (waterLoc != null)
+			findHQ();
+
+		RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
+		int pickUpID = -1;
+		int drno = 0;
+		MapLocation pickUpLoc = null;
+		for (int i = 0; i < helpScapers.length; i++)
+		{
+			if (helpScapers[i].type == RobotType.LANDSCAPER)
+			{
+				pickUpID = helpScapers[i].ID;
+				pickUpLoc = helpScapers[i].location;
+			}
+			else if (helpScapers[i].type == RobotType.DELIVERY_DRONE)
+			{
+				drno++;
+			}
+		}
+
+		if (pickUpID != -1)
+		{
+			if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
+			{
+				if (rc.canPickUpUnit(pickUpID))
+				{
+					carryingTeammate = 1;
+					rc.pickUpUnit(pickUpID);
+				}
+				else
+					return;
+			}
+			else
+			{
+				navigate(pickUpLoc);
+			}
+		}
+
+		if (drno > 0 || !rc.canSenseLocation(baseLoc))
+		{
+			if (opponentHQLoc == null)
+				findHQ();
+			else
+			{
+				navigateAroundNetGuns(opponentHQLoc);
+			}
+		}
+		
+		
+
+		// if (opponentHQLoc == null)
+		// {
+		// 	pickUpOpponents();
+		// 	pickUpCows();
+
+		// 	MapLocation waterLoc = findWaterAroundBase();
+
+		// 	if (waterLoc != null)
+		// 		findHQ();
+		// 	else
+		// 	{
+		// 		RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
+		// 		int pickUpID = -1;
+		// 		int drno = 0;
+		// 		MapLocation pickUpLoc = null;
+		// 		for (int i = 0; i < helpScapers.length; i++)
+		// 		{
+		// 			if (helpScapers[i].type == RobotType.LANDSCAPER)
+		// 			{
+		// 				pickUpID = helpScapers[i].ID;
+		// 				pickUpLoc = helpScapers[i].location;
+		// 			}
+		// 			else if (helpScapers[i].type == RobotType.DELIVERY_DRONE)
+		// 			{
+		// 				drno++;
+		// 			}
+		// 		}
+
+		// 		if (pickUpID != -1)
+		// 		{
+		// 			if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
+		// 			{
+		// 				if (rc.canPickUpUnit(pickUpID))
+		// 				{
+		// 					carryingTeammate = 1;
+		// 					rc.pickUpUnit(pickUpID);
+		// 				}
+		// 				else
+		// 					return;
+		// 			}
+		// 			else
+		// 			{
+		// 				navigate(pickUpLoc);
+		// 			}
+		// 		}
+
+		// 		if (drno > 0 || !rc.canSenseLocation(baseLoc))
+		// 		{
+		// 			if (roundNum > 300)
+		// 			{
+		// 				findHQ();
+		// 			}
+		// 			else
+		// 			{
+		// 				explore();
+		// 			}
+		// 		}
+		// 	}
+
+		// }
+		// else
+		// {
+		// 	RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
+		// 	int pickUpID = -1;
+		// 	int drno = 0;
+		// 	MapLocation pickUpLoc = null;
+		// 	for (int i = 0; i < helpScapers.length; i++)
+		// 	{
+		// 		if (helpScapers[i].type == RobotType.LANDSCAPER )
+		// 		{
+		// 			pickUpID = helpScapers[i].ID;
+		// 			pickUpLoc = helpScapers[i].location;
+		// 		}
+		// 		else if (helpScapers[i].type == RobotType.DELIVERY_DRONE)
+		// 		{
+		// 			drno++;
+		// 		}
+		// 	}
+
+		// 	if (pickUpID != -1)
+		// 	{
+		// 		if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
+		// 		{
+		// 			if (rc.canPickUpUnit(pickUpID))
+		// 			{
+		// 				carryingTeammate = 1;
+		// 				rc.pickUpUnit(pickUpID);
+		// 			}
+		// 			else
+		// 				return;
+		// 		}
+		// 		else
+		// 		{
+		// 			navigate(pickUpLoc);
+		// 		}
+		// 	}
+
+		// 	if (drno > 0 || !rc.canSenseLocation(baseLoc))
+		// 	{
+		// 		navigateAroundNetGuns(opponentHQLoc);
+		// 	}
+		// }
 	}
 
 
