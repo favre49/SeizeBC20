@@ -29,15 +29,20 @@ public class Globals
     public static final int HELDSOUPCUTOFF=50; //When no soup location is known, how much soup held to explore vs refine
     public static final int CLOSESOUPCUTOFF=2; //How close to be to a soup location to "reach it", probably don't change this
     public static final int VALIDSOUPCUTOFF = 30; //How far a new soup location must be from an old one
-    public static final int RFCUTOFF=70; //Go to old refinery or build new one 
+    public static final int RFCUTOFF=45; //Go to old refinery or build new one 
     public static final int MAXTURNS=10; //for pathing
     public static final int STEPSIZE=5; //for exploration
-    public static final int MAPDIVISION=4; //Exporation , higher number is more explorative, use powers of two
+    public static final int MAPDIVISION=16; //Exporation , higher number is more explorative, use powers of two
     public static final int MINSOUPFORCOMMS=50;//under this, miners will not send new soup locations
-    public static final int SENDCUTOFF=128;//probability of sending new soup locations, 256 is 1.
+    public static final int SENDCUTOFF=32;//probability of sending new soup locations, 256 is 1.
 
     public static final int NINELIMIT = 50;//how many turns an HQ should hold a queue at 9 before flushing it
     public static final int broadCastFrequency = 5;//frequency of HQ comms
+
+    public static final int MINDRONEROUND=500;
+    public static final int LANDSCAPERFRQ=30;
+    public static final int LANDSCAPERMIN=150;
+    public static final int SOUPSCALEFACTOR=200;
 
 
     // public static ObjectLocation[] objectArray = new ObjectLocation[12];

@@ -189,7 +189,7 @@ public strictfp class HQBot extends Globals
 
 		if (soupLocation != null)
 		{
-			if (minerCount < initialSoup/1000)
+			if (minerCount < initialSoup/SOUPSCALEFACTOR)
 			{
 				Direction tryDir = currentPos.directionTo(soupLocation);
 				if(rc.canBuildRobot(RobotType.MINER, tryDir))
@@ -221,10 +221,10 @@ public strictfp class HQBot extends Globals
 		if (nearbyDroneID != -1)
 			rc.shootUnit(nearbyDroneID);
 
-		if (minerCount < 4)
+		if (minerCount < 3)
 			buildMiner();
 
-		if (roundNum > 200 && minerCount < 10)
+		if (roundNum > 200 && minerCount < initialSoup/SOUPSCALEFACTOR)
 		{
 			if (roundNum-lastRoundActive > 30)
 			{
@@ -245,7 +245,7 @@ public strictfp class HQBot extends Globals
 			}
 		}
 		
-		if (roundNum > 500 && minerCount < 11)
+		if (roundNum > 500 && minerCount < initialSoup/SOUPSCALEFACTOR)
 		{
 			buildMiner();
 		}

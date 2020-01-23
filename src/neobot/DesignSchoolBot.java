@@ -78,7 +78,7 @@ public strictfp class DesignSchoolBot extends Globals
         }
 
 		// Every 20 turns make a new scaper.
-        if (roundNum - lastRoundActive > 20 && rc.isReady() && (vapeno >= 2 || roundNum >= 300)){
+        if (roundNum - lastRoundActive > LANDSCAPERFRQ && rc.isReady() && (vapeno >= 2 || roundNum >= LANDSCAPERMIN)){
 			System.out.println(scaperIdx);
             for (int i = 0; i < 8; i++)
             {

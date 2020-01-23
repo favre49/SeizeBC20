@@ -26,7 +26,7 @@ public strictfp class MinerBot extends Globals
 	private static int wallElevation = 6;
 	private static int buildTurn = 0;
 
-	/*MINING CONSTANTS*/
+	private static boolean iBuiltDesignSchool=false;
 
 	private static MapLocation[] nearbySoup;
 	private static MapLocation soupTarget;
@@ -60,6 +60,8 @@ public strictfp class MinerBot extends Globals
 
 	private static boolean[][] alreadyExplored = new boolean[mapWidth/MAPDIVISION + 2][mapHeight/MAPDIVISION + 2];
 
+	private static MapLocation[] vapLocations = new MapLocation[16];
+	private static boolean[] canNotBuild = new boolean[16];
 
     public static void run(RobotController rc) throws GameActionException
     {
@@ -67,6 +69,39 @@ public strictfp class MinerBot extends Globals
 		System.out.println("soup location" + soupLocation);
 
 		// If we don't have the base location, let's find out.
+
+		System.out.println("I Built The DESIGN_SCHOOL?: " + iBuiltDesignSchool);
+		if(iBuiltDesignSchool){
+			//I need to build Vapes
+			
+			for (int i = 0; i < 16; i++)
+			{
+				if(canNotBuild[i])continue;
+				if(rc.isLocationOccupied(vapLocations[i])){
+					if(rc.senseRobotAtLocation(vapLocations[i]).type.isBuilding())
+						canNotBuild[i]=true;
+					continue;
+				}
+				// System.out.println("I is" + i);
+				if(currentPos.distanceSquaredTo(vapLocations[i])<=2){
+					if(rc.canBuildRobot(RobotType.VAPORATOR,currentPos.directionTo(vapLocations[i]))){
+						buildVaporator(currentPos.directionTo(vapLocations[i]));
+					}
+					else{
+						if(rc.getTeamSoup()>=500)
+							canNotBuild[i]=true;
+						continue;
+					}
+				}
+				else{
+					navigate(vapLocations[i]);
+				}
+				return;
+			}
+			return;
+		}
+
+
 		if (baseLoc == null)
 		{
 			int[][] commsarr=Communications.getComms(1);
@@ -86,6 +121,23 @@ public strictfp class MinerBot extends Globals
                 }
             }
             refineryList[0]=baseLoc;
+            vapLocations[0]=baseLoc.translate(-2,-2);
+            vapLocations[1]=baseLoc.translate(-2,-1);
+            vapLocations[2]=baseLoc.translate(-2,0);
+            vapLocations[3]=baseLoc.translate(-2,1);
+            vapLocations[4]=baseLoc.translate(-2,2);
+            vapLocations[5]=baseLoc.translate(-1,2);
+            vapLocations[6]=baseLoc.translate(0,2);
+            vapLocations[7]=baseLoc.translate(1,2);
+            vapLocations[8]=baseLoc.translate(2,2);
+            vapLocations[9]=baseLoc.translate(2,1);
+            vapLocations[10]=baseLoc.translate(2,0);
+            vapLocations[11]=baseLoc.translate(2,-1);
+            vapLocations[12]=baseLoc.translate(2,-2);
+            vapLocations[13]=baseLoc.translate(1,-2);
+            vapLocations[14]=baseLoc.translate(0,-2);
+            vapLocations[15]=baseLoc.translate(-1,-2);
+
 		}
 
 		if (roundNum%broadCastFrequency == 1)
@@ -244,6 +296,7 @@ public strictfp class MinerBot extends Globals
 					for (int i = 0; i < 8; i++)
 					{
 						if (rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8){
+							iBuiltDesignSchool=true;
 							buildDesignSchool(directions[i]);
 							return;
 						}
@@ -311,6 +364,7 @@ public strictfp class MinerBot extends Globals
 					for (int i = 0; i < 8; i++)
 					{
 						if (rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]) && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 8){
+							iBuiltDesignSchool=true;
 							buildDesignSchool(directions[i]);
 							return;
 						}
@@ -334,12 +388,13 @@ public strictfp class MinerBot extends Globals
 					vapenums++;
 				}
 			}
+
 			if (vapenums < 3)
 			{
 				for (int i = 0; i < 8; i++)
 				{
 					MapLocation buildPos = currentPos.add(directions[i]);
-					if (rc.canBuildRobot(RobotType.VAPORATOR, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
+					if (rc.getTeamSoup() <=510 && rc.canBuildRobot(RobotType.VAPORATOR, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
 					{
 						buildTurn++;
 						buildVaporator(directions[i]);
@@ -384,7 +439,7 @@ public strictfp class MinerBot extends Globals
     	// }
 
 
-    	if(getValidLocalSoup() && rc.getTeamSoup()>MINSOUPFORCOMMS && soupQueuePointer<9 && FastMath.rand256()<SENDCUTOFF){
+    	if(getValidLocalSoup() && rc.getTeamSoup()>MINSOUPFORCOMMS && soupQueuePointer<9 && (soupQueuePointer < 2 || FastMath.rand256()<SENDCUTOFF)){
     		pushToSQ();
     		return;
     	}

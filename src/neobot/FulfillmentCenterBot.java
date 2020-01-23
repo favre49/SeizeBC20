@@ -63,7 +63,7 @@ public strictfp class FulfillmentCenterBot extends Globals
 				buildDrone();
 		}
 		
-		if (roundNum > 250)
+		if (roundNum > MINDRONEROUND)
 		{
 			if (roundNum - lastRoundActive > 30)
 				buildDrone();
