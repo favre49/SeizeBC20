@@ -114,59 +114,59 @@ public strictfp class DroneBot extends Globals
 			navigate(currentPos.add(baseLoc.directionTo(currentPos)));
 		}
 
-		// crunch.
-		if (roundNum > 1000 && opponentHQLoc != null)
-		{
-			if (roundNum > 1350) //Better indicator?
-			{
-				if (!rc.isCurrentlyHoldingUnit())
-					pickUpOpponents();
-				navigate(opponentHQLoc);
-			}
+		// // crunch.
+		// if (roundNum > 1000 && opponentHQLoc != null)
+		// {
+		// 	if (roundNum > 1350) //Better indicator?
+		// 	{
+		// 		if (!rc.isCurrentlyHoldingUnit())
+		// 			pickUpOpponents();
+		// 		navigate(opponentHQLoc);
+		// 	}
 
-			System.out.println("I am doing things here");
+		// 	System.out.println("I am doing things here");
 
-			// If you can, pick up scapers!
-			if (currentPos.distanceSquaredTo(opponentHQLoc) > 35  && !rc.isCurrentlyHoldingUnit()) // Not already storming HQ
-			{
-				RobotInfo[] nearbyScapers = rc.senseNearbyRobots(currentPos, -1, team);
-				int pickUpID = -1;
-				MapLocation pickUpLoc = null;
-				for (int i = 0; i < nearbyScapers.length; i++)
-				{
-					if (nearbyScapers[i].type == RobotType.LANDSCAPER)
-					{
-						pickUpID = nearbyScapers[i].ID;
-						pickUpLoc = nearbyScapers[i].location;
-						break;
-					}
-				}
+		// 	// If you can, pick up scapers!
+		// 	if (currentPos.distanceSquaredTo(opponentHQLoc) > 35  && !rc.isCurrentlyHoldingUnit()) // Not already storming HQ
+		// 	{
+		// 		RobotInfo[] nearbyScapers = rc.senseNearbyRobots(currentPos, -1, team);
+		// 		int pickUpID = -1;
+		// 		MapLocation pickUpLoc = null;
+		// 		for (int i = 0; i < nearbyScapers.length; i++)
+		// 		{
+		// 			if (nearbyScapers[i].type == RobotType.LANDSCAPER)
+		// 			{
+		// 				pickUpID = nearbyScapers[i].ID;
+		// 				pickUpLoc = nearbyScapers[i].location;
+		// 				break;
+		// 			}
+		// 		}
 
-				if (pickUpID != -1)
-				{
-					if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
-					{
-						if (rc.canPickUpUnit(pickUpID))
-						{
-							rc.pickUpUnit(pickUpID);
-						}
-						else
-							return;
-					}
-					else
-					{
-						navigate(pickUpLoc);
-					}
-				}
-				else
-					return; // Wait for a new landscaper to take there.
-			}
-			else
-			{
-				navigateAroundNetGuns(opponentHQLoc);
-			}
-			return;
-		}
+		// 		if (pickUpID != -1)
+		// 		{
+		// 			if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
+		// 			{
+		// 				if (rc.canPickUpUnit(pickUpID))
+		// 				{
+		// 					rc.pickUpUnit(pickUpID);
+		// 				}
+		// 				else
+		// 					return;
+		// 			}
+		// 			else
+		// 			{
+		// 				navigate(pickUpLoc);
+		// 			}
+		// 		}
+		// 		else
+		// 			return; // Wait for a new landscaper to take there.
+		// 	}
+		// 	else
+		// 	{
+		// 		navigateAroundNetGuns(opponentHQLoc);
+		// 	}
+		// 	return;
+		// }
 
 		if (opponentHQLoc == null)
 		{
@@ -177,53 +177,56 @@ public strictfp class DroneBot extends Globals
 
 			if (waterLoc != null)
 				findHQ();
-
-			RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
-			int pickUpID = -1;
-			int drno = 0;
-			MapLocation pickUpLoc = null;
-			for (int i = 0; i < helpScapers.length; i++)
+			else
 			{
-				if (helpScapers[i].type == RobotType.LANDSCAPER)
+				RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
+				int pickUpID = -1;
+				int drno = 0;
+				MapLocation pickUpLoc = null;
+				for (int i = 0; i < helpScapers.length; i++)
 				{
-					pickUpID = helpScapers[i].ID;
-					pickUpLoc = helpScapers[i].location;
-				}
-				else if (helpScapers[i].type == RobotType.DELIVERY_DRONE)
-				{
-					drno++;
-				}
-			}
-
-			if (pickUpID != -1)
-			{
-				if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
-				{
-					if (rc.canPickUpUnit(pickUpID))
+					if (helpScapers[i].type == RobotType.LANDSCAPER)
 					{
-						carryingTeammate = 1;
-						rc.pickUpUnit(pickUpID);
+						pickUpID = helpScapers[i].ID;
+						pickUpLoc = helpScapers[i].location;
+					}
+					else if (helpScapers[i].type == RobotType.DELIVERY_DRONE)
+					{
+						drno++;
+					}
+				}
+
+				if (pickUpID != -1)
+				{
+					if (currentPos.distanceSquaredTo(pickUpLoc) <= 2)
+					{
+						if (rc.canPickUpUnit(pickUpID))
+						{
+							carryingTeammate = 1;
+							rc.pickUpUnit(pickUpID);
+						}
+						else
+							return;
 					}
 					else
-						return;
+					{
+						navigate(pickUpLoc);
+					}
 				}
-				else
+
+				if (drno > 0 || !rc.canSenseLocation(baseLoc))
 				{
-					navigate(pickUpLoc);
+					if (roundNum > 300)
+					{
+						findHQ();
+					}
+					else
+					{
+						explore();
+					}
 				}
 			}
 
-			if (drno > 0 || !rc.canSenseLocation(baseLoc))
-			{
-				if (roundNum > 300)
-				{
-					findHQ();
-				}
-				else
-				{
-					explore();
-				}
-			}
 		}
 		else
 		{
@@ -780,199 +783,4 @@ public strictfp class DroneBot extends Globals
 		return false;
 	}
 
-	private static MapLocation findWaterAroundBase() throws GameActionException
-	{
-		// Search over every viable location.
-		MapLocation searchPos = baseLoc.translate(0,0);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(0,-1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(0,1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(0,-2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(0,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(1,-2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(1,-1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(1,0);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(1,1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(1,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(-1,-2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(-1,-1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		
-		searchPos = baseLoc.translate(-1,0);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		
-		searchPos = baseLoc.translate(-1,1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(-1,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(2,-2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(-2,-2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-				return searchPos;
-		
-		searchPos = baseLoc.translate(2,-1);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		
-		searchPos = baseLoc.translate(-2,-1);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		
-		searchPos = baseLoc.translate(2,0);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		
-		searchPos = baseLoc.translate(-2,0);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		
-		searchPos = baseLoc.translate(2,1);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		
-		searchPos = baseLoc.translate(-2,1);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		
-		searchPos = baseLoc.translate(2,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(-2,2);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-
-		searchPos = baseLoc.translate(3,-3);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		searchPos = baseLoc.translate(-3,-3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(3,-2);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(-3,-2);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(3,-1);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(-3,-1);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(3,0);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(-3,0);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(3,1);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(-3,1);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(3,2);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(-3,2);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(3,3);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(-3,3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-
-		searchPos = baseLoc.translate(-3,3);
-		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-			return searchPos;
-		searchPos = baseLoc.translate(-3,-3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(-2,3);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(-2,-3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(-1,3);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(-1,-3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(0,3);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(0,-3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(1,3);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(1,-3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(2,3);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(2,-3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-		searchPos = baseLoc.translate(3,3);
-				if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-					return searchPos;
-		searchPos = baseLoc.translate(3,-3);
-						if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))
-								return searchPos;
-
-
-		return null;
-
-	}
 }
