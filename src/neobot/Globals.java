@@ -26,22 +26,22 @@ public class Globals
     public static int health;
 
     //mining constants
-    private static int HELDSOUPCUTOFF=50; //When no soup location is known, how much soup held to explore vs refine
-    private static int CLOSESOUPCUTOFF=2; //How close to be to a soup location to "reach it", probably don't change this
-    private static int VALIDSOUPCUTOFF = 30; //How far a new soup location must be from an old one
-    private static int RFCUTOFF=70; //Go to old refinery or build new one 
-    private static int MAXTURNS=10; //for pathing
-    private static int STEPSIZE=5; //for exploration
-    private static int MAPDIVISION=4; //Exporation , higher number is more explorative, use powers of two
-    private static int MINSOUPFORCOMMS=50;//under this, miners will not send new soup locations
+    public static final int HELDSOUPCUTOFF=50; //When no soup location is known, how much soup held to explore vs refine
+    public static final int CLOSESOUPCUTOFF=2; //How close to be to a soup location to "reach it", probably don't change this
+    public static final int VALIDSOUPCUTOFF = 30; //How far a new soup location must be from an old one
+    public static final int RFCUTOFF=70; //Go to old refinery or build new one 
+    public static final int MAXTURNS=10; //for pathing
+    public static final int STEPSIZE=5; //for exploration
+    public static final int MAPDIVISION=4; //Exporation , higher number is more explorative, use powers of two
+    public static final int MINSOUPFORCOMMS=50;//under this, miners will not send new soup locations
 
-    private static int NINELIMIT = 50;//how many turns an HQ should hold a queue at 9 before flushing it
+    public static final int NINELIMIT = 50;//how many turns an HQ should hold a queue at 9 before flushing it
+    public static final int broadCastFrequency = 5;//frequency of HQ comms
 
 
     // public static ObjectLocation[] objectArray = new ObjectLocation[12];
     // public static int objectArraySize = 0;
 
-    public static final int broadCastFrequency = 5;
 
     enum ObjectType{
         COW,DELIVERY_DRONE,DESIGN_SCHOOL,FULFILLMENT_CENTER,HQ,LANDSCAPER,MINER,NET_GUN,REFINERY,VAPORATOR,SOUP,WATER,TO_BE_REFINERY, NO_SOUP;
