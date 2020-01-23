@@ -44,6 +44,19 @@ public strictfp class DroneBot extends Globals
                     }
                 }
             }
+
+            if (baseLoc == null)
+            {
+            	RobotInfo[] nearbyOpps = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, team);
+            	for (int i = 0; i < nearbyOpps.length; i++)
+            	{
+            		if (nearbyOpps[i].type == RobotType.HQ)
+            		{
+            			baseLoc = nearbyOpps[i].location;
+            			break;
+            		}
+            	}
+            }
 		}
 
 		System.out.println(opponentHQLoc);
@@ -60,6 +73,7 @@ public strictfp class DroneBot extends Globals
 					case COW: continue;
 
 					case HQ: opponentHQLoc = currLocation.loc;
+					netGunLocations[netGunLocationsIdx++] = opponentHQLoc;
 				}
 			}
 		}
@@ -90,6 +104,18 @@ public strictfp class DroneBot extends Globals
 				netGunLocationsIdx = 0;
 		}
 
+		if (baseLoc == null)
+		{
+			if (opponentHQLoc == null)
+			{
+				return;
+			}
+			else
+			{
+				navigateAroundNetGuns(opponentHQLoc);
+			}
+		}
+
 		System.out.println("Carrying teammate status " + carryingTeammate);
 
 		if (carryingTeammate == 0)
@@ -115,16 +141,27 @@ public strictfp class DroneBot extends Globals
 		}
 
 		// crunch.
-		if (roundNum > 1000 && opponentHQLoc != null)
+		if (roundNum > CRUNCH_PREP_ROUND && opponentHQLoc != null)
 		{
 			if (roundNum > 1550) //Better indicator?
 			{
 				if (!rc.isCurrentlyHoldingUnit())
 					pickUpOpponents();
+				else
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						MapLocation dropLoc = currentPos.add(directions[i]);
+						if (!rc.senseFlooding(dropLoc) && dropLoc.distanceSquaredTo(opponentHQLoc) <=2 && rc.canDropUnit(directions[i]))
+						{
+							rc.dropUnit(directions[i]);
+							return;
+						}
+					}
+				}
 				navigate(opponentHQLoc);
 			}
-
-			if (currentPos.distanceSquaredTo(baseLoc) < 18)
+			if (currentPos.distanceSquaredTo(baseLoc) < 18 && !rc.isCurrentlyHoldingUnit())
 			{
 				RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
 				int pickUpID = -1;
@@ -149,7 +186,7 @@ public strictfp class DroneBot extends Globals
 					{
 						if (rc.canPickUpUnit(pickUpID))
 						{
-							carryingTeammate = 1;
+							carryingTeammate = 8;
 							rc.pickUpUnit(pickUpID);
 						}
 						else
@@ -161,17 +198,23 @@ public strictfp class DroneBot extends Globals
 					}
 				}
 
-				if (drno > 0 || rc.isCurrentlyHoldingUnit())
+				if (rc.isCurrentlyHoldingUnit())
 				{
 					navigateAroundNetGuns(opponentHQLoc);
 				}
+				else return;
 			}
-			else
+			
+			if (rc.isCurrentlyHoldingUnit() || currentPos.distanceSquaredTo(baseLoc) >= 18)
+			{
 				navigateAroundNetGuns(opponentHQLoc);
+				return;
+			}
 		}
 
 		if (opponentHQLoc == null || currentPos.distanceSquaredTo(opponentHQLoc) > 49)
 		{
+			System.out.println("Doing what i shouldn't");
 			pickUpOpponents();
 			pickUpCows();
 		}
@@ -186,7 +229,7 @@ public strictfp class DroneBot extends Globals
 		MapLocation pickUpLoc = null;
 		for (int i = 0; i < helpScapers.length; i++)
 		{
-			if (helpScapers[i].type == RobotType.LANDSCAPER)
+			if (helpScapers[i].type == RobotType.LANDSCAPER|| (roundNum>MINERMOVEROUND && helpScapers[i].type == RobotType.MINER))
 			{
 				pickUpID = helpScapers[i].ID;
 				pickUpLoc = helpScapers[i].location;

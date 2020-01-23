@@ -27,6 +27,8 @@ public strictfp class HQBot extends Globals
 	private static int lastTurnTo9Ref=0;
 	private static int initialSoup;
 
+	private static int myMiners;
+
 
 
     public static void run(RobotController rc) throws GameActionException
@@ -42,12 +44,25 @@ public strictfp class HQBot extends Globals
 			initialArr[0] = Communications.getCommsNum(ObjectType.HQ,currentPos);
 			// if(soupLocation != null)
 			// 	initialArr[1] = Communications.getCommsNum(ObjectType.SOUP, soupLocation);
-			System.out.print(Communications.sendComs(initialArr,1));
+			System.out.print(Communications.sendComs(initialArr,2));
+			// System.out.print(Communications.sendComs(initialArr,2));
+			// System.out.print(Communications.sendComs(initialArr,2));
+			// System.out.print(Communications.sendComs(initialArr,2));
+			// System.out.print(Communications.sendComs(initialArr,2));
+			// System.out.print(Communications.sendComs(initialArr,2));
+			// System.out.print(Communications.sendComs(initialArr,2));
+
 			initialSoup=totalSoupInRange();
+			myMiners=Math.min(initialSoup/SOUPSCALEFACTOR,MAXEARLYMINERS);
+		}
+		else if (roundNum==2){
+			int commsArr[][]=Communications.getComms(roundNum-1);
+			System.out.println("Length:" + commsArr.length);
 		}
 		else if (roundNum > 2)
 		{
 			int commsArr[][]=Communications.getComms(roundNum-1);
+			System.out.println("Length:" + commsArr.length);
 
 			if(soupLocationPointer==9 && roundNum-lastTurnTo9Soup>NINELIMIT){
 				soupLocationPointer=0;
@@ -73,9 +88,9 @@ public strictfp class HQBot extends Globals
 						//check
 						System.out.println("SOUPSOUP");
 						System.out.println(currLocation.loc.x + " " + currLocation.loc.y);
-
 						boolean works=true;
 						for(int j=0;j<soupLocationPointer;j++){
+							System.out.println(soupQueue[j]);
 							if(currLocation.loc.distanceSquaredTo(soupQueue[j])<=VALIDSOUPCUTOFF){
 								works=false;
 								break;
@@ -185,11 +200,11 @@ public strictfp class HQBot extends Globals
 		}
 
 		soupLocation = senseNearbySoup();
-		if(soupLocationPointer==0)soupQueue[soupLocationPointer++]=soupLocation;
+		if(soupLocationPointer==0 && soupLocation!=null)soupQueue[soupLocationPointer++]=soupLocation;
 
 		if (soupLocation != null)
 		{
-			if (minerCount < initialSoup/SOUPSCALEFACTOR)
+			if (minerCount < myMiners)
 			{
 				Direction tryDir = currentPos.directionTo(soupLocation);
 				if(rc.canBuildRobot(RobotType.MINER, tryDir))
@@ -224,7 +239,7 @@ public strictfp class HQBot extends Globals
 		if (minerCount < 3)
 			buildMiner();
 
-		if (roundNum > 200 && minerCount < initialSoup/SOUPSCALEFACTOR)
+		if (roundNum > 200 && minerCount < myMiners)
 		{
 			if (roundNum-lastRoundActive > 30)
 			{
@@ -245,8 +260,16 @@ public strictfp class HQBot extends Globals
 			}
 		}
 		
-		if (roundNum > 500 && minerCount < initialSoup/SOUPSCALEFACTOR)
+		if (roundNum < STOPMININGROUND-50 && minerCount < myMiners)
 		{
+			buildMiner();
+		}
+
+		if(roundNum == STOPMININGROUND){
+			minerCount=1;
+		}
+
+		if(roundNum>STOPMININGROUND && minerCount<LATTICEMINERCOUNT){
 			buildMiner();
 		}
 

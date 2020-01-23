@@ -34,15 +34,29 @@ public class Globals
     public static final int STEPSIZE=5; //for exploration
     public static final int MAPDIVISION=16; //Exporation , higher number is more explorative, use powers of two
     public static final int MINSOUPFORCOMMS=50;//under this, miners will not send new soup locations
-    public static final int SENDCUTOFF=32;//probability of sending new soup locations, 256 is 1.
+    public static final int SENDCUTOFF=10;//probability of sending new soup locations, 256 is 1.
 
     public static final int NINELIMIT = 50;//how many turns an HQ should hold a queue at 9 before flushing it
     public static final int broadCastFrequency = 5;//frequency of HQ comms
 
     public static final int MINDRONEROUND=500;
-    public static final int LANDSCAPERFRQ=30;
-    public static final int LANDSCAPERMIN=150;
-    public static final int SOUPSCALEFACTOR=200;
+    public static int DRONEFREQUENCY=50;
+    public static int LANDSCAPERFRQ=50;//frequency to spawn lanscapers in non-defense
+    public static final int LANDSCAPERMIN=200;//minimum round to spawn lanscapers in non-defense
+    public static final int SOUPSCALEFACTOR=300;//ratio of initialSoup:miners
+    public static final int MAXEARLYMINERS=10;
+    public static final int LATTICEMINERCOUNT=3;
+
+    public static final int NEWDRONEFREQUENCY=20;
+
+    public static final int MAX_EXP_ROUND = 1000;
+    public static final int MIN_EXP_ROUND = 600;
+
+    public static final int CRUNCH_PREP_ROUND = 1000;
+
+    public static final int MINERMOVEROUND=500;//round at which drones pick up miners onto lattice
+
+    public static final int STOPMININGROUND=600;//miners stop mining, start building vaporators and net guns
 
 
     // public static ObjectLocation[] objectArray = new ObjectLocation[12];
@@ -127,9 +141,18 @@ public class Globals
 
     public static void update()
     {
+
         currentPos = rc.getLocation();
         roundNum = rc.getRoundNum();
         sensorRadiusSquared = rc.getCurrentSensorRadiusSquared();
+        if(roundNum>MIN_EXP_ROUND && roundNum<MAX_EXP_ROUND){
+            DRONEFREQUENCY=1000;
+            LANDSCAPERFRQ=1000;
+        }
+        else{
+            DRONEFREQUENCY=50;
+            LANDSCAPERFRQ=50;            
+        }
     }
 
     public static boolean inBounds(MapLocation loc)
@@ -161,6 +184,11 @@ public class Globals
 
     public static MapLocation findWaterAroundBase() throws GameActionException
 	{
+        if (baseLoc == null)
+        {
+            return null;
+        }
+
 				// Search over every viable location.
 		MapLocation searchPos = baseLoc.translate(0,0);
 		if (rc.canSenseLocation(searchPos) && rc.senseFlooding(searchPos))

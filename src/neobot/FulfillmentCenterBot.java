@@ -32,7 +32,28 @@ public strictfp class FulfillmentCenterBot extends Globals
                     }
                 }
             }
+
+            if (baseLoc == null)
+            {
+            	RobotInfo[] nearbyOpps = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, team);
+            	for (int i = 0; i < nearbyOpps.length; i++)
+            	{
+            		if (nearbyOpps[i].type == RobotType.HQ)
+            		{
+            			baseLoc = nearbyOpps[i].location;
+            			break;
+            		}
+            	}
+            }
 		}
+
+        if(baseLoc==null || currentPos.distanceSquaredTo(baseLoc)>18){
+            if(roundNum-lastRoundActive>NEWDRONEFREQUENCY){
+            	buildDrone();
+            	return;
+            }
+        }
+
 
 		RobotInfo[] nearbyBots = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, opponent);
 		RobotInfo[] nearbyTeam = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, team);
@@ -57,15 +78,24 @@ public strictfp class FulfillmentCenterBot extends Globals
 		if (drno < oppno)
 			buildDrone();
 
-		if (roundNum > 1000)
+		if (roundNum > CRUNCH_PREP_ROUND)
 		{
-			if (roundNum - lastRoundActive > 10)
+			if (drno == 0)
+			{
 				buildDrone();
+			}
+			else
+				return;
+		}
+
+		if (roundNum > MIN_EXP_ROUND && roundNum < MAX_EXP_ROUND)
+		{
+			return;
 		}
 		
 		if (roundNum > MINDRONEROUND)
 		{
-			if (roundNum - lastRoundActive > 30)
+			if (roundNum - lastRoundActive > DRONEFREQUENCY)
 				buildDrone();
 		}
 

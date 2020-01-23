@@ -50,6 +50,19 @@ public strictfp class LandscaperBot extends Globals
                     }
                 }
             }
+
+            if (baseLoc == null)
+            {
+            	RobotInfo[] nearbyOpps = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, team);
+            	for (int i = 0; i < nearbyOpps.length; i++)
+            	{
+            		if (nearbyOpps[i].type == RobotType.HQ)
+            		{
+            			baseLoc = nearbyOpps[i].location;
+            			break;
+            		}
+            	}
+            }
 		}
 
 		if (roundNum%broadCastFrequency == 1 && opponentHQLoc == null)
@@ -747,12 +760,12 @@ public strictfp class LandscaperBot extends Globals
 				break;
 			}
 
-			for(int i = 0; i < 8; i++)
-				if(rc.canSenseLocation(currentPos.add(directions[i])) 
-				&& baseLoc.distanceSquaredTo(currentPos.add(directions[i])) <= 18 
-				&& baseLoc.distanceSquaredTo(currentPos.add(directions[i])) > 8
-				&& rc.senseElevation(currentPos.add(directions[i])) < wallElevation)
-					navigate(currentPos.add(directions[i]));
+			// for(int i = 0; i < 8; i++)
+			// 	if(rc.canSenseLocation(currentPos.add(directions[i])) 
+			// 	&& baseLoc.distanceSquaredTo(currentPos.add(directions[i])) <= 18 
+			// 	&& baseLoc.distanceSquaredTo(currentPos.add(directions[i])) > 8
+			// 	&& rc.senseElevation(currentPos.add(directions[i])) < wallElevation)
+			// 		navigate(currentPos.add(directions[i]));
 
 		}
 		

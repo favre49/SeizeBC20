@@ -34,6 +34,19 @@ public strictfp class DesignSchoolBot extends Globals
                         }
                     }
                 }
+
+            if (baseLoc == null)
+            {
+                RobotInfo[] nearbyOpps = rc.senseNearbyRobots(currentPos, sensorRadiusSquared, team);
+                for (int i = 0; i < nearbyOpps.length; i++)
+                {
+                    if (nearbyOpps[i].type == RobotType.HQ)
+                    {
+                        baseLoc = nearbyOpps[i].location;
+                        break;
+                    }
+                }
+            }
         }
 
 		// Defend!!!
@@ -76,7 +89,43 @@ public strictfp class DesignSchoolBot extends Globals
                 }
             }
         }
+        
+        if (roundNum > CRUNCH_PREP_ROUND)
+        {
+            if(drno == 0)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                     int idx = (scaperIdx+i)%8;
+                     if (rc.canBuildRobot(RobotType.LANDSCAPER, directions[idx]))
+                     {
+                        scaperIdx = (idx+1)%8;
+                        buildLandscaper(directions[idx]);
+                     }
+                }
+            }
+            else
+                return;
+        }
 
+        if (roundNum > MIN_EXP_ROUND && roundNum < MAX_EXP_ROUND)
+        {
+            if (roundNum - lastRoundActive > 75)
+            {
+                System.out.println(scaperIdx);
+                for (int i = 0; i < 8; i++)
+                {
+                     int idx = (scaperIdx+i)%8;
+                     if (rc.canBuildRobot(RobotType.LANDSCAPER, directions[idx]))
+                     {
+                        scaperIdx = (idx+1)%8;
+                        buildLandscaper(directions[idx]);
+                     }
+                }
+            }
+            else
+                return;
+        }
 		// Every 20 turns make a new scaper.
         if (roundNum - lastRoundActive > LANDSCAPERFRQ && rc.isReady() && (vapeno >= 2 || roundNum >= LANDSCAPERMIN)){
 			System.out.println(scaperIdx);

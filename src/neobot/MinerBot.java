@@ -58,49 +58,38 @@ public strictfp class MinerBot extends Globals
 
 	private static boolean reachedQ0 = false;
 
+	private static boolean toBuildNetGun = false;
+	private static boolean builtNetGun = false;
+	private static int dsc=0;
+
+
 	private static boolean[][] alreadyExplored = new boolean[mapWidth/MAPDIVISION + 2][mapHeight/MAPDIVISION + 2];
 
 	private static MapLocation[] vapLocations = new MapLocation[16];
 	private static boolean[] canNotBuild = new boolean[16];
+
+	private static int vapToGun;
 
     public static void run(RobotController rc) throws GameActionException
     {
         FastMath.initRand(rc);
 		System.out.println("soup location" + soupLocation);
 
-		// If we don't have the base location, let's find out.
-
-		System.out.println("I Built The DESIGN_SCHOOL?: " + iBuiltDesignSchool);
-		if(iBuiltDesignSchool){
-			//I need to build Vapes
-			
-			for (int i = 0; i < 16; i++)
+		if (roundNum%broadCastFrequency == 1 && opponentHQLoc == null)
+		{
+			int commsArr[][]=Communications.getComms(roundNum-1);
+			// Set this up to be a switch case?
+			for(int i = 0; i < commsArr.length; i++)
 			{
-				if(canNotBuild[i])continue;
-				if(rc.isLocationOccupied(vapLocations[i])){
-					if(rc.senseRobotAtLocation(vapLocations[i]).type.isBuilding())
-						canNotBuild[i]=true;
-					continue;
-				}
-				// System.out.println("I is" + i);
-				if(currentPos.distanceSquaredTo(vapLocations[i])<=2){
-					if(rc.canBuildRobot(RobotType.VAPORATOR,currentPos.directionTo(vapLocations[i]))){
-						buildVaporator(currentPos.directionTo(vapLocations[i]));
-					}
-					else{
-						if(rc.getTeamSoup()>=500)
-							canNotBuild[i]=true;
-						continue;
-					}
-				}
-				else{
-					navigate(vapLocations[i]);
-				}
-				return;
-			}
-			return;
-		}
+				ObjectLocation currLocation = Communications.getLocationFromInt(commsArr[i][0]);
+				switch(currLocation.rt)
+				{
+					case COW: continue;
 
+					case HQ: opponentHQLoc = currLocation.loc;
+				}
+			}
+		}
 
 		if (baseLoc == null)
 		{
@@ -139,6 +128,142 @@ public strictfp class MinerBot extends Globals
             vapLocations[15]=baseLoc.translate(-1,-2);
 
 		}
+
+
+		// If we don't have the base location, let's find out.
+
+		System.out.println("I Built The DESIGN_SCHOOL?: " + iBuiltDesignSchool);
+
+		if(roundNum>=STOPMININGROUND){
+
+			RobotInfo[] lookForDrones=rc.senseNearbyRobots(currentPos,-1,opponent);
+			for(int i=0;i<lookForDrones.length;i++){
+				if(lookForDrones[i].type==RobotType.DELIVERY_DRONE||lookForDrones[i].type==RobotType.FULFILLMENT_CENTER){
+					builtNetGun=false;
+					break;
+				}
+			}
+
+
+			if(!builtNetGun){
+				lookForDrones=rc.senseNearbyRobots(currentPos,-1,team);
+				for(int i=0;i<lookForDrones.length;i++){
+					if(lookForDrones[i].type==RobotType.FULFILLMENT_CENTER){
+						builtNetGun=true;
+						break;
+					}
+				}
+			}
+
+
+			if(roundNum>=MAX_EXP_ROUND && iBuiltDesignSchool && dsc<2){
+				if (rc.getTeamSoup() > 150 && (rc.senseElevation(currentPos) >= 8))
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						MapLocation buildPos = currentPos.add(directions[i]);
+						if (rc.getTeamSoup() >=250 && rc.canBuildRobot(RobotType.DESIGN_SCHOOL, directions[i]) && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
+						{
+							dsc++;
+							buildFulfilmentCenter(directions[i]);
+							return;
+						}
+					}
+				}
+			}
+
+
+			if(currentPos.distanceSquaredTo(baseLoc)>98){
+				builtNetGun=true;
+			}
+
+			if(!builtNetGun){
+				if (rc.getTeamSoup() > 250 && (rc.senseElevation(currentPos) >= 8))
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						MapLocation buildPos = currentPos.add(directions[i]);
+						if (rc.getTeamSoup() >=250 && rc.canBuildRobot(RobotType.NET_GUN, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
+						{
+							buildTurn++;
+							builtNetGun=true;
+							buildNetGun(directions[i]);
+							return;
+						}
+					}
+				}
+			}
+			else{
+				if (rc.getTeamSoup() > 500 && (rc.senseElevation(currentPos) >= 8))
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						MapLocation buildPos = currentPos.add(directions[i]);
+						if (rc.getTeamSoup() >=500 && rc.canBuildRobot(RobotType.VAPORATOR, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
+						{
+							buildTurn++;
+							vapToGun++;
+							buildVaporator(directions[i]);
+							return;
+						}
+					}
+				}
+			}		
+
+			if(builtNetGun){
+				if(currentPos.distanceSquaredTo(baseLoc)>45 && iBuiltDesignSchool){
+					navigate(baseLoc);
+				}
+				if(opponentHQLoc!=null){
+					navigate(opponentHQLoc);
+					return;
+				}
+				else{
+					currentTarget=currentPos;
+					pickNewExploreDest2();
+					newPath(currentTarget);
+					return;
+				}
+			}
+			else{
+				currentTarget=currentPos;
+				pickNewExploreDest2();
+				newPath(currentTarget);
+				return;
+			}
+		}
+
+
+		if(iBuiltDesignSchool){
+			//I need to build Vapes
+			
+			for (int i = 0; i < 16; i++)
+			{
+				if(canNotBuild[i])continue;
+				if(rc.isLocationOccupied(vapLocations[i])){
+					if(rc.senseRobotAtLocation(vapLocations[i]).type.isBuilding())
+						canNotBuild[i]=true;
+					continue;
+				}
+				// System.out.println("I is" + i);
+				if(currentPos.distanceSquaredTo(vapLocations[i])<=2){
+					if(rc.canBuildRobot(RobotType.VAPORATOR,currentPos.directionTo(vapLocations[i]))){
+						buildVaporator(currentPos.directionTo(vapLocations[i]));
+					}
+					else{
+						if(rc.getTeamSoup()>=500)
+							canNotBuild[i]=true;
+						continue;
+					}
+				}
+				else{
+					navigate(vapLocations[i]);
+				}
+				return;
+			}
+			return;
+		}
+
 
 		if (roundNum%broadCastFrequency == 1)
 		{
@@ -371,35 +496,6 @@ public strictfp class MinerBot extends Globals
 					}
 					navigate(baseLoc);
 					return;
-				}
-			}
-		}
-
-
-
-		if (rc.getTeamSoup() > 500 && (rc.senseElevation(currentPos) >= 8||roundNum < 300))
-		{
-			int vapenums = 0;
-			RobotInfo[] nearbyVapes = rc.senseNearbyRobots(currentPos, 8, team);
-			for (int i = 0; i < nearbyVapes.length; i++)
-			{
-				if (nearbyVapes[i].type == RobotType.VAPORATOR)
-				{
-					vapenums++;
-				}
-			}
-
-			if (vapenums < 3)
-			{
-				for (int i = 0; i < 8; i++)
-				{
-					MapLocation buildPos = currentPos.add(directions[i]);
-					if (rc.getTeamSoup() <=510 && rc.canBuildRobot(RobotType.VAPORATOR, directions[i]) && buildPos.x % 2 == (baseLoc.x+1) % 2 && buildPos.y % 2 == (baseLoc.y+1) % 2 && (baseLoc.distanceSquaredTo(buildPos) < 9 || baseLoc.distanceSquaredTo(buildPos) > 18))
-					{
-						buildTurn++;
-						buildVaporator(directions[i]);
-						return;
-					}
 				}
 			}
 		}
