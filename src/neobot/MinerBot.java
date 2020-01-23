@@ -156,32 +156,32 @@ private static int HELDSOUPCUTOFF=50;
 
 		System.out.println("I am carrying " + rc.getSoupCarrying() + " soup");
 
-		// if (opponentHQLoc != null)
-		// {
-		// 	if (currentPos.distanceSquaredTo(opponentHQLoc) > 20)
-		// 		navigate(opponentHQLoc);
-		// 	else
-		// 	{
-		// 		RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
-		// 		for (int i = 0; i < nearbyBots.length; i++)
-		// 		{
-		// 			if (nearbyBots[i].type == RobotType.NET_GUN)
-		// 			{
-		// 				buildNetGun = false;
-		// 				break;
-		// 			}
-		// 		}
+		if (opponentHQLoc != null)
+		{
+			if (currentPos.distanceSquaredTo(opponentHQLoc) > 20)
+				navigate(opponentHQLoc);
+			else
+			{
+				RobotInfo[] nearbyBots = rc.senseNearbyRobots(sensorRadiusSquared, team);
+				for (int i = 0; i < nearbyBots.length; i++)
+				{
+					if (nearbyBots[i].type == RobotType.NET_GUN)
+					{
+						buildNetGun = false;
+						break;
+					}
+				}
 
-		// 		if (buildNetGun)
-		// 		{
-		// 			for (int i = 0; i < 8; i++)
-		// 			{
-		// 				if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]))
-		// 					buildNetGun(directions[i]);
-		// 			}
-		// 		}
-		// 	}
-		// }
+				if (buildNetGun)
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						if (rc.canBuildRobot(RobotType.NET_GUN, directions[i]))
+							buildNetGun(directions[i]);
+					}
+				}
+			}
+		}
 
 		if (shouldBuild && !builtFulfilmentCenter)
 		{
@@ -343,7 +343,7 @@ private static int HELDSOUPCUTOFF=50;
 		}
     	System.out.println("READY HERE2? " + rc.isReady());
 
-updateSQ();//should also remove all NOTGOINGTOs from SQ
+		updateSQ();//should also remove all NOTGOINGTOs from SQ
 
     	// System.out.println("MYSQSIZE is " + soupQueuePointer);
     	// for(int i=0;i<soupQueuePointer;i++){

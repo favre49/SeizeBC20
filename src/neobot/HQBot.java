@@ -149,32 +149,38 @@ public strictfp class HQBot extends Globals
 				soupQueue[closestSoupInd]=temp;
 			}
 
-			System.out.println("soupQueueSize"+soupLocationPointer);
+
 			int[] broadCastArr;
-			if(soupLocationPointer>0){
-				broadCastArr = new int[9];
-				for(int i=0;i<Math.min(9,soupLocationPointer);i++){
-					System.out.println(soupQueue[i].x+","+soupQueue[i].y);
-					broadCastArr[i]=Communications.getCommsNum(ObjectType.SOUP,soupQueue[i]);
-				}
-				Communications.sendComs(broadCastArr,1);
+			broadCastArr = new int[27];
+			int i=0;
+
+			System.out.println("soupQueueSize"+soupLocationPointer);
+
+			for(int j=0;j<Math.min(9,soupLocationPointer);j++){
+				System.out.println(soupQueue[j].x+","+soupQueue[j].y);
+				broadCastArr[i++]=Communications.getCommsNum(ObjectType.SOUP,soupQueue[j]);
 			}
 
 			System.out.println("refineryListSize"+refineryLocationPointer);
-			broadCastArr = new int[9];
-			for(int i=0;i<Math.min(9,refineryLocationPointer);i++){
-				System.out.println(refineryList[i].x+","+refineryList[i].y);
-				broadCastArr[i]=Communications.getCommsNum(ObjectType.REFINERY,refineryList[i]);
-			}
-			Communications.sendComs(broadCastArr,1);
 
-			broadCastArr = new int[9];
-			int idx = 0;
+			for(int j=0;j<Math.min(9,refineryLocationPointer);j++){
+				System.out.println(refineryList[j].x+","+refineryList[j].y);
+				broadCastArr[i++]=Communications.getCommsNum(ObjectType.REFINERY,refineryList[j]);
+			}
+
 			if (opponentHQLoc != null)
 			{
-				broadCastArr[idx++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
+				broadCastArr[i++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
 			}
-			Communications.sendComs(broadCastArr,1);
+
+			for(int q=0;q<3;q++){
+				int[] newArr = new int[9];
+				if(broadCastArr[q*9]==0)break;
+				for(int z=0;z<9;z++){
+					newArr[z]=broadCastArr[q*9+z];
+				}
+				Communications.sendComs(newArr,1);
+			}
 		}
 
 		soupLocation = senseNearbySoup();
