@@ -154,6 +154,11 @@ public strictfp class HQBot extends Globals
 			broadCastArr = new int[27];
 			int i=0;
 
+			if (opponentHQLoc != null)
+			{
+				broadCastArr[i++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
+			}
+
 			System.out.println("soupQueueSize"+soupLocationPointer);
 
 			for(int j=0;j<Math.min(9,soupLocationPointer);j++){
@@ -168,10 +173,6 @@ public strictfp class HQBot extends Globals
 				broadCastArr[i++]=Communications.getCommsNum(ObjectType.REFINERY,refineryList[j]);
 			}
 
-			if (opponentHQLoc != null)
-			{
-				broadCastArr[i++] = Communications.getCommsNum(ObjectType.HQ, opponentHQLoc);
-			}
 
 			for(int q=0;q<3;q++){
 				int[] newArr = new int[9];
@@ -184,6 +185,7 @@ public strictfp class HQBot extends Globals
 		}
 
 		soupLocation = senseNearbySoup();
+		if(soupLocationPointer==0)soupQueue[soupLocationPointer++]=soupLocation;
 
 		if (soupLocation != null)
 		{
