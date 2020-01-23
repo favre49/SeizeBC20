@@ -350,8 +350,10 @@ public strictfp class LandscaperBot extends Globals
 			for (int i = 0; i < 5; i++)
 			{
 				MapLocation nextCheck = currentPos.add(latticeExpandDirs[i]);
+				System.out.println(nextCheck);
+
 				if (!rc.onTheMap(nextCheck))
-					continue;
+					continue;				
 
 				if (nextCheck.distanceSquaredTo(baseLoc)<=8)
 					continue;
@@ -360,41 +362,52 @@ public strictfp class LandscaperBot extends Globals
 				if (!nextCheck.equals(currentPos) && robotOccupying != null && robotOccupying.team == team && robotOccupying.type.isBuilding())
 					continue;
 				
-				System.out.println("Got past checks");
+				System.out.println("Got past checks " + rc.senseElevation(nextCheck) + " " + wallElevation);
 
 				// Dig out the lattice!!!
 				if (rc.senseElevation(nextCheck) < wallElevation && rc.senseElevation(nextCheck) > -300)
 				{
+					System.out.println("I am in here!!");
 					if (rc.getDirtCarrying() > 0)
 					{
 						if (rc.canDepositDirt(latticeExpandDirs[i]))
 							rc.depositDirt(latticeExpandDirs[i]);
 						else
+						{
+							System.out.println("I was unable to deposit");
 							return;
+						}
 					}
 					else
 					{
+						System.out.println("I should be digging rn!");
 						if (!inBounds(currentPos.add(latticeDigDirs[latticeDigDirsIdx])) || currentPos.add(latticeDigDirs[latticeDigDirsIdx]).distanceSquaredTo(baseLoc) <= 8)
 						{
 							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
 							return;
 						}
+						System.out.println("Dodged this problem.");
 
 						if (rc.canDigDirt(latticeDigDirs[latticeDigDirsIdx]))
 						{
+							System.out.println("Confused");
 							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
 							rc.digDirt(latticeDigDirs[latticeDigDirsIdx]);
+							return;
 						}
 						else
 						{
+							System.out.println("Confused!");
 							latticeDigDirsIdx = (latticeDigDirsIdx+1)%4;
 							return;
 						}
 					}
 				}
 
+				System.out.println("Somehow got thru this");
+
 				// Level ground if it's not too high.
-				if (rc.senseElevation(nextCheck) > wallElevation && rc.senseElevation(nextCheck) <= 100)
+				if (rc.senseElevation(nextCheck) > wallElevation && rc.senseElevation(nextCheck) <= 50)
 				{
 					if (rc.getDirtCarrying() == 25)
 					{
@@ -468,7 +481,7 @@ public strictfp class LandscaperBot extends Globals
 				}
 
 				// Level ground if it's not too high.
-				if (rc.senseElevation(nextCheck) > wallElevation && rc.senseElevation(nextCheck) <= 100)
+				if (rc.senseElevation(nextCheck) > wallElevation && rc.senseElevation(nextCheck) <= 50)
 				{
 					if (rc.getDirtCarrying() == 25)
 					{
@@ -562,7 +575,7 @@ public strictfp class LandscaperBot extends Globals
 				}
 
 				// Level ground if it's not too high.
-				if (rc.senseElevation(nextCheck) > wallElevation && rc.senseElevation(nextCheck) <= 100)
+				if (rc.senseElevation(nextCheck) > wallElevation && rc.senseElevation(nextCheck) <= 50)
 				{
 					if (rc.getDirtCarrying() == 25)
 					{
@@ -639,11 +652,81 @@ public strictfp class LandscaperBot extends Globals
 				navigate(goToLoc);
 		}
 
-		for(int i = 0; i < directions.length; i++)
-			if(inBounds(currentPos.add(directions[i])) && rc.senseFlooding(currentPos.add(directions[i])) && rc.canSenseLocation(currentPos.add(directions[i])) && rc.senseElevation(currentPos.add(directions[i])) < wallElevation && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 18)
+		// for(int i = 0; i < directions.length; i++)
+		// {
+		// 	if (inBounds(currentPos.add(directions[i])) && rc.senseFlooding(currentPos.add(directions[i])) && rc.canSenseLocation(currentPos.add(directions[i])) && rc.senseElevation(currentPos.add(directions[i])) < wallElevation && currentPos.add(directions[i]).distanceSquaredTo(baseLoc) <= 18)
+		// 	{
+		// 		navigate(currentPos.add(directions[i]));
+		// 	}	
+		// }
+
+		if (currentPos.distanceSquaredTo(baseLoc) <= 18 && currentPos.distanceSquaredTo(baseLoc) >= 9)
+		{
+			int line = -1;
+			if (currentPos.x - baseLoc.x == 3)
 			{
-				navigate(currentPos.add(directions[i]));
-			}	
+				line = 0;
+			}
+			else if (currentPos.x - baseLoc.x == -3)
+			{
+				line = 1;
+			}
+			else if (currentPos.y - baseLoc.y == 3)
+			{
+				line = 2;
+			}
+			else if (currentPos.y - baseLoc.y == -3)
+			{
+				line = 3;
+			}
+
+			switch(line)
+			{
+				case 0:
+				if (rc.canSenseLocation(baseLoc.translate(3,3)) && rc.senseElevation(baseLoc.translate(3,3)) < wallElevation)
+				{
+					navigate(baseLoc.translate(3,3));
+				}
+				else if (rc.canSenseLocation(baseLoc.translate(3,-3)) && rc.senseElevation(baseLoc.translate(3,-3)) < wallElevation)
+				{
+					navigate(baseLoc.translate(3,-3));
+				}
+				break;
+
+				case 1:
+				if (rc.canSenseLocation(baseLoc.translate(-3,3)) && rc.senseElevation(baseLoc.translate(-3,3)) < wallElevation)
+				{
+					navigate(baseLoc.translate(-3,3));
+				}
+				else if (rc.canSenseLocation(baseLoc.translate(-3,-3)) && rc.senseElevation(baseLoc.translate(-3,-3)) < wallElevation)
+				{
+					navigate(baseLoc.translate(-3,-3));
+				}
+				break;
+
+				case 2:
+				if (rc.canSenseLocation(baseLoc.translate(-3,3)) && rc.senseElevation(baseLoc.translate(-3,3)) < wallElevation)
+				{
+					navigate(baseLoc.translate(-3,3));
+				}
+				else if (rc.canSenseLocation(baseLoc.translate(3,3)) && rc.senseElevation(baseLoc.translate(3,3)) < wallElevation)
+				{
+					navigate(baseLoc.translate(3,3));
+				}
+				break;
+
+				case 3:
+				if (rc.canSenseLocation(baseLoc.translate(3,-3)) && rc.senseElevation(baseLoc.translate(3,-3)) < wallElevation)
+				{
+					navigate(baseLoc.translate(3,-3));
+				}
+				else if (rc.canSenseLocation(baseLoc.translate(-3,-3)) && rc.senseElevation(baseLoc.translate(-3,-3)) < wallElevation)
+				{
+					navigate(baseLoc.translate(-3,-3));
+				}
+				break;
+			}
+		}
 		
 		// Choose the next place to move to.
 		System.out.println("I'm ready to go elsewhere now!");

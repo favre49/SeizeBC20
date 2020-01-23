@@ -13,13 +13,20 @@ public strictfp class NetGunBot extends Globals
 {
 	public static void run(RobotController rc) throws GameActionException
 	{
-		RobotInfo nearbyUnits[] = rc.senseNearbyRobots(currentPos, 15, opponent);
-		for (int i = 0; i < nearbyUnits.length; i++)
+		RobotInfo[] nearbyRobots = rc.senseNearbyRobots(currentPos, 15, opponent);
+		int minDist = Integer.MAX_VALUE;
+		int minID = -1;
+		for (int i = 0; i < nearbyRobots.length; i++)
 		{
-			if (nearbyUnits[i].type == RobotType.DELIVERY_DRONE)
+			if (nearbyRobots[i].type == RobotType.DELIVERY_DRONE && nearbyRobots[i].location.distanceSquaredTo(currentPos) < minDist)
 			{
-				rc.shootUnit(nearbyUnits[i].ID);
+				minDist = nearbyRobots[i].location.distanceSquaredTo(currentPos);
+				minID = nearbyRobots[i].ID;
 			}
+		}
+		if (minID != -1)
+		{
+			rc.shootUnit(minID);
 		}
 	}
 }
