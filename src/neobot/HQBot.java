@@ -82,7 +82,8 @@ public strictfp class HQBot extends Globals
 					case COW: 
 						continue;
 					case HQ: 
-						opponentHQLoc = currLocation.loc;
+						if(!currLocation.loc.equals(currentPos));
+							opponentHQLoc = currLocation.loc;
 						break;
 					case SOUP:
 						//check

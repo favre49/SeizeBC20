@@ -76,7 +76,9 @@ public strictfp class LandscaperBot extends Globals
 				{
 					case COW: continue;
 
-					case HQ: opponentHQLoc = currLocation.loc;
+					case HQ: 
+					if(!currLocation.loc.equals(baseLoc))
+						opponentHQLoc = currLocation.loc;
 				}
 			}
 		}

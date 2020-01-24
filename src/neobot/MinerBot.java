@@ -289,7 +289,9 @@ public strictfp class MinerBot extends Globals
 					{
 						case COW: break innerloop;
 
-						case HQ: opponentHQLoc = currLocation.loc;
+						case HQ:
+						if(!currLocation.loc.equals(baseLoc))
+							opponentHQLoc = currLocation.loc;
 						break;
 
 						case SOUP:
