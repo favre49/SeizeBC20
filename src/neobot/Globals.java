@@ -47,10 +47,10 @@ public class Globals
     public static final int MAXEARLYMINERS=10;
     public static final int LATTICEMINERCOUNT=3;
 
-    public static final int NEWDRONEFREQUENCY=20;
+    public static int NEWDRONEFREQUENCY=20;
 
     public static final int MAX_EXP_ROUND = 1000;
-    public static final int MIN_EXP_ROUND = 600;
+    public static final int MIN_EXP_ROUND = 750;
 
     public static final int CRUNCH_PREP_ROUND = 1000;
 
@@ -152,6 +152,13 @@ public class Globals
         else{
             DRONEFREQUENCY=50;
             LANDSCAPERFRQ=50;            
+        }
+
+        if(rc.getTeamSoup()>2000){
+            NEWDRONEFREQUENCY=2;
+        }
+        else{
+            NEWDRONEFREQUENCY=20;            
         }
     }
 

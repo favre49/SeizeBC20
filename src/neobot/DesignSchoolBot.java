@@ -92,7 +92,18 @@ public strictfp class DesignSchoolBot extends Globals
         
         if (roundNum > CRUNCH_PREP_ROUND)
         {
-            if(drno == 0)
+            RobotInfo[] nearbyScapers = rc.senseNearbyRobots(baseLoc, 8, team);
+            int scapeno = 0;
+
+            for (int i = 0; i < nearbyScapers.length; i++)
+            {
+                if (nearbyScapers[i].type == RobotType.LANDSCAPER)
+                {
+                    scapeno++;
+                }
+            }
+
+            if(scapeno == 0)
             {
                 for (int i = 0; i < 8; i++)
                 {

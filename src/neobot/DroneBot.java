@@ -143,7 +143,7 @@ public strictfp class DroneBot extends Globals
 		// crunch.
 		if (roundNum > CRUNCH_PREP_ROUND && opponentHQLoc != null)
 		{
-			if (roundNum > 1550) //Better indicator?
+			if (roundNum > 1525) //Better indicator?
 			{
 				if (!rc.isCurrentlyHoldingUnit())
 					pickUpOpponents();
@@ -161,7 +161,7 @@ public strictfp class DroneBot extends Globals
 				}
 				navigate(opponentHQLoc);
 			}
-			if (currentPos.distanceSquaredTo(baseLoc) < 18 && !rc.isCurrentlyHoldingUnit())
+			if (currentPos.distanceSquaredTo(baseLoc) <= 18 && !rc.isCurrentlyHoldingUnit())
 			{
 				RobotInfo[] helpScapers = rc.senseNearbyRobots(baseLoc, 8, team);
 				int pickUpID = -1;
@@ -173,10 +173,7 @@ public strictfp class DroneBot extends Globals
 					{
 						pickUpID = helpScapers[i].ID;
 						pickUpLoc = helpScapers[i].location;
-					}
-					else if (helpScapers[i].type == RobotType.DELIVERY_DRONE)
-					{
-						drno++;
+						break;
 					}
 				}
 
@@ -216,7 +213,8 @@ public strictfp class DroneBot extends Globals
 		{
 			System.out.println("Doing what i shouldn't");
 			pickUpOpponents();
-			pickUpCows();
+			if (currentPos.distanceSquaredTo(baseLoc) > 45)
+				pickUpCows();
 		}
 
 		MapLocation waterLoc = findWaterAroundBase();
@@ -848,8 +846,10 @@ public strictfp class DroneBot extends Globals
 			break;
 		}
 
-		if (exploreDest.equals(baseLoc))
+		if (exploreDest.equals(baseLoc)){
 			offset++;
+			return;
+		}
 
 		if (rc.canSenseLocation(exploreDest))
 		{

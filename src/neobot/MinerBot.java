@@ -62,6 +62,8 @@ public strictfp class MinerBot extends Globals
 	private static boolean builtNetGun = false;
 	private static int dsc=0;
 
+	private static int vapcount=0;
+
 
 	private static boolean[][] alreadyExplored = new boolean[mapWidth/MAPDIVISION + 2][mapHeight/MAPDIVISION + 2];
 
@@ -155,8 +157,15 @@ public strictfp class MinerBot extends Globals
 				}
 			}
 
+			if(opponentHQLoc !=null && currentPos.distanceSquaredTo(opponentHQLoc)<150){
+				builtNetGun=false;
+			}
+			// if(rc.getTeamSoup()>1500){
+			// 	builtNetGun=false;
+			// }
 
-			if(roundNum>=MAX_EXP_ROUND && iBuiltDesignSchool && dsc<2){
+
+			if((roundNum>=MAX_EXP_ROUND && iBuiltDesignSchool && dsc<2)){
 				if (rc.getTeamSoup() > 150 && (rc.senseElevation(currentPos) >= 8))
 				{
 					for (int i = 0; i < 8; i++)
@@ -173,9 +182,9 @@ public strictfp class MinerBot extends Globals
 			}
 
 
-			if(currentPos.distanceSquaredTo(baseLoc)>98){
-				builtNetGun=true;
-			}
+			// if(currentPos.distanceSquaredTo(baseLoc)>98){
+			// 	builtNetGun=true;
+			// }
 
 			if(!builtNetGun){
 				if (rc.getTeamSoup() > 250 && (rc.senseElevation(currentPos) >= 8))
@@ -234,7 +243,7 @@ public strictfp class MinerBot extends Globals
 		}
 
 
-		if(iBuiltDesignSchool){
+		if(iBuiltDesignSchool && vapcount < 10){
 			//I need to build Vapes
 			
 			for (int i = 0; i < 16; i++)
@@ -248,6 +257,7 @@ public strictfp class MinerBot extends Globals
 				// System.out.println("I is" + i);
 				if(currentPos.distanceSquaredTo(vapLocations[i])<=2){
 					if(rc.canBuildRobot(RobotType.VAPORATOR,currentPos.directionTo(vapLocations[i]))){
+						vapcount++;
 						buildVaporator(currentPos.directionTo(vapLocations[i]));
 					}
 					else{
@@ -667,7 +677,7 @@ private static void mineSoup() throws GameActionException{
 	}
 
 	private static void checkLocalRefinery(){
-		RobotInfo[] nearbyRef=rc.senseNearbyRobots(-1);
+		RobotInfo[] nearbyRef=rc.senseNearbyRobots(-1,team);
 		int nearDist = Integer.MAX_VALUE;
 		for(int i=0;i<nearbyRef.length;i++){
 			if(nearbyRef[i].type == RobotType.REFINERY){

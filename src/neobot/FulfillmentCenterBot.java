@@ -80,23 +80,26 @@ public strictfp class FulfillmentCenterBot extends Globals
 
 		if (roundNum > CRUNCH_PREP_ROUND)
 		{
-			if (drno == 0)
+			RobotInfo[] nearbyDrones = rc.senseNearbyRobots(baseLoc, 8, team);
+			int drnooo = 0;
+			for (int i =0; i < nearbyDrones.length; i++)
+			{
+				if (nearbyTeam[i].type == RobotType.DELIVERY_DRONE)
+				drnooo++;
+			}
+			if (drnooo == 0)
 			{
 				buildDrone();
 			}
 			else
 				return;
 		}
-
-		if (roundNum > MIN_EXP_ROUND && roundNum < MAX_EXP_ROUND)
-		{
-			return;
-		}
 		
 		if (roundNum > MINDRONEROUND)
 		{
+			System.out.println("Should build");
 			if (roundNum - lastRoundActive > DRONEFREQUENCY)
-				buildDrone();
+				System.out.println(buildDrone());
 		}
 
 	}
